@@ -6,7 +6,8 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Image
+  Image,
+  ScrollView  // Added this import
 } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -53,12 +54,11 @@ export default function ProductListScreen({ navigation }) {
       <Image
         source={{ uri: item.imageUrl || 'https://via.placeholder.com/100' }}
         style={styles.productImage}
-        defaultSource={require('../../assets/logo.png')}
       />
       <View style={styles.productInfo}>
         <Text style={styles.productName}>{item.name}</Text>
-        <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
-        <Text style={styles.productStock}>In Stock: {item.quantity}</Text>
+        <Text style={styles.productPrice}>${item.price?.toFixed(2) || '0.00'}</Text>
+        <Text style={styles.productStock}>In Stock: {item.quantity || 0}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -74,7 +74,7 @@ export default function ProductListScreen({ navigation }) {
         />
       </View>
 
-      <ScrollView horizontal style={styles.categoryFilter}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryFilter}>
         {categories.map(category => (
           <TouchableOpacity
             key={category}
