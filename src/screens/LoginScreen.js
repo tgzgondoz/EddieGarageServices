@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  Animated
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,7 +18,28 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('admin@eddiegarage.com');
   const [password, setPassword] = useState('admin123');
   const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('admin');
   const { login } = useAuth();
+  
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    // Entrance animation only - NO AUTO LOGIN
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, []);
 
   const handleLogin = async () => {
     // Validate inputs
@@ -49,6 +71,7 @@ export default function LoginScreen() {
   };
 
   const setDemoAccount = (type) => {
+    setSelectedRole(type);
     if (type === 'admin') {
       setEmail('admin@eddiegarage.com');
       setPassword('admin123');
@@ -64,7 +87,15 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
+        <Animated.View 
+          style={[
+            styles.content,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
           <View style={styles.logoContainer}>
             <View style={styles.logoPlaceholder}>
               <Text style={styles.logoText}>🔧</Text>
@@ -110,26 +141,50 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>Demo Accounts</Text>
+            <Text style={styles.demoTitle}>⚡ Quick Login</Text>
+            <Text style={styles.demoSubtitle}>Tap to auto-fill credentials, then click Login</Text>
+            
             <View style={styles.demoButtons}>
               <TouchableOpacity
-                style={[styles.demoButton, styles.adminButton]}
+                style={[
+                  styles.demoButton, 
+                  styles.adminButton,
+                  selectedRole === 'admin' && styles.selectedButton
+                ]}
                 onPress={() => setDemoAccount('admin')}
               >
+                <Text style={styles.demoIcon}>👑</Text>
                 <Text style={styles.demoButtonText}>Admin</Text>
                 <Text style={styles.demoButtonSubtext}>admin@eddiegarage.com</Text>
+                <View style={styles.demoPasswordTag}>
+                  <Text style={styles.demoPasswordText}>🔑 admin123</Text>
+                </View>
               </TouchableOpacity>
+              
               <TouchableOpacity
-                style={[styles.demoButton, styles.staffButton]}
+                style={[
+                  styles.demoButton, 
+                  styles.staffButton,
+                  selectedRole === 'staff' && styles.selectedButton
+                ]}
                 onPress={() => setDemoAccount('staff')}
               >
+                <Text style={styles.demoIcon}>👤</Text>
                 <Text style={styles.demoButtonText}>Staff</Text>
                 <Text style={styles.demoButtonSubtext}>staff@eddiegarage.com</Text>
+                <View style={styles.demoPasswordTag}>
+                  <Text style={styles.demoPasswordText}>🔑 staff123</Text>
+                </View>
               </TouchableOpacity>
             </View>
-            <Text style={styles.demoPassword}>Password: admin123 / staff123</Text>
           </View>
-        </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Tap Admin or Staff to auto-fill credentials, then click Login
+            </Text>
+          </View>
+        </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -152,28 +207,33 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   logoPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#ff6b00',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   logoText: {
-    fontSize: 50,
+    fontSize: 45,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#ff6b00',
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
     marginTop: 5,
     textAlign: 'center',
@@ -219,13 +279,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   demoContainer: {
-    marginTop: 30,
+    marginTop: 25,
     alignItems: 'center',
   },
   demoTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+  },
+  demoSubtitle: {
+    fontSize: 12,
+    color: '#666',
     marginBottom: 12,
   },
   demoButtons: {
@@ -236,10 +300,21 @@ const styles = StyleSheet.create({
   },
   demoButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    padding: 15,
+    borderRadius: 10,
     alignItems: 'center',
     marginHorizontal: 5,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedButton: {
+    borderColor: '#ff6b00',
+    borderWidth: 2,
+    shadowColor: '#ff6b00',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   adminButton: {
     backgroundColor: '#ff6b00',
@@ -247,19 +322,40 @@ const styles = StyleSheet.create({
   staffButton: {
     backgroundColor: '#2196F3',
   },
+  demoIcon: {
+    fontSize: 24,
+    color: 'white',
+  },
   demoButtonText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: 'bold',
+    marginTop: 5,
   },
   demoButtonSubtext: {
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 10,
-    marginTop: 2,
+    marginTop: 3,
   },
-  demoPassword: {
+  demoPasswordTag: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+    marginTop: 5,
+  },
+  demoPasswordText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  footer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  footerText: {
     fontSize: 12,
     color: '#666',
-    marginTop: 8,
+    textAlign: 'center',
   },
 });

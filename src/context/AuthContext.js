@@ -5,8 +5,8 @@ import {
   onAuthStateChanged,
   createUserWithEmailAndPassword
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { ref, set, get, update, child } from 'firebase/database';
+import { auth, database } from '../config/firebase';
 
 const AuthContext = createContext();
 
@@ -24,6 +24,28 @@ export function AuthProvider({ children }) {
   const [userRole, setUserRole] = useState('staff');
   const [userData, setUserData] = useState(null);
   const [authError, setAuthError] = useState(null);
+  const [usersList, setUsersList] = useState([]);
+
+  // Load users list for admin management
+  const loadUsersList = async () => {
+    try {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const usersArray = Object.keys(usersData).map(key => ({
+          id: key,
+          ...usersData[key]
+        }));
+        setUsersList(usersArray);
+        return usersArray;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error loading users list:', error);
+      return [];
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -32,18 +54,18 @@ export function AuthProvider({ children }) {
       
       if (user) {
         try {
-          // First try to get user data from Firestore
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
+          // Get user data from Realtime Database
+          const userRef = ref(database, `users/${user.uid}`);
+          const snapshot = await get(userRef);
           
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            console.log('User data from Firestore:', userData);
-            console.log('Role from Firestore:', userData.role);
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            console.log('User data from Realtime Database:', userData);
+            console.log('Role from Realtime Database:', userData.role);
             setUserRole(userData.role || 'staff');
             setUserData(userData);
           } else {
-            // If no user document, check email for demo accounts
+            // If no user data, check email for demo accounts
             let role = 'staff';
             console.log('Checking email for role:', user.email);
             
@@ -58,16 +80,22 @@ export function AuthProvider({ children }) {
             console.log('Final role determined:', role);
             setUserRole(role);
             
-            // Create user document
+            // Create user data in Realtime Database
             const newUserData = {
               email: user.email,
               role: role,
-              createdAt: new Date(),
+              createdAt: new Date().toISOString(),
               displayName: user.displayName || '',
-              phone: ''
+              phone: '',
+              uid: user.uid,
+              isActive: true
             };
-            await setDoc(userDocRef, newUserData);
+            
+            await set(ref(database, `users/${user.uid}`), newUserData);
             setUserData(newUserData);
+            
+            // Update users list
+            await loadUsersList();
           }
         } catch (error) {
           console.error('Error fetching user role:', error);
@@ -100,15 +128,15 @@ export function AuthProvider({ children }) {
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
       console.log('Login successful:', result.user.email);
       
-      // Get user role after login
-      const userDocRef = doc(db, 'users', result.user.uid);
-      const userDoc = await getDoc(userDocRef);
+      // Get user role from Realtime Database
+      const userRef = ref(database, `users/${result.user.uid}`);
+      const snapshot = await get(userRef);
       
       let role = 'staff';
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
         role = userData.role || 'staff';
-        console.log('Role from Firestore after login:', role);
+        console.log('Role from Realtime Database after login:', role);
         setUserData(userData);
       } else {
         // Check email for demo accounts
@@ -119,6 +147,20 @@ export function AuthProvider({ children }) {
           role = 'staff';
           console.log('Staff login detected - Setting role to staff');
         }
+        
+        // Create user data if it doesn't exist
+        const newUserData = {
+          email: result.user.email,
+          role: role,
+          createdAt: new Date().toISOString(),
+          displayName: result.user.displayName || '',
+          phone: '',
+          uid: result.user.uid,
+          isActive: true
+        };
+        await set(ref(database, `users/${result.user.uid}`), newUserData);
+        setUserData(newUserData);
+        await loadUsersList();
       }
       
       console.log('Setting userRole to:', role);
@@ -167,11 +209,15 @@ export function AuthProvider({ children }) {
         role: role,
         displayName: displayName || email.split('@')[0],
         phone: '',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        uid: result.user.uid,
+        isActive: true
       };
       
-      await setDoc(doc(db, 'users', result.user.uid), userData);
+      // Save to Realtime Database
+      await set(ref(database, `users/${result.user.uid}`), userData);
+      await loadUsersList();
       
       return { success: true, user: result.user };
     } catch (error) {
@@ -213,12 +259,43 @@ export function AuthProvider({ children }) {
   const updateUserProfile = async (data) => {
     try {
       if (!currentUser) throw new Error('No user logged in');
-      const userDocRef = doc(db, 'users', currentUser.uid);
-      await setDoc(userDocRef, data, { merge: true });
+      const userRef = ref(database, `users/${currentUser.uid}`);
+      await update(userRef, {
+        ...data,
+        updatedAt: new Date().toISOString()
+      });
       setUserData(prev => ({ ...prev, ...data }));
+      await loadUsersList();
       return { success: true };
     } catch (error) {
       console.error('Error updating profile:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const updateUserRole = async (uid, newRole) => {
+    try {
+      const userRef = ref(database, `users/${uid}`);
+      await update(userRef, {
+        role: newRole,
+        updatedAt: new Date().toISOString()
+      });
+      await loadUsersList();
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const deleteUser = async (uid) => {
+    try {
+      const userRef = ref(database, `users/${uid}`);
+      await remove(userRef);
+      await loadUsersList();
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting user:', error);
       return { success: false, error: error.message };
     }
   };
@@ -227,6 +304,7 @@ export function AuthProvider({ children }) {
     currentUser,
     userRole,
     userData,
+    usersList,
     login,
     register,
     logout,
@@ -234,6 +312,9 @@ export function AuthProvider({ children }) {
     authError,
     setAuthError,
     updateUserProfile,
+    updateUserRole,
+    deleteUser,
+    loadUsersList,
     isAdmin: userRole === 'admin',
     isStaff: userRole === 'staff'
   };
