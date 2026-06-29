@@ -1,4 +1,3 @@
-// src/navigation/AppNavigator.js
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -19,7 +18,6 @@ import CategoryManagementScreen from '../screens/CategoryManagementScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Combine product and inventory into one stack
 function InventoryStack() {
   return (
     <Stack.Navigator>
@@ -99,7 +97,11 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
-  const { currentUser, userRole } = useAuth();
+  const { currentUser, userRole, loading } = useAuth();
+
+  if (loading) {
+    return null; // Or a loading screen
+  }
 
   if (!currentUser) {
     return (
