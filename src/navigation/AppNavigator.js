@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native'; // ✅ ADD THIS IMPORT
+import { View, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
@@ -22,11 +22,11 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Logout button component
-function LogoutButton() {
+function LogoutButton({ navigation }) {
   const { logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
@@ -53,6 +53,20 @@ function ProfileButton({ navigation }) {
   );
 }
 
+// Profile Stack Navigator
+function ProfileStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="Profile" 
+        component={UserProfileScreen} 
+        options={{ title: 'My Profile' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Inventory Stack Navigator
 function InventoryStack() {
   return (
     <Stack.Navigator>
@@ -71,10 +85,16 @@ function InventoryStack() {
         component={ProductDetailsScreen} 
         options={{ title: 'Product Details' }}
       />
+      <Stack.Screen 
+        name="CategoryManagement" 
+        component={CategoryManagementScreen} 
+        options={{ title: 'Manage Categories' }}
+      />
     </Stack.Navigator>
   );
 }
 
+// Product Stack Navigator
 function ProductStack() {
   return (
     <Stack.Navigator>
@@ -97,17 +117,19 @@ function ProductStack() {
   );
 }
 
+// ADMIN TABS - Full access for Admin
 function AdminTabs() {
+  console.log('🎯 Rendering Admin Tabs');
   return (
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           switch(route.name) {
+            case 'Dashboard': iconName = 'dashboard'; break;
             case 'POS': iconName = 'point-of-sale'; break;
             case 'Inventory': iconName = 'inventory'; break;
             case 'Products': iconName = 'shopping-cart'; break;
-            case 'Admin': iconName = 'admin-panel-settings'; break;
             case 'Sales': iconName = 'history'; break;
             default: iconName = 'home';
           }
@@ -120,31 +142,33 @@ function AdminTabs() {
         headerRight: () => (
           <View style={{ flexDirection: 'row' }}>
             <ProfileButton navigation={navigation} />
-            <LogoutButton />
+            <LogoutButton navigation={navigation} />
           </View>
         ),
       })}
     >
+      <Tab.Screen name="Dashboard" component={AdminDashboardScreen} />
       <Tab.Screen name="POS" component={POSScreen} />
       <Tab.Screen name="Inventory" component={InventoryStack} />
       <Tab.Screen name="Products" component={ProductStack} />
       <Tab.Screen name="Sales" component={SalesHistoryScreen} />
-      <Tab.Screen name="Admin" component={AdminDashboardScreen} />
     </Tab.Navigator>
   );
 }
 
+// STAFF TABS - Limited access for Staff
 function StaffTabs() {
+  console.log('🎯 Rendering Staff Tabs');
   return (
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           switch(route.name) {
+            case 'Dashboard': iconName = 'dashboard'; break;
             case 'POS': iconName = 'point-of-sale'; break;
             case 'Products': iconName = 'shopping-cart'; break;
             case 'Sales': iconName = 'history'; break;
-            case 'Dashboard': iconName = 'dashboard'; break;
             default: iconName = 'home';
           }
           return <Icon name={iconName} size={size} color={color} />;
@@ -156,7 +180,7 @@ function StaffTabs() {
         headerRight: () => (
           <View style={{ flexDirection: 'row' }}>
             <ProfileButton navigation={navigation} />
-            <LogoutButton />
+            <LogoutButton navigation={navigation} />
           </View>
         ),
       })}
@@ -169,14 +193,28 @@ function StaffTabs() {
   );
 }
 
+// Main App Navigator
 export default function AppNavigator() {
   const { currentUser, userRole, loading } = useAuth();
 
+  console.log('🔍 AppNavigator - Current State:');
+  console.log('  - loading:', loading);
+  console.log('  - currentUser:', currentUser?.email);
+  console.log('  - userRole:', userRole);
+  console.log('  - isAdmin:', userRole === 'admin');
+  console.log('  - isStaff:', userRole === 'staff');
+
   if (loading) {
-    return null; // Or a loading screen
+    console.log('⏳ Showing loading screen');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
 
   if (!currentUser) {
+    console.log('🔐 No user - showing Login');
     return (
       <Stack.Navigator>
         <Stack.Screen 
@@ -189,6 +227,7 @@ export default function AppNavigator() {
   }
 
   if (userRole === 'restricted') {
+    console.log('🚫 User is restricted');
     return (
       <Stack.Navigator>
         <Stack.Screen 
@@ -200,10 +239,14 @@ export default function AppNavigator() {
     );
   }
 
-  // Admin gets full access, staff gets limited access
+  // ADMIN gets full access with AdminDashboard
   if (userRole === 'admin') {
+    console.log('✅ ADMIN user - Showing Admin Dashboard');
     return <AdminTabs />;
-  } else {
+  } 
+  // STAFF gets limited access with StaffDashboard
+  else {
+    console.log('👤 STAFF user - Showing Staff Dashboard');
     return <StaffTabs />;
   }
 }

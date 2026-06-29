@@ -8,16 +8,17 @@ import {
   Alert,
   ScrollView
 } from 'react-native';
-import { addDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, addDoc, collection } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
-export default function AddProductScreen({ navigation }) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [category, setCategory] = useState('');
-  const [sku, setSku] = useState('');
+export default function AddEditProductScreen({ route, navigation }) {
+  const product = route.params?.product;
+  const [name, setName] = useState(product?.name || '');
+  const [description, setDescription] = useState(product?.description || '');
+  const [price, setPrice] = useState(product?.price?.toString() || '');
+  const [quantity, setQuantity] = useState(product?.quantity?.toString() || '');
+  const [category, setCategory] = useState(product?.category || '');
+  const [sku, setSku] = useState(product?.sku || '');
 
   const handleSubmit = async () => {
     if (!name || !price || !quantity) {
@@ -32,17 +33,23 @@ export default function AddProductScreen({ navigation }) {
       quantity: parseInt(quantity),
       category,
       sku,
-      createdAt: new Date(),
       updatedAt: new Date()
     };
 
     try {
-      await addDoc(collection(db, 'products'), productData);
-      Alert.alert('Success', 'Product added successfully');
+      if (product) {
+        const productRef = doc(db, 'products', product.id);
+        await setDoc(productRef, productData, { merge: true });
+        Alert.alert('Success', 'Product updated successfully');
+      } else {
+        productData.createdAt = new Date();
+        await addDoc(collection(db, 'products'), productData);
+        Alert.alert('Success', 'Product added successfully');
+      }
       navigation.goBack();
     } catch (error) {
-      console.error('Error adding product:', error);
-      Alert.alert('Error', 'Failed to add product');
+      console.error('Error saving product:', error);
+      Alert.alert('Error', 'Failed to save product');
     }
   };
 
@@ -102,7 +109,9 @@ export default function AddProductScreen({ navigation }) {
         />
 
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Add Product</Text>
+          <Text style={styles.submitButtonText}>
+            {product ? 'Update Product' : 'Add Product'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

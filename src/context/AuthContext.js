@@ -27,28 +27,37 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('Auth state changed - User:', user?.email);
       setCurrentUser(user);
       
       if (user) {
         try {
-          // Try to get user data from Firestore
+          // First try to get user data from Firestore
           const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
           
           if (userDoc.exists()) {
             const userData = userDoc.data();
+            console.log('User data from Firestore:', userData);
+            console.log('Role from Firestore:', userData.role);
             setUserRole(userData.role || 'staff');
             setUserData(userData);
           } else {
-            // If no user document, check email for demo
+            // If no user document, check email for demo accounts
             let role = 'staff';
+            console.log('Checking email for role:', user.email);
+            
             if (user.email === 'admin@eddiegarage.com') {
               role = 'admin';
+              console.log('Admin email detected - Setting role to admin');
             } else if (user.email === 'staff@eddiegarage.com') {
               role = 'staff';
+              console.log('Staff email detected - Setting role to staff');
             }
             
+            console.log('Final role determined:', role);
             setUserRole(role);
+            
             // Create user document
             const newUserData = {
               email: user.email,
@@ -64,16 +73,20 @@ export function AuthProvider({ children }) {
           console.error('Error fetching user role:', error);
           // Fallback to email-based role
           if (user.email === 'admin@eddiegarage.com') {
+            console.log('Fallback: Setting role to admin');
             setUserRole('admin');
           } else {
+            console.log('Fallback: Setting role to staff');
             setUserRole('staff');
           }
         }
       } else {
+        console.log('No user logged in');
         setUserRole('staff');
         setUserData(null);
       }
       
+      console.log('Final userRole state:', userRole);
       setLoading(false);
     });
 
@@ -83,23 +96,39 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       setAuthError(null);
+      console.log('Attempting login with:', email);
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
+      console.log('Login successful:', result.user.email);
       
       // Get user role after login
       const userDocRef = doc(db, 'users', result.user.uid);
       const userDoc = await getDoc(userDocRef);
+      
+      let role = 'staff';
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        setUserRole(userData.role || 'staff');
+        role = userData.role || 'staff';
+        console.log('Role from Firestore after login:', role);
         setUserData(userData);
+      } else {
+        // Check email for demo accounts
+        if (result.user.email === 'admin@eddiegarage.com') {
+          role = 'admin';
+          console.log('Admin login detected - Setting role to admin');
+        } else if (result.user.email === 'staff@eddiegarage.com') {
+          role = 'staff';
+          console.log('Staff login detected - Setting role to staff');
+        }
       }
+      
+      console.log('Setting userRole to:', role);
+      setUserRole(role);
       
       return { success: true, user: result.user };
     } catch (error) {
       console.error('Login error:', error.code, error.message);
       let errorMessage = error.message;
       
-      // User-friendly error messages
       switch (error.code) {
         case 'auth/invalid-credential':
           errorMessage = 'Invalid email or password. Please try again.';
@@ -133,7 +162,6 @@ export function AuthProvider({ children }) {
       setAuthError(null);
       const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
       
-      // Create user document
       const userData = {
         email: email.trim(),
         role: role,
@@ -209,6 +237,10 @@ export function AuthProvider({ children }) {
     isAdmin: userRole === 'admin',
     isStaff: userRole === 'staff'
   };
+
+  console.log('AuthContext value - userRole:', userRole);
+  console.log('AuthContext value - isAdmin:', value.isAdmin);
+  console.log('AuthContext value - isStaff:', value.isStaff);
 
   return (
     <AuthContext.Provider value={value}>
