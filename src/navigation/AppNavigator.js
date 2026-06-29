@@ -56,11 +56,10 @@ function ProfileButton({ navigation }) {
 // Profile Stack Navigator
 function ProfileStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen 
         name="Profile" 
         component={UserProfileScreen} 
-        options={{ title: 'My Profile' }}
       />
     </Stack.Navigator>
   );
@@ -69,26 +68,22 @@ function ProfileStack() {
 // Inventory Stack Navigator
 function InventoryStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen 
         name="InventoryList" 
         component={InventoryScreen} 
-        options={{ title: 'Inventory Management' }}
       />
       <Stack.Screen 
         name="AddEditProduct" 
         component={AddEditProductScreen} 
-        options={{ title: 'Add/Edit Product' }}
       />
       <Stack.Screen 
         name="ProductDetails" 
         component={ProductDetailsScreen} 
-        options={{ title: 'Product Details' }}
       />
       <Stack.Screen 
         name="CategoryManagement" 
         component={CategoryManagementScreen} 
-        options={{ title: 'Manage Categories' }}
       />
     </Stack.Navigator>
   );
@@ -97,21 +92,18 @@ function InventoryStack() {
 // Product Stack Navigator
 function ProductStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen 
         name="ProductList" 
         component={ProductListScreen} 
-        options={{ title: 'Products' }}
       />
       <Stack.Screen 
         name="ProductDetails" 
         component={ProductDetailsScreen} 
-        options={{ title: 'Product Details' }}
       />
       <Stack.Screen 
         name="AddEditProduct" 
         component={AddEditProductScreen} 
-        options={{ title: 'Add/Edit Product' }}
       />
     </Stack.Navigator>
   );
@@ -137,8 +129,7 @@ function AdminTabs() {
         },
         tabBarActiveTintColor: '#ff6b00',
         tabBarInactiveTintColor: 'gray',
-        headerStyle: { backgroundColor: '#ff6b00' },
-        headerTintColor: '#fff',
+        headerShown: false,
         headerRight: () => (
           <View style={{ flexDirection: 'row' }}>
             <ProfileButton navigation={navigation} />
@@ -174,8 +165,7 @@ function StaffTabs() {
         },
         tabBarActiveTintColor: '#ff6b00',
         tabBarInactiveTintColor: 'gray',
-        headerStyle: { backgroundColor: '#ff6b00' },
-        headerTintColor: '#fff',
+        headerShown: false,
         headerRight: () => (
           <View style={{ flexDirection: 'row' }}>
             <ProfileButton navigation={navigation} />
@@ -214,11 +204,10 @@ export default function AppNavigator() {
   if (!currentUser) {
     console.log('🔐 No user - showing Login');
     return (
-      <Stack.Navigator>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen 
           name="Login" 
           component={LoginScreen} 
-          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     );
@@ -227,11 +216,10 @@ export default function AppNavigator() {
   if (userRole === 'restricted') {
     console.log('🚫 User is restricted');
     return (
-      <Stack.Navigator>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen 
           name="Restricted" 
           component={RestrictedScreen} 
-          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     );

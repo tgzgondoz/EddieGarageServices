@@ -84,7 +84,7 @@ export default function StaffDashboardScreen({ navigation }) {
             <Icon name="point-of-sale" size={40} color="#ff6b00" />
             <Text style={styles.actionText}>Start New Sale</Text>
           </TouchableOpacity>
-         
+        
           <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate('Sales')}
