@@ -30,7 +30,18 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Login Failed', result.error);
+      // Show user-friendly error messages
+      let errorMessage = result.error;
+      if (result.error.includes('auth/configuration-not-found')) {
+        errorMessage = 'Authentication service not configured. Please contact administrator.';
+      } else if (result.error.includes('auth/user-not-found')) {
+        errorMessage = 'User not found. Please check your email.';
+      } else if (result.error.includes('auth/wrong-password')) {
+        errorMessage = 'Invalid password. Please try again.';
+      } else if (result.error.includes('auth/invalid-email')) {
+        errorMessage = 'Invalid email format.';
+      }
+      Alert.alert('Login Failed', errorMessage);
     }
   };
 

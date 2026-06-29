@@ -1,3 +1,4 @@
+// src/navigation/AppNavigator.js
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -6,15 +7,62 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import LoginScreen from '../screens/LoginScreen';
 import POSScreen from '../screens/POSScreen';
-import InventoryStack from './InventoryStack';
-import ProductStack from './ProductStack';
+import InventoryScreen from '../screens/InventoryScreen';
+import AddEditProductScreen from '../screens/AddEditProductScreen';
+import ProductDetailsScreen from '../screens/ProductDetailsScreen';
+import ProductListScreen from '../screens/ProductListScreen';
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import SalesHistoryScreen from '../screens/SalesHistoryScreen';
-import RestrictedScreen from '../screens/RestrictedScreen'; // Make sure this line exists
+import RestrictedScreen from '../screens/RestrictedScreen';
+import CategoryManagementScreen from '../screens/CategoryManagementScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Combine product and inventory into one stack
+function InventoryStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="InventoryList" 
+        component={InventoryScreen} 
+        options={{ title: 'Inventory Management' }}
+      />
+      <Stack.Screen 
+        name="AddEditProduct" 
+        component={AddEditProductScreen} 
+        options={{ title: 'Add/Edit Product' }}
+      />
+      <Stack.Screen 
+        name="ProductDetails" 
+        component={ProductDetailsScreen} 
+        options={{ title: 'Product Details' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function ProductStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="ProductList" 
+        component={ProductListScreen} 
+        options={{ title: 'Products' }}
+      />
+      <Stack.Screen 
+        name="ProductDetails" 
+        component={ProductDetailsScreen} 
+        options={{ title: 'Product Details' }}
+      />
+      <Stack.Screen 
+        name="AddEditProduct" 
+        component={AddEditProductScreen} 
+        options={{ title: 'Add/Edit Product' }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 function MainTabs() {
   const { userRole } = useAuth();
@@ -25,24 +73,19 @@ function MainTabs() {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-          if (route.name === 'POS') {
-            iconName = 'point-of-sale';
-          } else if (route.name === 'Inventory') {
-            iconName = 'inventory';
-          } else if (route.name === 'Products') {
-            iconName = 'shopping-cart';
-          } else if (route.name === 'Admin') {
-            iconName = 'admin-panel-settings';
-          } else if (route.name === 'Sales') {
-            iconName = 'history';
+          switch(route.name) {
+            case 'POS': iconName = 'point-of-sale'; break;
+            case 'Inventory': iconName = 'inventory'; break;
+            case 'Products': iconName = 'shopping-cart'; break;
+            case 'Admin': iconName = 'admin-panel-settings'; break;
+            case 'Sales': iconName = 'history'; break;
+            default: iconName = 'home';
           }
           return <Icon name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#ff6b00',
         tabBarInactiveTintColor: 'gray',
-        headerStyle: {
-          backgroundColor: '#ff6b00',
-        },
+        headerStyle: { backgroundColor: '#ff6b00' },
         headerTintColor: '#fff',
       })}
     >
@@ -50,9 +93,7 @@ function MainTabs() {
       <Tab.Screen name="Inventory" component={InventoryStack} />
       <Tab.Screen name="Products" component={ProductStack} />
       <Tab.Screen name="Sales" component={SalesHistoryScreen} />
-      {isAdmin && (
-        <Tab.Screen name="Admin" component={AdminDashboardScreen} />
-      )}
+      {isAdmin && <Tab.Screen name="Admin" component={AdminDashboardScreen} />}
     </Tab.Navigator>
   );
 }

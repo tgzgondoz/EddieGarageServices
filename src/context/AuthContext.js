@@ -1,10 +1,12 @@
+// src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
 import { 
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged 
 } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -18,15 +20,31 @@ export function AuthProvider({ children }) {
   const [userRole, setUserRole] = useState('user');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
-        // In a real app, fetch user role from Firestore
-        // For demo, we'll set based on email
-        if (user.email === 'admin@eddiegarage.com') {
-          setUserRole('admin');
-        } else {
-          setUserRole('staff');
+        try {
+          // Fetch user role from Firestore
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserRole(userData.role || 'staff');
+          } else {
+            // Fallback to email-based role for demo
+            if (user.email === 'admin@eddiegarage.com') {
+              setUserRole('admin');
+            } else {
+              setUserRole('staff');
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          // Fallback
+          if (user.email === 'admin@eddiegarage.com') {
+            setUserRole('admin');
+          } else {
+            setUserRole('staff');
+          }
         }
       }
       setLoading(false);
