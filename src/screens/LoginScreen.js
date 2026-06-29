@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  ScrollView,
-  Animated
+  ScrollView
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,42 +19,19 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('admin');
   const { login } = useAuth();
-  
-  // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-
-  useEffect(() => {
-    // Entrance animation only - NO AUTO LOGIN
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      })
-    ]).start();
-  }, []);
 
   const handleLogin = async () => {
-    // Validate inputs
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
 
-    // Validate password length
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters');
       return;
@@ -87,15 +63,8 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Animated.View 
-          style={[
-            styles.content,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
+        <View style={styles.content}>
+          {/* Logo Section */}
           <View style={styles.logoContainer}>
             <View style={styles.logoPlaceholder}>
               <Text style={styles.logoText}>🔧</Text>
@@ -104,6 +73,7 @@ export default function LoginScreen() {
             <Text style={styles.subtitle}>Point of Sale System</Text>
           </View>
 
+          {/* Login Form */}
           <View style={styles.form}>
             <Text style={styles.label}>Email Address</Text>
             <TextInput
@@ -140,9 +110,10 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Quick Fill Section */}
           <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>⚡ Quick Login</Text>
-            <Text style={styles.demoSubtitle}>Tap to auto-fill credentials, then click Login</Text>
+            <Text style={styles.demoTitle}>Quick Fill</Text>
+            <Text style={styles.demoSubtitle}>Tap to auto-fill credentials</Text>
             
             <View style={styles.demoButtons}>
               <TouchableOpacity
@@ -157,7 +128,7 @@ export default function LoginScreen() {
                 <Text style={styles.demoButtonText}>Admin</Text>
                 <Text style={styles.demoButtonSubtext}>admin@eddiegarage.com</Text>
                 <View style={styles.demoPasswordTag}>
-                  <Text style={styles.demoPasswordText}>🔑 admin123</Text>
+                  <Text style={styles.demoPasswordText}>admin123</Text>
                 </View>
               </TouchableOpacity>
               
@@ -173,18 +144,19 @@ export default function LoginScreen() {
                 <Text style={styles.demoButtonText}>Staff</Text>
                 <Text style={styles.demoButtonSubtext}>staff@eddiegarage.com</Text>
                 <View style={styles.demoPasswordTag}>
-                  <Text style={styles.demoPasswordText}>🔑 staff123</Text>
+                  <Text style={styles.demoPasswordText}>staff123</Text>
                 </View>
               </TouchableOpacity>
             </View>
           </View>
 
+          {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Tap Admin or Staff to auto-fill credentials, then click Login
+              Tap Admin or Staff to auto-fill, then click Login
             </Text>
           </View>
-        </Animated.View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -217,11 +189,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
   },
   logoText: {
     fontSize: 45,
@@ -296,7 +263,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
-    marginBottom: 12,
   },
   demoButton: {
     flex: 1,
@@ -310,11 +276,6 @@ const styles = StyleSheet.create({
   selectedButton: {
     borderColor: '#ff6b00',
     borderWidth: 2,
-    shadowColor: '#ff6b00',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
   },
   adminButton: {
     backgroundColor: '#ff6b00',
