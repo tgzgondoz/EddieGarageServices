@@ -8,36 +8,50 @@ import {
   TextInput,
   Alert
 } from 'react-native';
-import { collection, query, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { database } from '../config/firebase';
+import { ref, onValue, off, set, update, remove } from 'firebase/database';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function InventoryScreen({ navigation }) {
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProducts();
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchProducts();
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  const fetchProducts = async () => {
-    try {
-      const q = query(collection(db, 'products'));
-      const querySnapshot = await getDocs(q);
-      const productsData = [];
-      querySnapshot.forEach((doc) => {
-        productsData.push({ id: doc.id, ...doc.data() });
-      });
-      setProducts(productsData);
-    } catch (error) {
+    // Set up real-time listener
+    const productsRef = ref(database, 'products');
+    
+    const unsubscribe = onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const productsData = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setProducts(productsData);
+      } else {
+        setProducts([]);
+      }
+      setLoading(false);
+    }, (error) => {
       console.error('Error fetching products:', error);
-    }
-  };
+      Alert.alert('Error', 'Failed to fetch products');
+      setLoading(false);
+    });
+
+    // Cleanup listener on unmount
+    return () => off(productsRef);
+  }, []);
+
+  // Refresh products when screen comes into focus
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      // The onValue listener will automatically update data
+      // No need to manually fetch
+    });
+    return unsubscribeFocus;
+  }, [navigation]);
 
   const updateStock = async (productId, currentStock, change) => {
     const newStock = currentStock + change;
@@ -47,9 +61,9 @@ export default function InventoryScreen({ navigation }) {
     }
 
     try {
-      const productRef = doc(db, 'products', productId);
-      await updateDoc(productRef, { quantity: newStock });
-      fetchProducts();
+      const productRef = ref(database, `products/${productId}`);
+      await update(productRef, { quantity: newStock });
+      // The real-time listener will automatically update the UI
     } catch (error) {
       console.error('Error updating stock:', error);
       Alert.alert('Error', 'Failed to update stock');
@@ -67,8 +81,8 @@ export default function InventoryScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteDoc(doc(db, 'products', productId));
-              fetchProducts();
+              const productRef = ref(database, `products/${productId}`);
+              await remove(productRef);
               Alert.alert('Success', 'Product deleted successfully');
             } catch (error) {
               console.error('Error deleting product:', error);
@@ -81,22 +95,24 @@ export default function InventoryScreen({ navigation }) {
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStock = lowStockOnly ? product.quantity <= 10 : true;
+    const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
+    const matchesStock = lowStockOnly ? (product.quantity || 0) <= 10 : true;
     return matchesSearch && matchesStock;
   });
 
   const renderProduct = ({ item }) => (
     <View style={styles.productCard}>
       <View style={styles.productInfo}>
-        <Text style={styles.productName}>{item.name}</Text>
-        <Text style={styles.productSku}>SKU: {item.sku}</Text>
-        <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
+        <Text style={styles.productName}>{item.name || 'Unnamed Product'}</Text>
+        <Text style={styles.productSku}>SKU: {item.sku || 'N/A'}</Text>
+        <Text style={styles.productPrice}>
+          ${item.price?.toFixed(2) || '0.00'}
+        </Text>
         <Text style={[
           styles.productStock,
-          item.quantity <= 10 && styles.lowStock
+          (item.quantity || 0) <= 10 && styles.lowStock
         ]}>
-          Stock: {item.quantity}
+          Stock: {item.quantity || 0}
         </Text>
       </View>
       <View style={styles.productActions}>
@@ -113,16 +129,30 @@ export default function InventoryScreen({ navigation }) {
           <Icon name="delete" size={24} color="#f44336" />
         </TouchableOpacity>
         <View style={styles.stockControls}>
-          <TouchableOpacity onPress={() => updateStock(item.id, item.quantity, -1)}>
+          <TouchableOpacity 
+            onPress={() => updateStock(item.id, item.quantity || 0, -1)}
+            disabled={loading}
+          >
             <Icon name="remove-circle-outline" size={28} color="#ff6b00" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => updateStock(item.id, item.quantity, 1)}>
+          <TouchableOpacity 
+            onPress={() => updateStock(item.id, item.quantity || 0, 1)}
+            disabled={loading}
+          >
             <Icon name="add-circle-outline" size={28} color="#ff6b00" />
           </TouchableOpacity>
         </View>
       </View>
     </View>
   );
+
+  if (loading && products.length === 0) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text>Loading products...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -149,6 +179,13 @@ export default function InventoryScreen({ navigation }) {
         renderItem={renderProduct}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {searchQuery ? 'No products found' : 'No products available'}
+            </Text>
+          </View>
+        }
       />
 
       <TouchableOpacity
@@ -165,6 +202,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -263,5 +304,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
   },
 });

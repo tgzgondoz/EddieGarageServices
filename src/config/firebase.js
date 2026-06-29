@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getDatabase, ref, set, get, child, update, remove } from 'firebase/database';
+import { getFirestore } from 'firebase/firestore'; // Add Firestore import
+import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -12,15 +13,23 @@ const firebaseConfig = {
   messagingSenderId: "1089907198908",
   appId: "1:1089907198908:web:22259f21c4fc52c6b439b9",
   measurementId: "G-S04E1M17FV",
-  databaseURL: "https://eddiesgaragepos-default-rtdb.firebaseio.com" // Add your Realtime Database URL
+  databaseURL: "https://eddiesgaragepos-default-rtdb.firebaseio.com"
 };
 
 const app = initializeApp(firebaseConfig);
 
+// Initialize Firestore
+export const db = getFirestore(app); // Add this line for Firestore
+
+// Initialize Auth
 export const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });
 
+// Initialize Realtime Database (if needed)
 export const database = getDatabase(app);
+
+// Initialize Storage
 export const storage = getStorage(app);
+
 export default app;

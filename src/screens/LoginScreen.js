@@ -110,50 +110,11 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Quick Fill Section */}
-          <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>Quick Fill</Text>
-            <Text style={styles.demoSubtitle}>Tap to auto-fill credentials</Text>
-            
-            <View style={styles.demoButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.demoButton, 
-                  styles.adminButton,
-                  selectedRole === 'admin' && styles.selectedButton
-                ]}
-                onPress={() => setDemoAccount('admin')}
-              >
-                <Text style={styles.demoIcon}>👑</Text>
-                <Text style={styles.demoButtonText}>Admin</Text>
-                <Text style={styles.demoButtonSubtext}>admin@eddiegarage.com</Text>
-                <View style={styles.demoPasswordTag}>
-                  <Text style={styles.demoPasswordText}>admin123</Text>
-                </View>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  styles.demoButton, 
-                  styles.staffButton,
-                  selectedRole === 'staff' && styles.selectedButton
-                ]}
-                onPress={() => setDemoAccount('staff')}
-              >
-                <Text style={styles.demoIcon}>👤</Text>
-                <Text style={styles.demoButtonText}>Staff</Text>
-                <Text style={styles.demoButtonSubtext}>staff@eddiegarage.com</Text>
-                <View style={styles.demoPasswordTag}>
-                  <Text style={styles.demoPasswordText}>staff123</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
 
           {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Tap Admin or Staff to auto-fill, then click Login
+              Powered by oneGondo 078 324 2506
             </Text>
           </View>
         </View>

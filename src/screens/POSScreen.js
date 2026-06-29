@@ -9,8 +9,8 @@ import {
   Alert,
   ScrollView
 } from 'react-native';
-import { collection, query, getDocs, updateDoc, doc, addDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { database } from '../config/firebase';
+import { ref, onValue, off, update, push, set } from 'firebase/database';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,29 +20,42 @@ export default function POSScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categories, setCategories] = useState(['All']);
+  const [loading, setLoading] = useState(true);
   const { logout } = useAuth();
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const q = query(collection(db, 'products'));
-      const querySnapshot = await getDocs(q);
-      const productsData = [];
-      const cats = new Set(['All']);
-      querySnapshot.forEach((doc) => {
-        const product = { id: doc.id, ...doc.data() };
-        productsData.push(product);
-        if (product.category) cats.add(product.category);
-      });
-      setProducts(productsData);
-      setCategories(Array.from(cats));
-    } catch (error) {
+    // Set up real-time listener for products
+    const productsRef = ref(database, 'products');
+    
+    const unsubscribe = onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const productsData = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setProducts(productsData);
+        
+        // Extract unique categories
+        const cats = new Set(['All']);
+        productsData.forEach(product => {
+          if (product.category) cats.add(product.category);
+        });
+        setCategories(Array.from(cats));
+      } else {
+        setProducts([]);
+        setCategories(['All']);
+      }
+      setLoading(false);
+    }, (error) => {
       console.error('Error fetching products:', error);
-    }
-  };
+      Alert.alert('Error', 'Failed to fetch products');
+      setLoading(false);
+    });
+
+    // Cleanup listener on unmount
+    return () => off(productsRef);
+  }, []);
 
   const addToCart = (product) => {
     if (product.quantity <= 0) {
@@ -109,12 +122,11 @@ export default function POSScreen() {
 
   const processCheckout = async () => {
     try {
-      // Update inventory
+      // Update inventory for each item in cart
       for (const item of cart) {
-        const productRef = doc(db, 'products', item.id);
-        await updateDoc(productRef, {
-          quantity: item.quantity - item.cartQuantity
-        });
+        const productRef = ref(database, `products/${item.id}`);
+        const newQuantity = item.quantity - item.cartQuantity;
+        await update(productRef, { quantity: newQuantity });
       }
 
       // Create sale record
@@ -126,15 +138,18 @@ export default function POSScreen() {
           quantity: item.cartQuantity
         })),
         total: getTotal(),
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         status: 'completed'
       };
 
-      await addDoc(collection(db, 'sales'), sale);
+      // Save sale to database
+      const salesRef = ref(database, 'sales');
+      const newSaleRef = push(salesRef);
+      await set(newSaleRef, sale);
 
       Alert.alert('Success', 'Checkout completed successfully!');
       setCart([]);
-      fetchProducts(); // Refresh inventory
+      // The real-time listener will automatically update the products
     } catch (error) {
       console.error('Checkout error:', error);
       Alert.alert('Error', 'Failed to process checkout');
@@ -153,16 +168,16 @@ export default function POSScreen() {
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory && product.quantity > 0;
+    return matchesSearch && matchesCategory && (product.quantity || 0) > 0;
   });
 
   const renderProductItem = ({ item }) => (
     <TouchableOpacity style={styles.productCard} onPress={() => addToCart(item)}>
-      <Text style={styles.productName}>{item.name}</Text>
-      <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
-      <Text style={styles.productStock}>Stock: {item.quantity}</Text>
+      <Text style={styles.productName}>{item.name || 'Unnamed'}</Text>
+      <Text style={styles.productPrice}>${item.price?.toFixed(2) || '0.00'}</Text>
+      <Text style={styles.productStock}>Stock: {item.quantity || 0}</Text>
     </TouchableOpacity>
   );
 
@@ -186,6 +201,14 @@ export default function POSScreen() {
       </View>
     </View>
   );
+
+  if (loading && products.length === 0) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text>Loading products...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -224,6 +247,11 @@ export default function POSScreen() {
           keyExtractor={item => item.id}
           numColumns={2}
           columnWrapperStyle={styles.productRow}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No products available</Text>
+            </View>
+          }
         />
       </View>
 
@@ -234,6 +262,11 @@ export default function POSScreen() {
           renderItem={renderCartItem}
           keyExtractor={item => item.id}
           style={styles.cartList}
+          ListEmptyComponent={
+            <View style={styles.emptyCartContainer}>
+              <Text style={styles.emptyCartText}>Cart is empty</Text>
+            </View>
+          }
         />
         <View style={styles.totalContainer}>
           <Text style={styles.totalText}>Total: ${getTotal().toFixed(2)}</Text>
@@ -251,6 +284,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     backgroundColor: '#f5f5f5',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   leftPanel: {
     flex: 2,
@@ -385,5 +422,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  emptyCartContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyCartText: {
+    fontSize: 14,
+    color: '#666',
   },
 });

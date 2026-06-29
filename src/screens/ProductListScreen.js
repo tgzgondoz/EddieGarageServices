@@ -7,41 +7,51 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
-  ScrollView  // Added this import
+  ScrollView
 } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { database } from '../config/firebase';
+import { ref, onValue, off } from 'firebase/database';
 
 export default function ProductListScreen({ navigation }) {
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categories, setCategories] = useState(['All']);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProducts();
+    const productsRef = ref(database, 'products');
+    
+    const unsubscribe = onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const productsData = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setProducts(productsData);
+        
+        // Extract unique categories
+        const cats = new Set(['All']);
+        productsData.forEach(product => {
+          if (product.category) cats.add(product.category);
+        });
+        setCategories(Array.from(cats));
+      } else {
+        setProducts([]);
+        setCategories(['All']);
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching products:', error);
+      setLoading(false);
+    });
+
+    return () => off(productsRef);
   }, []);
 
-  const fetchProducts = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'products'));
-      const productsData = [];
-      const cats = new Set(['All']);
-      querySnapshot.forEach((doc) => {
-        const product = { id: doc.id, ...doc.data() };
-        productsData.push(product);
-        if (product.category) cats.add(product.category);
-      });
-      setProducts(productsData);
-      setCategories(Array.from(cats));
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    }
-  };
-
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -56,12 +66,20 @@ export default function ProductListScreen({ navigation }) {
         style={styles.productImage}
       />
       <View style={styles.productInfo}>
-        <Text style={styles.productName}>{item.name}</Text>
+        <Text style={styles.productName}>{item.name || 'Unnamed'}</Text>
         <Text style={styles.productPrice}>${item.price?.toFixed(2) || '0.00'}</Text>
         <Text style={styles.productStock}>In Stock: {item.quantity || 0}</Text>
       </View>
     </TouchableOpacity>
   );
+
+  if (loading && products.length === 0) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text>Loading products...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -97,6 +115,11 @@ export default function ProductListScreen({ navigation }) {
         renderItem={renderProduct}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No products found</Text>
+          </View>
+        }
       />
     </View>
   );
@@ -106,6 +129,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     padding: 10,
@@ -175,6 +202,14 @@ const styles = StyleSheet.create({
   },
   productStock: {
     fontSize: 12,
+    color: '#666',
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
     color: '#666',
   },
 });
