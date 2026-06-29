@@ -167,7 +167,6 @@ function StaffTabs() {
           switch(route.name) {
             case 'Dashboard': iconName = 'dashboard'; break;
             case 'POS': iconName = 'point-of-sale'; break;
-            case 'Products': iconName = 'shopping-cart'; break;
             case 'Sales': iconName = 'history'; break;
             default: iconName = 'home';
           }
@@ -187,7 +186,6 @@ function StaffTabs() {
     >
       <Tab.Screen name="Dashboard" component={StaffDashboardScreen} />
       <Tab.Screen name="POS" component={POSScreen} />
-      <Tab.Screen name="Products" component={ProductStack} />
       <Tab.Screen name="Sales" component={SalesHistoryScreen} />
     </Tab.Navigator>
   );

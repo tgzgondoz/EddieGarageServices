@@ -10,8 +10,8 @@ import {
   TextInput,
   FlatList
 } from 'react-native';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { database } from '../config/firebase';
+import { ref, onValue, off, query, orderByChild, limitToLast } from 'firebase/database';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../context/AuthContext';
 
@@ -25,41 +25,109 @@ export default function AdminDashboardScreen({ navigation }) {
   });
   const [recentSales, setRecentSales] = useState([]);
   const [showUsersModal, setShowUsersModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { userData, usersList, loadUsersList, updateUserRole, deleteUser } = useAuth();
 
   useEffect(() => {
-    fetchDashboardData();
+    // Set up real-time listeners
+    const productsRef = ref(database, 'products');
+    const salesRef = ref(database, 'sales');
+
+    // Listen for product changes
+    const unsubscribeProducts = onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const products = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        
+        const totalProducts = products.length;
+        const lowStock = products.filter(p => (p.quantity || 0) <= 10).length;
+        
+        setStats(prev => ({
+          ...prev,
+          totalProducts,
+          lowStock
+        }));
+      } else {
+        setStats(prev => ({
+          ...prev,
+          totalProducts: 0,
+          lowStock: 0
+        }));
+      }
+    }, (error) => {
+      console.error('Error fetching products:', error);
+    });
+
+    // Listen for sales changes
+    const unsubscribeSales = onValue(salesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const sales = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        
+        // Sort by timestamp (newest first)
+        sales.sort((a, b) => {
+          const dateA = a.timestamp ? new Date(a.timestamp) : new Date(0);
+          const dateB = b.timestamp ? new Date(b.timestamp) : new Date(0);
+          return dateB - dateA;
+        });
+        
+        // Get recent sales (last 10)
+        const recent = sales.slice(0, 10);
+        
+        // Calculate total revenue
+        const revenue = sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
+        
+        setStats(prev => ({
+          ...prev,
+          totalSales: sales.length,
+          revenue
+        }));
+        setRecentSales(recent);
+      } else {
+        setStats(prev => ({
+          ...prev,
+          totalSales: 0,
+          revenue: 0
+        }));
+        setRecentSales([]);
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching sales:', error);
+      setLoading(false);
+    });
+
+    // Load users list
     loadUsersList();
+
+    // Cleanup listeners on unmount
+    return () => {
+      off(productsRef);
+      off(salesRef);
+    };
   }, []);
 
-  const fetchDashboardData = async () => {
+  // Update total users when usersList changes
+  useEffect(() => {
+    setStats(prev => ({
+      ...prev,
+      totalUsers: usersList.length
+    }));
+  }, [usersList]);
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'Unknown date';
     try {
-      // Fetch products from Firestore
-      const productsQuery = query(collection(db, 'products'));
-      const productsSnapshot = await getDocs(productsQuery);
-      const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      const totalProducts = products.length;
-      const lowStock = products.filter(p => p.quantity <= 10).length;
-
-      // Fetch sales from Firestore
-      const salesQuery = query(collection(db, 'sales'), orderBy('timestamp', 'desc'), limit(10));
-      const salesSnapshot = await getDocs(salesQuery);
-      const sales = salesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      const totalSales = sales.length;
-      const revenue = sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-
-      setStats({ 
-        totalProducts, 
-        lowStock, 
-        totalSales, 
-        revenue, 
-        totalUsers: usersList.length 
-      });
-      setRecentSales(sales);
+      const date = new Date(timestamp);
+      return date.toLocaleString();
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      return 'Invalid date';
     }
   };
 
@@ -140,7 +208,7 @@ export default function AdminDashboardScreen({ navigation }) {
                 <View style={styles.userInfo}>
                   <Text style={styles.userEmail}>{item.email}</Text>
                   <View style={[styles.roleBadge, item.role === 'admin' ? styles.adminBadge : styles.staffBadge]}>
-                    <Text style={styles.roleText}>{item.role?.toUpperCase()}</Text>
+                    <Text style={styles.roleText}>{item.role?.toUpperCase() || 'STAFF'}</Text>
                   </View>
                   <Text style={styles.userStatus}>
                     Status: {item.isActive ? '🟢 Active' : '🔴 Inactive'}
@@ -164,17 +232,30 @@ export default function AdminDashboardScreen({ navigation }) {
                 </View>
               </View>
             )}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No users found</Text>
+              </View>
+            }
           />
         </View>
       </View>
     </Modal>
   );
 
+  if (loading && stats.totalProducts === 0 && stats.totalSales === 0) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text>Loading dashboard...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.welcomeSection}>
         <Text style={styles.welcomeText}>Welcome, Admin!</Text>
-        <Text style={styles.welcomeSubtext}>{userData?.email}</Text>
+        <Text style={styles.welcomeSubtext}>{userData?.email || 'Admin User'}</Text>
       </View>
 
       <View style={styles.statsContainer}>
@@ -208,7 +289,7 @@ export default function AdminDashboardScreen({ navigation }) {
         />
         <StatCard
           title="Total Users"
-          value={usersList.length}
+          value={stats.totalUsers}
           icon="people"
           color="#9C27B0"
           onPress={() => setShowUsersModal(true)}
@@ -251,17 +332,23 @@ export default function AdminDashboardScreen({ navigation }) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Sales</Text>
-        {recentSales.map((sale, index) => (
-          <View key={index} style={styles.saleItem}>
-            <View style={styles.saleHeader}>
-              <Text style={styles.saleDate}>
-                {sale.timestamp?.toDate().toLocaleString()}
-              </Text>
-              <Text style={styles.saleTotal}>${sale.total?.toFixed(2)}</Text>
+        {recentSales.length > 0 ? (
+          recentSales.map((sale, index) => (
+            <View key={index} style={styles.saleItem}>
+              <View style={styles.saleHeader}>
+                <Text style={styles.saleDate}>
+                  {formatDate(sale.timestamp)}
+                </Text>
+                <Text style={styles.saleTotal}>${sale.total?.toFixed(2) || '0.00'}</Text>
+              </View>
+              <Text style={styles.saleItems}>{sale.items?.length || 0} items sold</Text>
             </View>
-            <Text style={styles.saleItems}>{sale.items?.length} items sold</Text>
+          ))
+        ) : (
+          <View style={styles.emptySalesContainer}>
+            <Text style={styles.emptySalesText}>No recent sales</Text>
           </View>
-        ))}
+        )}
       </View>
 
       <UsersModal />
@@ -273,6 +360,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   welcomeSection: {
     backgroundColor: '#ff6b00',
@@ -461,5 +552,23 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: '#f44336',
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  emptySalesContainer: {
+    padding: 20,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 8,
+  },
+  emptySalesText: {
+    fontSize: 14,
+    color: '#666',
   },
 });
