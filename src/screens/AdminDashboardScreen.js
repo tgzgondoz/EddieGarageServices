@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,17 @@ import {
   Alert,
   Modal,
   TextInput,
-  FlatList
+  FlatList,
+  Animated,
+  Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { database } from '../config/firebase';
-import { ref, onValue, off, query, orderByChild, limitToLast } from 'firebase/database';
+import { ref, onValue, off } from 'firebase/database';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../context/AuthContext';
+
+const { width } = Dimensions.get('window');
 
 export default function AdminDashboardScreen({ navigation }) {
   const [stats, setStats] = useState({
@@ -21,19 +26,38 @@ export default function AdminDashboardScreen({ navigation }) {
     lowStock: 0,
     totalSales: 0,
     revenue: 0,
-    totalUsers: 0
+    totalUsers: 0,
   });
   const [recentSales, setRecentSales] = useState([]);
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { userData, usersList, loadUsersList, updateUserRole, deleteUser } = useAuth();
+  
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
-    // Set up real-time listeners
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  useEffect(() => {
     const productsRef = ref(database, 'products');
     const salesRef = ref(database, 'sales');
 
-    // Listen for product changes
     const unsubscribeProducts = onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -57,11 +81,8 @@ export default function AdminDashboardScreen({ navigation }) {
           lowStock: 0
         }));
       }
-    }, (error) => {
-      console.error('Error fetching products:', error);
     });
 
-    // Listen for sales changes
     const unsubscribeSales = onValue(salesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -70,17 +91,13 @@ export default function AdminDashboardScreen({ navigation }) {
           ...data[key]
         }));
         
-        // Sort by timestamp (newest first)
         sales.sort((a, b) => {
           const dateA = a.timestamp ? new Date(a.timestamp) : new Date(0);
           const dateB = b.timestamp ? new Date(b.timestamp) : new Date(0);
           return dateB - dateA;
         });
         
-        // Get recent sales (last 10)
         const recent = sales.slice(0, 10);
-        
-        // Calculate total revenue
         const revenue = sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
         
         setStats(prev => ({
@@ -98,22 +115,16 @@ export default function AdminDashboardScreen({ navigation }) {
         setRecentSales([]);
       }
       setLoading(false);
-    }, (error) => {
-      console.error('Error fetching sales:', error);
-      setLoading(false);
     });
 
-    // Load users list
     loadUsersList();
 
-    // Cleanup listeners on unmount
     return () => {
       off(productsRef);
       off(salesRef);
     };
   }, []);
 
-  // Update total users when usersList changes
   useEffect(() => {
     setStats(prev => ({
       ...prev,
@@ -121,25 +132,74 @@ export default function AdminDashboardScreen({ navigation }) {
     }));
   }, [usersList]);
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadUsersList();
+    setRefreshing(false);
+  };
+
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown date';
     try {
       const date = new Date(timestamp);
-      return date.toLocaleString();
+      const now = new Date();
+      const diff = now - date;
+      
+      if (diff < 60000) return 'Just now';
+      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+      if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      });
     } catch (error) {
       return 'Invalid date';
     }
   };
 
-  const StatCard = ({ title, value, icon, color, onPress }) => (
-    <TouchableOpacity style={[styles.statCard, { borderLeftColor: color }]} onPress={onPress}>
-      <Icon name={icon} size={30} color={color} />
-      <View style={styles.statInfo}>
-        <Text style={styles.statValue}>{value}</Text>
-        <Text style={styles.statTitle}>{title}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const StatCard = ({ title, value, icon, color, onPress, gradient }) => {
+    const scaleValue = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+      Animated.spring(scaleValue, {
+        toValue: 0.96,
+        friction: 5,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        friction: 5,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    return (
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+        <TouchableOpacity
+          style={[styles.statCard, { borderLeftColor: color }]}
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={0.9}
+        >
+          <View style={[styles.statIconContainer, { backgroundColor: color + '15' }]}>
+            <Icon name={icon} size={28} color={color} />
+          </View>
+          <View style={styles.statInfo}>
+            <Text style={styles.statValue}>{value}</Text>
+            <Text style={styles.statTitle}>{title}</Text>
+          </View>
+          {onPress && (
+            <Icon name="chevron-right" size={20} color="#bbb" style={styles.statArrow} />
+          )}
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
 
   const handleUpdateUserRole = async (uid, currentRole) => {
     const newRole = currentRole === 'admin' ? 'staff' : 'admin';
@@ -192,11 +252,19 @@ export default function AdminDashboardScreen({ navigation }) {
       transparent={true}
     >
       <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
+        <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Manage Users</Text>
-            <TouchableOpacity onPress={() => setShowUsersModal(false)}>
-              <Icon name="close" size={30} color="#333" />
+            <View>
+              <Text style={styles.modalTitle}>Manage Users</Text>
+              <Text style={styles.modalSubtitle}>
+                {usersList.length} users registered
+              </Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => setShowUsersModal(false)}
+              style={styles.closeButton}
+            >
+              <Icon name="close" size={24} color="#666" />
             </TouchableOpacity>
           </View>
           
@@ -206,39 +274,61 @@ export default function AdminDashboardScreen({ navigation }) {
             renderItem={({ item }) => (
               <View style={styles.userCard}>
                 <View style={styles.userInfo}>
-                  <Text style={styles.userEmail}>{item.email}</Text>
-                  <View style={[styles.roleBadge, item.role === 'admin' ? styles.adminBadge : styles.staffBadge]}>
-                    <Text style={styles.roleText}>{item.role?.toUpperCase() || 'STAFF'}</Text>
+                  <View style={styles.userHeader}>
+                    <View style={styles.userAvatar}>
+                      <Text style={styles.userAvatarText}>
+                        {item.email?.charAt(0).toUpperCase() || 'U'}
+                      </Text>
+                    </View>
+                    <View style={styles.userDetails}>
+                      <Text style={styles.userEmail} numberOfLines={1}>
+                        {item.email}
+                      </Text>
+                      <View style={styles.userMeta}>
+                        <View style={[styles.roleBadge, item.role === 'admin' ? styles.adminBadge : styles.staffBadge]}>
+                          <Text style={styles.roleText}>
+                            {item.role?.toUpperCase() || 'STAFF'}
+                          </Text>
+                        </View>
+                        <View style={[styles.statusDot, item.isActive ? styles.activeDot : styles.inactiveDot]} />
+                        <Text style={styles.userStatus}>
+                          {item.isActive ? 'Active' : 'Inactive'}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                  <Text style={styles.userStatus}>
-                    Status: {item.isActive ? '🟢 Active' : '🔴 Inactive'}
-                  </Text>
                 </View>
                 <View style={styles.userActions}>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.roleButton]}
                     onPress={() => handleUpdateUserRole(item.uid, item.role)}
                   >
-                    <Icon name="swap-horiz" size={20} color="#2196F3" />
-                    <Text style={styles.actionButtonText}>Change Role</Text>
+                    <Icon name="swap-horiz" size={18} color="#2196F3" />
+                    <Text style={[styles.actionButtonText, { color: '#2196F3' }]}>
+                      Change Role
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.deleteButton]}
                     onPress={() => handleDeleteUser(item.uid)}
                   >
-                    <Icon name="delete" size={20} color="#f44336" />
-                    <Text style={[styles.actionButtonText, styles.deleteText]}>Delete</Text>
+                    <Icon name="delete-outline" size={18} color="#f44336" />
+                    <Text style={[styles.actionButtonText, { color: '#f44336' }]}>
+                      Delete
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
             )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
+                <Icon name="people-outline" size={60} color="#ddd" />
                 <Text style={styles.emptyText}>No users found</Text>
               </View>
             }
+            showsVerticalScrollIndicator={false}
           />
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -246,112 +336,171 @@ export default function AdminDashboardScreen({ navigation }) {
   if (loading && stats.totalProducts === 0 && stats.totalSales === 0) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <Text>Loading dashboard...</Text>
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingSpinner} />
+          <Text style={styles.loadingText}>Loading dashboard...</Text>
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.welcomeSection}>
-        <Text style={styles.welcomeText}>Welcome, Admin!</Text>
-        <Text style={styles.welcomeSubtext}>{userData?.email || 'Admin User'}</Text>
-      </View>
-
-      <View style={styles.statsContainer}>
-        <StatCard
-          title="Total Products"
-          value={stats.totalProducts}
-          icon="shopping-cart"
-          color="#4CAF50"
-          onPress={() => navigation.navigate('Inventory')}
-        />
-        <StatCard
-          title="Low Stock Items"
-          value={stats.lowStock}
-          icon="warning"
-          color="#ff9800"
-          onPress={() => navigation.navigate('Inventory')}
-        />
-        <StatCard
-          title="Total Sales"
-          value={stats.totalSales}
-          icon="receipt"
-          color="#2196F3"
-          onPress={() => navigation.navigate('Sales')}
-        />
-        <StatCard
-          title="Revenue"
-          value={`$${stats.revenue.toFixed(2)}`}
-          icon="attach-money"
-          color="#ff6b00"
-          onPress={() => navigation.navigate('Sales')}
-        />
-        <StatCard
-          title="Total Users"
-          value={stats.totalUsers}
-          icon="people"
-          color="#9C27B0"
-          onPress={() => setShowUsersModal(true)}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Admin Actions</Text>
-        <View style={styles.actionGrid}>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('CategoryManagement')}
-          >
-            <Icon name="category" size={40} color="#ff6b00" />
-            <Text style={styles.actionText}>Manage Categories</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('Inventory')}
-          >
-            <Icon name="edit" size={40} color="#ff6b00" />
-            <Text style={styles.actionText}>Manage Products</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('Sales')}
-          >
-            <Icon name="history" size={40} color="#ff6b00" />
-            <Text style={styles.actionText}>Sales Reports</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => setShowUsersModal(true)}
-          >
-            <Icon name="people" size={40} color="#ff6b00" />
-            <Text style={styles.actionText}>Manage Users</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Sales</Text>
-        {recentSales.length > 0 ? (
-          recentSales.map((sale, index) => (
-            <View key={index} style={styles.saleItem}>
-              <View style={styles.saleHeader}>
-                <Text style={styles.saleDate}>
-                  {formatDate(sale.timestamp)}
-                </Text>
-                <Text style={styles.saleTotal}>${sale.total?.toFixed(2) || '0.00'}</Text>
-              </View>
-              <Text style={styles.saleItems}>{sale.items?.length || 0} items sold</Text>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
+        <View style={styles.welcomeSection}>
+          <View style={styles.welcomeContent}>
+            <View>
+              <Text style={styles.welcomeGreeting}>Good Morning 👋</Text>
+              <Text style={styles.welcomeText}>Welcome back, Admin</Text>
+              <Text style={styles.welcomeSubtext}>{userData?.email || 'Admin User'}</Text>
             </View>
-          ))
-        ) : (
-          <View style={styles.emptySalesContainer}>
-            <Text style={styles.emptySalesText}>No recent sales</Text>
+            <TouchableOpacity style={styles.notificationButton}>
+              <Icon name="notifications-none" size={24} color="white" />
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>3</Text>
+              </View>
+            </TouchableOpacity>
           </View>
-        )}
-      </View>
+        </View>
 
-      <UsersModal />
+        <View style={styles.statsContainer}>
+          <StatCard
+            title="Total Products"
+            value={stats.totalProducts}
+            icon="inventory-2"
+            color="#4CAF50"
+            onPress={() => navigation.navigate('Inventory')}
+          />
+          <StatCard
+            title="Low Stock Items"
+            value={stats.lowStock}
+            icon="warning"
+            color="#FF9800"
+            onPress={() => navigation.navigate('Inventory')}
+          />
+          <StatCard
+            title="Total Sales"
+            value={stats.totalSales}
+            icon="receipt-long"
+            color="#2196F3"
+            onPress={() => navigation.navigate('Sales')}
+          />
+          <StatCard
+            title="Revenue"
+            value={`$${stats.revenue.toFixed(2)}`}
+            icon="payments"
+            color="#E91E63"
+            onPress={() => navigation.navigate('Sales')}
+          />
+          <StatCard
+            title="Total Users"
+            value={stats.totalUsers}
+            icon="people"
+            color="#9C27B0"
+            onPress={() => setShowUsersModal(true)}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <Text style={styles.sectionSubtitle}>Manage your store</Text>
+          </View>
+          <View style={styles.actionGrid}>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate('CategoryManagement')}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: '#FFF3E0' }]}>
+                <Icon name="category" size={32} color="#FF6B00" />
+              </View>
+              <Text style={styles.actionText}>Categories</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate('Inventory')}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
+                <Icon name="edit" size={32} color="#4CAF50" />
+              </View>
+              <Text style={styles.actionText}>Products</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate('Sales')}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: '#E3F2FD' }]}>
+                <Icon name="analytics" size={32} color="#2196F3" />
+              </View>
+              <Text style={styles.actionText}>Reports</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => setShowUsersModal(true)}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: '#F3E5F5' }]}>
+                <Icon name="people" size={32} color="#9C27B0" />
+              </View>
+              <Text style={styles.actionText}>Users</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Recent Sales</Text>
+              <Text style={styles.sectionSubtitle}>Latest transactions</Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Sales')}>
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          {recentSales.length > 0 ? (
+            recentSales.slice(0, 5).map((sale, index) => (
+              <Animated.View 
+                key={index} 
+                style={[styles.saleItem, {
+                  opacity: fadeAnim,
+                  transform: [{ translateX: fadeAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0]
+                  })}]
+                }]}
+              >
+                <View style={styles.saleHeader}>
+                  <View style={styles.saleLeft}>
+                    <View style={styles.saleIcon}>
+                      <Icon name="receipt" size={20} color="#FF6B00" />
+                    </View>
+                    <View>
+                      <Text style={styles.saleId}>Sale #{sale.id?.slice(-6) || 'N/A'}</Text>
+                      <Text style={styles.saleDate}>{formatDate(sale.timestamp)}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.saleRight}>
+                    <Text style={styles.saleTotal}>${sale.total?.toFixed(2) || '0.00'}</Text>
+                    <Text style={styles.saleItems}>{sale.items?.length || 0} items</Text>
+                  </View>
+                </View>
+              </Animated.View>
+            ))
+          ) : (
+            <View style={styles.emptySalesContainer}>
+              <Icon name="receipt-long" size={50} color="#ddd" />
+              <Text style={styles.emptySalesText}>No recent sales</Text>
+              <Text style={styles.emptySalesSubtext}>Sales will appear here</Text>
+            </View>
+          )}
+        </View>
+
+        <UsersModal />
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -359,67 +508,153 @@ export default function AdminDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FA',
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+  },
+  loadingSpinner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: '#FF6B00',
+    borderTopColor: 'transparent',
+    marginBottom: 12,
+  },
+  loadingText: {
+    color: '#666',
+    fontSize: 16,
   },
   welcomeSection: {
-    backgroundColor: '#ff6b00',
-    padding: 20,
-    paddingTop: 30,
+    backgroundColor: '#FF6B00',
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  welcomeContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  welcomeGreeting: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 4,
   },
   welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
     color: 'white',
+    marginBottom: 4,
   },
   welcomeSubtext: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 5,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#FF1744',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+  },
+  notificationBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   statsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 10,
+    padding: 12,
+    marginTop: -10,
   },
   statCard: {
     backgroundColor: 'white',
-    width: '48%',
-    margin: '1%',
-    padding: 15,
-    borderRadius: 8,
+    width: (width - 44) / 2,
+    margin: 5,
+    padding: 16,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderLeftWidth: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  statIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   statInfo: {
-    marginLeft: 15,
+    flex: 1,
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a2e',
   },
   statTitle: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 11,
+    color: '#888',
+    marginTop: 2,
+  },
+  statArrow: {
+    marginLeft: 4,
   },
   section: {
-    marginTop: 20,
-    padding: 15,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    fontWeight: '700',
+    color: '#1a1a2e',
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 2,
+  },
+  viewAllText: {
+    color: '#FF6B00',
+    fontSize: 14,
+    fontWeight: '600',
   },
   actionGrid: {
     flexDirection: 'row',
@@ -428,116 +663,205 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     backgroundColor: 'white',
-    width: '48%',
-    marginBottom: 10,
+    width: (width - 56) / 2,
+    marginBottom: 12,
     padding: 20,
-    borderRadius: 8,
+    borderRadius: 16,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  actionIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   actionText: {
-    marginTop: 10,
-    fontSize: 12,
-    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a2e',
   },
   saleItem: {
     backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 8,
+    padding: 16,
+    borderRadius: 16,
     marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   saleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 5,
+    alignItems: 'center',
+  },
+  saleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  saleIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFF3E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  saleId: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a2e',
   },
   saleDate: {
     fontSize: 12,
-    color: '#666',
+    color: '#888',
+    marginTop: 2,
+  },
+  saleRight: {
+    alignItems: 'flex-end',
   },
   saleTotal: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ff6b00',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FF6B00',
   },
   saleItems: {
     fontSize: 12,
-    color: '#666',
+    color: '#888',
+    marginTop: 2,
   },
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
+    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    maxHeight: '80%',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+    maxHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a2e',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 4,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   userCard: {
-    backgroundColor: '#f5f5f5',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
   },
   userInfo: {
-    marginBottom: 10,
+    marginBottom: 12,
+  },
+  userHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FF6B00',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  userAvatarText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  userDetails: {
+    flex: 1,
   },
   userEmail: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1a1a2e',
+    marginBottom: 4,
+  },
+  userMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   roleBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginTop: 5,
+    marginRight: 8,
   },
   adminBadge: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#FF6B00',
   },
   staffBadge: {
     backgroundColor: '#2196F3',
   },
   roleText: {
     color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  activeDot: {
+    backgroundColor: '#4CAF50',
+  },
+  inactiveDot: {
+    backgroundColor: '#f44336',
   },
   userStatus: {
     fontSize: 12,
     color: '#666',
-    marginTop: 5,
   },
   userActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 8,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
-    borderRadius: 6,
-    flex: 0.48,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    flex: 1,
     justifyContent: 'center',
   },
   roleButton: {
@@ -547,11 +871,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFEBEE',
   },
   actionButtonText: {
-    marginLeft: 5,
+    marginLeft: 6,
     fontSize: 12,
-  },
-  deleteText: {
-    color: '#f44336',
+    fontWeight: '600',
   },
   emptyContainer: {
     padding: 40,
@@ -559,16 +881,24 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: '#888',
+    marginTop: 12,
   },
   emptySalesContainer: {
-    padding: 20,
+    padding: 40,
     alignItems: 'center',
     backgroundColor: 'white',
-    borderRadius: 8,
+    borderRadius: 16,
   },
   emptySalesText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a2e',
+    marginTop: 12,
+  },
+  emptySalesSubtext: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 4,
   },
 });
