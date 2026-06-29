@@ -7,18 +7,15 @@ import {
   TouchableOpacity,
   Alert
 } from 'react-native';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../context/AuthContext';
 
-export default function AdminDashboardScreen({ navigation }) {
+export default function StaffDashboardScreen({ navigation }) {
   const [stats, setStats] = useState({
-    totalProducts: 0,
-    lowStock: 0,
     totalSales: 0,
     revenue: 0,
-    totalUsers: 0
   });
   const [recentSales, setRecentSales] = useState([]);
   const { userData } = useAuth();
@@ -29,15 +26,6 @@ export default function AdminDashboardScreen({ navigation }) {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch products
-      const productsQuery = query(collection(db, 'products'));
-      const productsSnapshot = await getDocs(productsQuery);
-      const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      const totalProducts = products.length;
-      const lowStock = products.filter(p => p.quantity <= 10).length;
-
-      // Fetch sales
       const salesQuery = query(collection(db, 'sales'), orderBy('timestamp', 'desc'), limit(10));
       const salesSnapshot = await getDocs(salesQuery);
       const sales = salesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -45,12 +33,7 @@ export default function AdminDashboardScreen({ navigation }) {
       const totalSales = sales.length;
       const revenue = sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
 
-      // Fetch users count
-      const usersQuery = query(collection(db, 'users'));
-      const usersSnapshot = await getDocs(usersQuery);
-      const totalUsers = usersSnapshot.size;
-
-      setStats({ totalProducts, lowStock, totalSales, revenue, totalUsers });
+      setStats({ totalSales, revenue });
       setRecentSales(sales);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -70,27 +53,13 @@ export default function AdminDashboardScreen({ navigation }) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.welcomeSection}>
-        <Text style={styles.welcomeText}>Welcome, Admin!</Text>
-        <Text style={styles.welcomeSubtext}>{userData?.email}</Text>
+        <Text style={styles.welcomeText}>Welcome, {userData?.displayName || 'Staff'}!</Text>
+        <Text style={styles.welcomeSubtext}>Staff Dashboard</Text>
       </View>
 
       <View style={styles.statsContainer}>
         <StatCard
-          title="Total Products"
-          value={stats.totalProducts}
-          icon="shopping-cart"
-          color="#4CAF50"
-          onPress={() => navigation.navigate('Inventory')}
-        />
-        <StatCard
-          title="Low Stock Items"
-          value={stats.lowStock}
-          icon="warning"
-          color="#ff9800"
-          onPress={() => navigation.navigate('Inventory')}
-        />
-        <StatCard
-          title="Total Sales"
+          title="Today's Sales"
           value={stats.totalSales}
           icon="receipt"
           color="#2196F3"
@@ -103,45 +72,31 @@ export default function AdminDashboardScreen({ navigation }) {
           color="#ff6b00"
           onPress={() => navigation.navigate('Sales')}
         />
-        <StatCard
-          title="Total Users"
-          value={stats.totalUsers}
-          icon="people"
-          color="#9C27B0"
-          onPress={() => Alert.alert('Users', `Total registered users: ${stats.totalUsers}`)}
-        />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Admin Actions</Text>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionGrid}>
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => navigation.navigate('CategoryManagement')}
+            onPress={() => navigation.navigate('POS')}
           >
-            <Icon name="category" size={40} color="#ff6b00" />
-            <Text style={styles.actionText}>Manage Categories</Text>
+            <Icon name="point-of-sale" size={40} color="#ff6b00" />
+            <Text style={styles.actionText}>Start New Sale</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => navigation.navigate('Inventory')}
+            onPress={() => navigation.navigate('Products')}
           >
-            <Icon name="edit" size={40} color="#ff6b00" />
-            <Text style={styles.actionText}>Manage Products</Text>
+            <Icon name="search" size={40} color="#ff6b00" />
+            <Text style={styles.actionText}>Browse Products</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate('Sales')}
           >
             <Icon name="history" size={40} color="#ff6b00" />
-            <Text style={styles.actionText}>Sales Reports</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => Alert.alert('Coming Soon', 'User management will be available soon')}
-          >
-            <Icon name="people" size={40} color="#ff6b00" />
-            <Text style={styles.actionText}>Manage Users</Text>
+            <Text style={styles.actionText}>View Sales History</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -170,7 +125,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   welcomeSection: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#2196F3',
     padding: 20,
     paddingTop: 30,
   },

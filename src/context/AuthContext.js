@@ -22,6 +22,7 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState('staff');
+  const [userData, setUserData] = useState(null);
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
@@ -30,39 +31,34 @@ export function AuthProvider({ children }) {
       
       if (user) {
         try {
-          // Try to get user role from Firestore
+          // Try to get user data from Firestore
           const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
           
           if (userDoc.exists()) {
             const userData = userDoc.data();
             setUserRole(userData.role || 'staff');
+            setUserData(userData);
           } else {
             // If no user document, check email for demo
+            let role = 'staff';
             if (user.email === 'admin@eddiegarage.com') {
-              setUserRole('admin');
-              // Create user document for admin
-              await setDoc(userDocRef, {
-                email: user.email,
-                role: 'admin',
-                createdAt: new Date()
-              });
+              role = 'admin';
             } else if (user.email === 'staff@eddiegarage.com') {
-              setUserRole('staff');
-              // Create user document for staff
-              await setDoc(userDocRef, {
-                email: user.email,
-                role: 'staff',
-                createdAt: new Date()
-              });
-            } else {
-              setUserRole('staff');
-              await setDoc(userDocRef, {
-                email: user.email,
-                role: 'staff',
-                createdAt: new Date()
-              });
+              role = 'staff';
             }
+            
+            setUserRole(role);
+            // Create user document
+            const newUserData = {
+              email: user.email,
+              role: role,
+              createdAt: new Date(),
+              displayName: user.displayName || '',
+              phone: ''
+            };
+            await setDoc(userDocRef, newUserData);
+            setUserData(newUserData);
           }
         } catch (error) {
           console.error('Error fetching user role:', error);
@@ -75,6 +71,7 @@ export function AuthProvider({ children }) {
         }
       } else {
         setUserRole('staff');
+        setUserData(null);
       }
       
       setLoading(false);
@@ -87,6 +84,16 @@ export function AuthProvider({ children }) {
     try {
       setAuthError(null);
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
+      
+      // Get user role after login
+      const userDocRef = doc(db, 'users', result.user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUserRole(userData.role || 'staff');
+        setUserData(userData);
+      }
+      
       return { success: true, user: result.user };
     } catch (error) {
       console.error('Login error:', error.code, error.message);
@@ -121,17 +128,22 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (email, password, role = 'staff') => {
+  const register = async (email, password, role = 'staff', displayName = '') => {
     try {
       setAuthError(null);
       const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
       
       // Create user document
-      await setDoc(doc(db, 'users', result.user.uid), {
+      const userData = {
         email: email.trim(),
         role: role,
-        createdAt: new Date()
-      });
+        displayName: displayName || email.split('@')[0],
+        phone: '',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      await setDoc(doc(db, 'users', result.user.uid), userData);
       
       return { success: true, user: result.user };
     } catch (error) {
@@ -161,6 +173,8 @@ export function AuthProvider({ children }) {
     try {
       setAuthError(null);
       await signOut(auth);
+      setUserRole('staff');
+      setUserData(null);
       return { success: true };
     } catch (error) {
       console.error('Logout error:', error);
@@ -168,15 +182,32 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUserProfile = async (data) => {
+    try {
+      if (!currentUser) throw new Error('No user logged in');
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userDocRef, data, { merge: true });
+      setUserData(prev => ({ ...prev, ...data }));
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     currentUser,
     userRole,
+    userData,
     login,
     register,
     logout,
     loading,
     authError,
-    setAuthError
+    setAuthError,
+    updateUserProfile,
+    isAdmin: userRole === 'admin',
+    isStaff: userRole === 'staff'
   };
 
   return (

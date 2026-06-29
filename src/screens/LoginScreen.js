@@ -127,7 +127,7 @@ export default function LoginScreen() {
                 <Text style={styles.demoButtonSubtext}>staff@eddiegarage.com</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.demoPassword}>Password for both: admin123 / staff123</Text>
+            <Text style={styles.demoPassword}>Password: admin123 / staff123</Text>
           </View>
         </View>
       </ScrollView>

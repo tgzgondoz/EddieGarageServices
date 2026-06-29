@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native'; // ✅ ADD THIS IMPORT
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
@@ -14,11 +15,13 @@ import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import SalesHistoryScreen from '../screens/SalesHistoryScreen';
 import RestrictedScreen from '../screens/RestrictedScreen';
 import CategoryManagementScreen from '../screens/CategoryManagementScreen';
+import StaffDashboardScreen from '../screens/StaffDashboardScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// ✅ NEW: A separate component to handle the logout button with proper hook usage
+// Logout button component
 function LogoutButton() {
   const { logout } = useAuth();
 
@@ -37,22 +40,35 @@ function LogoutButton() {
   );
 }
 
+// Profile button component
+function ProfileButton({ navigation }) {
+  return (
+    <Icon
+      name="person"
+      size={24}
+      color="#fff"
+      style={{ marginRight: 15 }}
+      onPress={() => navigation.navigate('Profile')}
+    />
+  );
+}
+
 function InventoryStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen
-        name="InventoryList"
-        component={InventoryScreen}
+      <Stack.Screen 
+        name="InventoryList" 
+        component={InventoryScreen} 
         options={{ title: 'Inventory Management' }}
       />
-      <Stack.Screen
-        name="AddEditProduct"
-        component={AddEditProductScreen}
+      <Stack.Screen 
+        name="AddEditProduct" 
+        component={AddEditProductScreen} 
         options={{ title: 'Add/Edit Product' }}
       />
-      <Stack.Screen
-        name="ProductDetails"
-        component={ProductDetailsScreen}
+      <Stack.Screen 
+        name="ProductDetails" 
+        component={ProductDetailsScreen} 
         options={{ title: 'Product Details' }}
       />
     </Stack.Navigator>
@@ -62,35 +78,32 @@ function InventoryStack() {
 function ProductStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen
-        name="ProductList"
-        component={ProductListScreen}
+      <Stack.Screen 
+        name="ProductList" 
+        component={ProductListScreen} 
         options={{ title: 'Products' }}
       />
-      <Stack.Screen
-        name="ProductDetails"
-        component={ProductDetailsScreen}
+      <Stack.Screen 
+        name="ProductDetails" 
+        component={ProductDetailsScreen} 
         options={{ title: 'Product Details' }}
       />
-      <Stack.Screen
-        name="AddEditProduct"
-        component={AddEditProductScreen}
+      <Stack.Screen 
+        name="AddEditProduct" 
+        component={AddEditProductScreen} 
         options={{ title: 'Add/Edit Product' }}
       />
     </Stack.Navigator>
   );
 }
 
-function MainTabs() {
-  const { userRole } = useAuth();
-  const isAdmin = userRole === 'admin';
-
+function AdminTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={({ route, navigation }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-          switch (route.name) {
+          switch(route.name) {
             case 'POS': iconName = 'point-of-sale'; break;
             case 'Inventory': iconName = 'inventory'; break;
             case 'Products': iconName = 'shopping-cart'; break;
@@ -104,15 +117,54 @@ function MainTabs() {
         tabBarInactiveTintColor: 'gray',
         headerStyle: { backgroundColor: '#ff6b00' },
         headerTintColor: '#fff',
-        // ✅ FIX: Use the new component here
-        headerRight: () => <LogoutButton />,
+        headerRight: () => (
+          <View style={{ flexDirection: 'row' }}>
+            <ProfileButton navigation={navigation} />
+            <LogoutButton />
+          </View>
+        ),
       })}
     >
       <Tab.Screen name="POS" component={POSScreen} />
       <Tab.Screen name="Inventory" component={InventoryStack} />
       <Tab.Screen name="Products" component={ProductStack} />
       <Tab.Screen name="Sales" component={SalesHistoryScreen} />
-      {isAdmin && <Tab.Screen name="Admin" component={AdminDashboardScreen} />}
+      <Tab.Screen name="Admin" component={AdminDashboardScreen} />
+    </Tab.Navigator>
+  );
+}
+
+function StaffTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route, navigation }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          switch(route.name) {
+            case 'POS': iconName = 'point-of-sale'; break;
+            case 'Products': iconName = 'shopping-cart'; break;
+            case 'Sales': iconName = 'history'; break;
+            case 'Dashboard': iconName = 'dashboard'; break;
+            default: iconName = 'home';
+          }
+          return <Icon name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#ff6b00',
+        tabBarInactiveTintColor: 'gray',
+        headerStyle: { backgroundColor: '#ff6b00' },
+        headerTintColor: '#fff',
+        headerRight: () => (
+          <View style={{ flexDirection: 'row' }}>
+            <ProfileButton navigation={navigation} />
+            <LogoutButton />
+          </View>
+        ),
+      })}
+    >
+      <Tab.Screen name="Dashboard" component={StaffDashboardScreen} />
+      <Tab.Screen name="POS" component={POSScreen} />
+      <Tab.Screen name="Products" component={ProductStack} />
+      <Tab.Screen name="Sales" component={SalesHistoryScreen} />
     </Tab.Navigator>
   );
 }
@@ -127,9 +179,9 @@ export default function AppNavigator() {
   if (!currentUser) {
     return (
       <Stack.Navigator>
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
+        <Stack.Screen 
+          name="Login" 
+          component={LoginScreen} 
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
@@ -139,14 +191,19 @@ export default function AppNavigator() {
   if (userRole === 'restricted') {
     return (
       <Stack.Navigator>
-        <Stack.Screen
-          name="Restricted"
-          component={RestrictedScreen}
+        <Stack.Screen 
+          name="Restricted" 
+          component={RestrictedScreen} 
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
     );
   }
 
-  return <MainTabs />;
+  // Admin gets full access, staff gets limited access
+  if (userRole === 'admin') {
+    return <AdminTabs />;
+  } else {
+    return <StaffTabs />;
+  }
 }
