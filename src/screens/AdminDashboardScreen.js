@@ -12,6 +12,7 @@ import {
   Animated,
   Dimensions,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
 import { database } from '../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
@@ -30,13 +31,15 @@ export default function AdminDashboardScreen({ navigation }) {
   });
   const [recentSales, setRecentSales] = useState([]);
   const [showUsersModal, setShowUsersModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { userData, usersList, loadUsersList, updateUserRole, deleteUser } = useAuth();
+  const { userData, usersList, loadUsersList, updateUserRole, deleteUser, logout } = useAuth();
   
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const slideAnim = useRef(new Animated.Value(-100)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -47,6 +50,12 @@ export default function AdminDashboardScreen({ navigation }) {
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
         friction: 8,
         tension: 40,
         useNativeDriver: true,
@@ -138,6 +147,16 @@ export default function AdminDashboardScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  const handleLogout = async () => {
+    setShowLogoutModal(false);
+    const result = await logout();
+    if (result.success) {
+      navigation.replace('Login');
+    } else {
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
+
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown date';
     try {
@@ -158,7 +177,7 @@ export default function AdminDashboardScreen({ navigation }) {
     }
   };
 
-  const StatCard = ({ title, value, icon, color, onPress, gradient }) => {
+  const StatCard = ({ title, value, icon, color, onPress }) => {
     const scaleValue = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
@@ -244,6 +263,49 @@ export default function AdminDashboardScreen({ navigation }) {
       ]
     );
   };
+
+  const LogoutModal = () => (
+    <Modal
+      visible={showLogoutModal}
+      transparent={true}
+      animationType="fade"
+    >
+      <View style={styles.logoutModalOverlay}>
+        <Animated.View 
+          style={[
+            styles.logoutModalContent,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }]
+            }
+          ]}
+        >
+          <View style={styles.logoutIconContainer}>
+            <Icon name="logout" size={50} color="#FF6B00" />
+          </View>
+          <Text style={styles.logoutModalTitle}>Logout</Text>
+          <Text style={styles.logoutModalText}>
+            Are you sure you want to logout? You'll need to login again to access your dashboard.
+          </Text>
+          <View style={styles.logoutModalButtons}>
+            <TouchableOpacity
+              style={[styles.logoutModalButton, styles.logoutCancelButton]}
+              onPress={() => setShowLogoutModal(false)}
+            >
+              <Text style={styles.logoutCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.logoutModalButton, styles.logoutConfirmButton]}
+              onPress={handleLogout}
+            >
+              <Icon name="logout" size={20} color="white" />
+              <Text style={styles.logoutConfirmText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
 
   const UsersModal = () => (
     <Modal
@@ -345,163 +407,202 @@ export default function AdminDashboardScreen({ navigation }) {
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
-        <View style={styles.welcomeSection}>
-          <View style={styles.welcomeContent}>
-            <View>
-              <Text style={styles.welcomeGreeting}>Good Morning 👋</Text>
-              <Text style={styles.welcomeText}>Welcome back, Admin</Text>
-              <Text style={styles.welcomeSubtext}>{userData?.email || 'Admin User'}</Text>
-            </View>
-            <TouchableOpacity style={styles.notificationButton}>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#FF6B00" />
+      <View style={styles.container}>
+        {/* Custom Header with Logout Button */}
+        <Animated.View 
+          style={[
+            styles.customHeader,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <View style={styles.headerLeft}>
+            <TouchableOpacity 
+              style={styles.menuButton}
+              onPress={() => navigation.openDrawer?.()}
+            >
+              <Icon name="menu" size={24} color="white" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Dashboard</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity 
+              style={styles.headerIconButton}
+              onPress={() => navigation.navigate('Notifications')}
+            >
               <Icon name="notifications-none" size={24} color="white" />
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationBadgeText}>3</Text>
+              <View style={styles.headerBadge}>
+                <Text style={styles.headerBadgeText}>3</Text>
               </View>
             </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.logoutButton}
+              onPress={() => setShowLogoutModal(true)}
+            >
+              <Icon name="logout" size={22} color="white" />
+              <Text style={styles.logoutButtonText}>Logout</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.statsContainer}>
-          <StatCard
-            title="Total Products"
-            value={stats.totalProducts}
-            icon="inventory-2"
-            color="#4CAF50"
-            onPress={() => navigation.navigate('Inventory')}
-          />
-          <StatCard
-            title="Low Stock Items"
-            value={stats.lowStock}
-            icon="warning"
-            color="#FF9800"
-            onPress={() => navigation.navigate('Inventory')}
-          />
-          <StatCard
-            title="Total Sales"
-            value={stats.totalSales}
-            icon="receipt-long"
-            color="#2196F3"
-            onPress={() => navigation.navigate('Sales')}
-          />
-          <StatCard
-            title="Revenue"
-            value={`$${stats.revenue.toFixed(2)}`}
-            icon="payments"
-            color="#E91E63"
-            onPress={() => navigation.navigate('Sales')}
-          />
-          <StatCard
-            title="Total Users"
-            value={stats.totalUsers}
-            icon="people"
-            color="#9C27B0"
-            onPress={() => setShowUsersModal(true)}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-            <Text style={styles.sectionSubtitle}>Manage your store</Text>
-          </View>
-          <View style={styles.actionGrid}>
-            <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => navigation.navigate('CategoryManagement')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: '#FFF3E0' }]}>
-                <Icon name="category" size={32} color="#FF6B00" />
-              </View>
-              <Text style={styles.actionText}>Categories</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => navigation.navigate('Inventory')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
-                <Icon name="edit" size={32} color="#4CAF50" />
-              </View>
-              <Text style={styles.actionText}>Products</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => navigation.navigate('Sales')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: '#E3F2FD' }]}>
-                <Icon name="analytics" size={32} color="#2196F3" />
-              </View>
-              <Text style={styles.actionText}>Reports</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionCard}
-              onPress={() => setShowUsersModal(true)}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: '#F3E5F5' }]}>
-                <Icon name="people" size={32} color="#9C27B0" />
-              </View>
-              <Text style={styles.actionText}>Users</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>Recent Sales</Text>
-              <Text style={styles.sectionSubtitle}>Latest transactions</Text>
-            </View>
-            <TouchableOpacity onPress={() => navigation.navigate('Sales')}>
-              <Text style={styles.viewAllText}>View All</Text>
-            </TouchableOpacity>
-          </View>
-          {recentSales.length > 0 ? (
-            recentSales.slice(0, 5).map((sale, index) => (
-              <Animated.View 
-                key={index} 
-                style={[styles.saleItem, {
-                  opacity: fadeAnim,
-                  transform: [{ translateX: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0]
-                  })}]
-                }]}
-              >
-                <View style={styles.saleHeader}>
-                  <View style={styles.saleLeft}>
-                    <View style={styles.saleIcon}>
-                      <Icon name="receipt" size={20} color="#FF6B00" />
-                    </View>
-                    <View>
-                      <Text style={styles.saleId}>Sale #{sale.id?.slice(-6) || 'N/A'}</Text>
-                      <Text style={styles.saleDate}>{formatDate(sale.timestamp)}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.saleRight}>
-                    <Text style={styles.saleTotal}>${sale.total?.toFixed(2) || '0.00'}</Text>
-                    <Text style={styles.saleItems}>{sale.items?.length || 0} items</Text>
-                  </View>
+        <ScrollView 
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
+            <View style={styles.welcomeSection}>
+              <View style={styles.welcomeContent}>
+                <View>
+                  <Text style={styles.welcomeGreeting}>Good Morning 👋</Text>
+                  <Text style={styles.welcomeText}>Welcome back, Admin</Text>
+                  <Text style={styles.welcomeSubtext}>{userData?.email || 'Admin User'}</Text>
                 </View>
-              </Animated.View>
-            ))
-          ) : (
-            <View style={styles.emptySalesContainer}>
-              <Icon name="receipt-long" size={50} color="#ddd" />
-              <Text style={styles.emptySalesText}>No recent sales</Text>
-              <Text style={styles.emptySalesSubtext}>Sales will appear here</Text>
+              </View>
             </View>
-          )}
-        </View>
+
+            <View style={styles.statsContainer}>
+              <StatCard
+                title="Total Products"
+                value={stats.totalProducts}
+                icon="inventory-2"
+                color="#4CAF50"
+                onPress={() => navigation.navigate('Inventory')}
+              />
+              <StatCard
+                title="Low Stock Items"
+                value={stats.lowStock}
+                icon="warning"
+                color="#FF9800"
+                onPress={() => navigation.navigate('Inventory')}
+              />
+              <StatCard
+                title="Total Sales"
+                value={stats.totalSales}
+                icon="receipt-long"
+                color="#2196F3"
+                onPress={() => navigation.navigate('Sales')}
+              />
+              <StatCard
+                title="Revenue"
+                value={`$${stats.revenue.toFixed(2)}`}
+                icon="payments"
+                color="#E91E63"
+                onPress={() => navigation.navigate('Sales')}
+              />
+              <StatCard
+                title="Total Users"
+                value={stats.totalUsers}
+                icon="people"
+                color="#9C27B0"
+                onPress={() => setShowUsersModal(true)}
+              />
+            </View>
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Quick Actions</Text>
+                <Text style={styles.sectionSubtitle}>Manage your store</Text>
+              </View>
+              <View style={styles.actionGrid}>
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => navigation.navigate('CategoryManagement')}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: '#FFF3E0' }]}>
+                    <Icon name="category" size={32} color="#FF6B00" />
+                  </View>
+                  <Text style={styles.actionText}>Categories</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => navigation.navigate('Inventory')}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
+                    <Icon name="edit" size={32} color="#4CAF50" />
+                  </View>
+                  <Text style={styles.actionText}>Products</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => navigation.navigate('Sales')}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: '#E3F2FD' }]}>
+                    <Icon name="analytics" size={32} color="#2196F3" />
+                  </View>
+                  <Text style={styles.actionText}>Reports</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => setShowUsersModal(true)}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: '#F3E5F5' }]}>
+                    <Icon name="people" size={32} color="#9C27B0" />
+                  </View>
+                  <Text style={styles.actionText}>Users</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View>
+                  <Text style={styles.sectionTitle}>Recent Sales</Text>
+                  <Text style={styles.sectionSubtitle}>Latest transactions</Text>
+                </View>
+                <TouchableOpacity onPress={() => navigation.navigate('Sales')}>
+                  <Text style={styles.viewAllText}>View All</Text>
+                </TouchableOpacity>
+              </View>
+              {recentSales.length > 0 ? (
+                recentSales.slice(0, 5).map((sale, index) => (
+                  <Animated.View 
+                    key={index} 
+                    style={[styles.saleItem, {
+                      opacity: fadeAnim,
+                      transform: [{ translateX: fadeAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [20, 0]
+                      })}]
+                    }]}
+                  >
+                    <View style={styles.saleHeader}>
+                      <View style={styles.saleLeft}>
+                        <View style={styles.saleIcon}>
+                          <Icon name="receipt" size={20} color="#FF6B00" />
+                        </View>
+                        <View>
+                          <Text style={styles.saleId}>Sale #{sale.id?.slice(-6) || 'N/A'}</Text>
+                          <Text style={styles.saleDate}>{formatDate(sale.timestamp)}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.saleRight}>
+                        <Text style={styles.saleTotal}>${sale.total?.toFixed(2) || '0.00'}</Text>
+                        <Text style={styles.saleItems}>{sale.items?.length || 0} items</Text>
+                      </View>
+                    </View>
+                  </Animated.View>
+                ))
+              ) : (
+                <View style={styles.emptySalesContainer}>
+                  <Icon name="receipt-long" size={50} color="#ddd" />
+                  <Text style={styles.emptySalesText}>No recent sales</Text>
+                  <Text style={styles.emptySalesSubtext}>Sales will appear here</Text>
+                </View>
+              )}
+            </View>
+          </Animated.View>
+        </ScrollView>
 
         <UsersModal />
-      </Animated.View>
-    </ScrollView>
+        <LogoutModal />
+      </View>
+    </>
   );
 }
 
@@ -509,6 +610,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
+  },
+  scrollView: {
+    flex: 1,
   },
   centerContent: {
     justifyContent: 'center',
@@ -531,13 +635,83 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 16,
   },
-  welcomeSection: {
+  // Custom Header Styles
+  customHeader: {
     backgroundColor: '#FF6B00',
     paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 30,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    paddingTop: 48,
+    paddingBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuButton: {
+    padding: 4,
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: 'white',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIconButton: {
+    padding: 8,
+    marginRight: 8,
+    position: 'relative',
+  },
+  headerBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#FF1744',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+  },
+  headerBadgeText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  logoutButtonText: {
+    color: 'white',
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  welcomeSection: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   welcomeContent: {
     flexDirection: 'row',
@@ -546,50 +720,23 @@ const styles = StyleSheet.create({
   },
   welcomeGreeting: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: '#666',
     marginBottom: 4,
   },
   welcomeText: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '700',
-    color: 'white',
+    color: '#1a1a2e',
     marginBottom: 4,
   },
   welcomeSubtext: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  notificationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: '#FF1744',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#FF6B00',
-  },
-  notificationBadgeText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
+    color: '#888',
   },
   statsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 12,
-    marginTop: -10,
   },
   statCard: {
     backgroundColor: 'white',
@@ -739,6 +886,81 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 2,
   },
+  // Logout Modal Styles
+  logoutModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  logoutModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 24,
+    padding: 32,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+  logoutIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFF3E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoutModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1a1a2e',
+    marginBottom: 12,
+  },
+  logoutModalText: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  logoutModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  logoutModalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  logoutCancelButton: {
+    backgroundColor: '#f5f5f5',
+  },
+  logoutCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  logoutConfirmButton: {
+    backgroundColor: '#FF6B00',
+    gap: 8,
+  },
+  logoutConfirmText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+    marginLeft: 8,
+  },
+  // User Modal Styles
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
