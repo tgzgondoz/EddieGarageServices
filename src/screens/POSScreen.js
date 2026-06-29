@@ -12,6 +12,7 @@ import {
 import { collection, query, getDocs, updateDoc, doc, addDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAuth } from '../context/AuthContext';
 
 export default function POSScreen() {
   const [products, setProducts] = useState([]);
@@ -19,6 +20,7 @@ export default function POSScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categories, setCategories] = useState(['All']);
+  const { logout } = useAuth();
 
   useEffect(() => {
     fetchProducts();
@@ -50,7 +52,7 @@ export default function POSScreen() {
 
     const existingItem = cart.find(item => item.id === product.id);
     if (existingItem) {
-      if (existingItem.quantity + 1 > product.quantity) {
+      if (existingItem.cartQuantity + 1 > product.quantity) {
         Alert.alert('Limit Reached', `Only ${product.quantity} ${product.name} available!`);
         return;
       }
@@ -139,6 +141,17 @@ export default function POSScreen() {
     }
   };
 
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: logout }
+      ]
+    );
+  };
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
@@ -177,12 +190,17 @@ export default function POSScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.leftPanel}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search products..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+        <View style={styles.headerRow}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search products..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Icon name="logout" size={24} color="#ff6b00" />
+          </TouchableOpacity>
+        </View>
         <ScrollView horizontal style={styles.categoryFilter}>
           {categories.map(category => (
             <TouchableOpacity
@@ -245,13 +263,22 @@ const styles = StyleSheet.create({
     borderLeftColor: '#ddd',
     padding: 10,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   searchInput: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     padding: 10,
     borderRadius: 8,
-    marginBottom: 10,
     backgroundColor: 'white',
+    marginRight: 10,
+  },
+  logoutButton: {
+    padding: 8,
   },
   categoryFilter: {
     marginBottom: 10,
