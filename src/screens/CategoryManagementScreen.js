@@ -1,5 +1,5 @@
 // screens/CategoryManagementScreen.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,9 @@ import {
   Modal,
   SafeAreaView,
   Animated,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { database } from '../config/firebase';
 import { ref, onValue, off, push, set, remove, update } from 'firebase/database';
@@ -25,9 +28,17 @@ export default function CategoryManagementScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  
+  // Refs
+  const inputRef = useRef(null);
+  const editInputRef = useRef(null);
 
   // Animation values
   const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(-30))[0];
+  const errorAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
     const categoriesRef = ref(database, 'categories');
@@ -56,26 +67,87 @@ export default function CategoryManagementScreen({ navigation }) {
   }, []);
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
+  // Animate error message
+  useEffect(() => {
+    if (errorMessage) {
+      Animated.sequence([
+        Animated.timing(errorAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.delay(3000),
+        Animated.timing(errorAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setErrorMessage(''));
+    }
+  }, [errorMessage]);
+
+  const validateCategoryName = (name) => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setErrorMessage('Please enter a category name');
+      return null;
+    }
+    if (trimmed.length < 2) {
+      setErrorMessage('Category name must be at least 2 characters');
+      return null;
+    }
+    if (trimmed.length > 30) {
+      setErrorMessage('Category name must be less than 30 characters');
+      return null;
+    }
+    // Check for special characters (optional - allow only letters, numbers, spaces, and basic punctuation)
+    // if (!/^[a-zA-Z0-9\s\-&']+$/.test(trimmed)) {
+    //   setErrorMessage('Category name contains invalid characters');
+    //   return null;
+    // }
+    return trimmed;
+  };
+
+  const isDuplicateCategory = (name, excludeId = null) => {
+    const trimmed = name.trim().toLowerCase();
+    return categories.some(cat => 
+      cat.id !== excludeId && 
+      cat.name.toLowerCase() === trimmed
+    );
+  };
+
   const addCategory = async () => {
-    const name = newCategoryName.trim();
+    // Validate name
+    const name = validateCategoryName(newCategoryName);
     if (!name) {
-      Alert.alert('Error', 'Please enter a category name');
+      // Focus input if there's an error
+      inputRef.current?.focus();
       return;
     }
 
     // Check for duplicate
-    if (categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
-      Alert.alert('Error', 'Category already exists');
+    if (isDuplicateCategory(name)) {
+      setErrorMessage(`Category "${name}" already exists`);
+      inputRef.current?.focus();
       return;
     }
 
+    setIsAddingCategory(true);
     try {
       const categoriesRef = ref(database, 'categories');
       const newCategoryRef = push(categoriesRef);
@@ -84,11 +156,18 @@ export default function CategoryManagementScreen({ navigation }) {
         createdAt: new Date().toISOString(),
         productCount: 0
       });
+      
       setNewCategoryName('');
-      Alert.alert('Success', 'Category added successfully');
+      setErrorMessage('');
+      inputRef.current?.focus();
+      
+      // Show success feedback
+      Alert.alert('Success', `Category "${name}" added successfully`);
     } catch (error) {
       console.error('Error adding category:', error);
-      Alert.alert('Error', 'Failed to add category');
+      Alert.alert('Error', 'Failed to add category. Please try again.');
+    } finally {
+      setIsAddingCategory(false);
     }
   };
 
@@ -128,7 +207,7 @@ export default function CategoryManagementScreen({ navigation }) {
 
       const categoryRef = ref(database, `categories/${category.id}`);
       await remove(categoryRef);
-      Alert.alert('Success', 'Category deleted successfully');
+      Alert.alert('Success', `Category "${category.name}" deleted successfully`);
     } catch (error) {
       console.error('Error deleting category:', error);
       Alert.alert('Error', 'Failed to delete category');
@@ -138,22 +217,24 @@ export default function CategoryManagementScreen({ navigation }) {
   const openEditModal = (category) => {
     setEditingCategory(category);
     setEditingName(category.name);
+    setErrorMessage('');
     setShowEditModal(true);
+    // Focus input after modal opens
+    setTimeout(() => editInputRef.current?.focus(), 300);
   };
 
   const updateCategory = async () => {
-    const name = editingName.trim();
+    // Validate name
+    const name = validateCategoryName(editingName);
     if (!name) {
-      Alert.alert('Error', 'Please enter a category name');
+      editInputRef.current?.focus();
       return;
     }
 
     // Check for duplicate (excluding current category)
-    if (categories.some(cat => 
-      cat.id !== editingCategory.id && 
-      cat.name.toLowerCase() === name.toLowerCase()
-    )) {
-      Alert.alert('Error', 'Category name already exists');
+    if (isDuplicateCategory(name, editingCategory.id)) {
+      setErrorMessage(`Category "${name}" already exists`);
+      editInputRef.current?.focus();
       return;
     }
 
@@ -163,10 +244,12 @@ export default function CategoryManagementScreen({ navigation }) {
         name: name,
         updatedAt: new Date().toISOString()
       });
+      
       setShowEditModal(false);
       setEditingCategory(null);
       setEditingName('');
-      Alert.alert('Success', 'Category updated successfully');
+      setErrorMessage('');
+      Alert.alert('Success', `Category updated to "${name}" successfully`);
     } catch (error) {
       console.error('Error updating category:', error);
       Alert.alert('Error', 'Failed to update category');
@@ -182,7 +265,11 @@ export default function CategoryManagementScreen({ navigation }) {
     <Animated.View 
       style={[
         styles.categoryCard,
-        { opacity: fadeAnim, borderLeftColor: getCategoryColor(index) }
+        { 
+          opacity: fadeAnim, 
+          borderLeftColor: getCategoryColor(index),
+          transform: [{ translateX: slideAnim }],
+        }
       ]}
     >
       <TouchableOpacity
@@ -270,7 +357,10 @@ export default function CategoryManagementScreen({ navigation }) {
       transparent={true}
       animationType="slide"
     >
-      <View style={styles.modalOverlay}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.modalOverlay}
+      >
         <View style={styles.editModalContent}>
           <View style={styles.editModalHeader}>
             <Text style={styles.editModalTitle}>Edit Category</Text>
@@ -279,21 +369,38 @@ export default function CategoryManagementScreen({ navigation }) {
                 setShowEditModal(false);
                 setEditingCategory(null);
                 setEditingName('');
+                setErrorMessage('');
               }}
               style={styles.modalCloseButton}
             >
               <Icon name="close" size={24} color="#666" />
             </TouchableOpacity>
           </View>
-          <TextInput
-            style={styles.editInput}
-            value={editingName}
-            onChangeText={setEditingName}
-            placeholder="Enter category name"
-            placeholderTextColor="#999"
-            autoFocus
-            onSubmitEditing={updateCategory}
-          />
+          
+          <View style={styles.editInputWrapper}>
+            <TextInput
+              ref={editInputRef}
+              style={[styles.editInput, errorMessage && styles.editInputError]}
+              value={editingName}
+              onChangeText={(text) => {
+                setEditingName(text);
+                if (errorMessage) setErrorMessage('');
+              }}
+              placeholder="Enter category name"
+              placeholderTextColor="#999"
+              autoFocus
+              onSubmitEditing={updateCategory}
+              maxLength={30}
+            />
+            {errorMessage ? (
+              <Animated.Text style={[styles.errorText, { opacity: errorAnim }]}>
+                {errorMessage}
+              </Animated.Text>
+            ) : (
+              <Text style={styles.charCount}>{editingName.length}/30</Text>
+            )}
+          </View>
+
           <View style={styles.editModalButtons}>
             <TouchableOpacity
               style={[styles.editModalButton, styles.editCancelButton]}
@@ -301,6 +408,7 @@ export default function CategoryManagementScreen({ navigation }) {
                 setShowEditModal(false);
                 setEditingCategory(null);
                 setEditingName('');
+                setErrorMessage('');
               }}
             >
               <Text style={styles.editCancelText}>Cancel</Text>
@@ -314,9 +422,15 @@ export default function CategoryManagementScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
+
+  const handleClearInput = () => {
+    setNewCategoryName('');
+    setErrorMessage('');
+    inputRef.current?.focus();
+  };
 
   if (loading && categories.length === 0) {
     return (
@@ -339,23 +453,38 @@ export default function CategoryManagementScreen({ navigation }) {
           <Icon name="arrow-back" size={24} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Categories</Text>
-        <View style={styles.headerRight} />
+        <TouchableOpacity 
+          onPress={() => {
+            // Sort categories alphabetically
+            const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
+            setCategories(sorted);
+          }}
+          style={styles.sortButton}
+        >
+          <Icon name="sort" size={24} color="#1a1a2e" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.inputContainer}>
-        <View style={styles.inputWrapper}>
+        <View style={[styles.inputWrapper, errorMessage && styles.inputWrapperError]}>
           <Icon name="category" size={20} color="#999" style={styles.inputIcon} />
           <TextInput
-            style={styles.input}
+            ref={inputRef}
+            style={[styles.input, errorMessage && styles.inputError]}
             placeholder="Enter new category name"
             placeholderTextColor="#999"
             value={newCategoryName}
-            onChangeText={setNewCategoryName}
+            onChangeText={(text) => {
+              setNewCategoryName(text);
+              if (errorMessage) setErrorMessage('');
+            }}
             onSubmitEditing={addCategory}
+            maxLength={30}
+            editable={!isAddingCategory}
           />
           {newCategoryName.length > 0 && (
             <TouchableOpacity 
-              onPress={() => setNewCategoryName('')}
+              onPress={handleClearInput}
               style={styles.clearInputButton}
             >
               <Icon name="close" size={18} color="#999" />
@@ -363,19 +492,38 @@ export default function CategoryManagementScreen({ navigation }) {
           )}
         </View>
         <TouchableOpacity 
-          style={[styles.addButton, !newCategoryName.trim() && styles.addButtonDisabled]}
+          style={[
+            styles.addButton, 
+            (!newCategoryName.trim() || isAddingCategory) && styles.addButtonDisabled
+          ]}
           onPress={addCategory}
-          disabled={!newCategoryName.trim()}
+          disabled={!newCategoryName.trim() || isAddingCategory}
         >
-          <Icon name="add" size={24} color="white" />
+          {isAddingCategory ? (
+            <View style={styles.addingSpinner} />
+          ) : (
+            <Icon name="add" size={24} color="white" />
+          )}
         </TouchableOpacity>
       </View>
 
-      <View style={styles.categoryCount}>
-        <Text style={styles.categoryCountText}>
-          {categories.length} {categories.length === 1 ? 'category' : 'categories'}
-        </Text>
-      </View>
+      {errorMessage ? (
+        <Animated.View style={[styles.errorContainer, { opacity: errorAnim }]}>
+          <Icon name="error-outline" size={18} color="#f44336" />
+          <Text style={styles.errorContainerText}>{errorMessage}</Text>
+        </Animated.View>
+      ) : (
+        <View style={styles.categoryCount}>
+          <Text style={styles.categoryCountText}>
+            {categories.length} {categories.length === 1 ? 'category' : 'categories'}
+          </Text>
+          {categories.length > 0 && (
+            <Text style={styles.categoryCountHint}>
+              Tap a category to edit
+            </Text>
+          )}
+        </View>
+      )}
 
       <FlatList
         data={categories}
@@ -422,6 +570,14 @@ const styles = StyleSheet.create({
     borderTopColor: 'transparent',
     marginBottom: 12,
   },
+  addingSpinner: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'white',
+    borderTopColor: 'transparent',
+  },
   loadingText: {
     fontSize: 16,
     color: '#666',
@@ -444,8 +600,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a2e',
   },
-  headerRight: {
-    width: 32,
+  sortButton: {
+    padding: 4,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -465,6 +621,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
+  inputWrapperError: {
+    borderColor: '#f44336',
+    borderWidth: 2,
+  },
   inputIcon: {
     marginRight: 8,
   },
@@ -473,6 +633,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     color: '#333',
+  },
+  inputError: {
+    color: '#f44336',
   },
   clearInputButton: {
     padding: 4,
@@ -495,7 +658,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#ffebee',
+  },
+  errorContainerText: {
+    fontSize: 13,
+    color: '#f44336',
+    marginLeft: 6,
+  },
   categoryCount: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: '#f8f9fa',
@@ -506,6 +684,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     fontWeight: '500',
+  },
+  categoryCountHint: {
+    fontSize: 11,
+    color: '#bbb',
   },
   list: {
     padding: 12,
@@ -663,6 +845,9 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     padding: 4,
   },
+  editInputWrapper: {
+    marginBottom: 16,
+  },
   editInput: {
     borderWidth: 1,
     borderColor: '#e0e0e0',
@@ -672,7 +857,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     backgroundColor: '#fafafa',
-    marginBottom: 16,
+  },
+  editInputError: {
+    borderColor: '#f44336',
+    borderWidth: 2,
+  },
+  charCount: {
+    fontSize: 11,
+    color: '#999',
+    textAlign: 'right',
+    marginTop: 4,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#f44336',
+    marginTop: 4,
   },
   editModalButtons: {
     flexDirection: 'row',

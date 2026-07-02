@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// screens/POSScreen.js
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +14,7 @@ import {
   Animated,
   Modal,
   SafeAreaView,
+  Keyboard,
 } from 'react-native';
 import { database } from '../config/firebase';
 import { ref, onValue, off, update, push, set } from 'firebase/database';
@@ -27,20 +29,30 @@ export default function POSScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categories, setCategories] = useState(['All']);
+  const [allCategories, setAllCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cartTotal, setCartTotal] = useState(0);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [selectedProductForCategory, setSelectedProductForCategory] = useState(null);
   const { logout } = useAuth();
+
+  // Refs
+  const searchInputRef = useRef(null);
 
   // Animation values
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0.9))[0];
+  const categoryFadeAnim = useState(new Animated.Value(0))[0];
+  const categorySlideAnim = useState(new Animated.Value(50))[0];
 
+  // Fetch products and categories
   useEffect(() => {
     const productsRef = ref(database, 'products');
+    const categoriesRef = ref(database, 'categories');
     
-    const unsubscribe = onValue(productsRef, (snapshot) => {
+    const unsubscribeProducts = onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const productsData = Object.keys(data).map(key => ({
@@ -49,6 +61,7 @@ export default function POSScreen({ navigation }) {
         }));
         setProducts(productsData);
         
+        // Extract unique categories from products
         const uniqueCategories = new Set();
         uniqueCategories.add('All');
         
@@ -80,7 +93,26 @@ export default function POSScreen({ navigation }) {
       setLoading(false);
     });
 
-    return () => off(productsRef);
+    // Fetch all categories for category management
+    const unsubscribeCategories = onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const categoriesData = Object.keys(data).map(key => ({
+          id: key,
+          name: data[key].name,
+          ...data[key]
+        }));
+        categoriesData.sort((a, b) => a.name.localeCompare(b.name));
+        setAllCategories(categoriesData);
+      } else {
+        setAllCategories([]);
+      }
+    });
+
+    return () => {
+      off(productsRef);
+      off(categoriesRef);
+    };
   }, []);
 
   useEffect(() => {
@@ -88,7 +120,7 @@ export default function POSScreen({ navigation }) {
     setCartTotal(total);
   }, [cart]);
 
-  // Animate modal
+  // Animate checkout modal
   useEffect(() => {
     if (showCheckoutModal) {
       Animated.parallel([
@@ -120,6 +152,39 @@ export default function POSScreen({ navigation }) {
       ]).start();
     }
   }, [showCheckoutModal]);
+
+  // Animate category selector modal
+  useEffect(() => {
+    if (showCategoryModal) {
+      Animated.parallel([
+        Animated.timing(categoryFadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(categorySlideAnim, {
+          toValue: 0,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(categoryFadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.spring(categorySlideAnim, {
+          toValue: 50,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [showCategoryModal]);
 
   const addToCart = (product) => {
     if (product.quantity <= 0) {
@@ -261,13 +326,119 @@ export default function POSScreen({ navigation }) {
     return matchesSearch && matchesCategory && (product.quantity || 0) > 0;
   });
 
+  // Category Selector Modal for filtering
+  const CategorySelectorModal = () => (
+    <Modal
+      visible={showCategoryModal}
+      transparent={true}
+      animationType="none"
+    >
+      <View style={styles.modalOverlay}>
+        <Animated.View 
+          style={[
+            styles.categorySelectorContent,
+            {
+              opacity: categoryFadeAnim,
+              transform: [{ translateY: categorySlideAnim }]
+            }
+          ]}
+        >
+          <View style={styles.modalHeader}>
+            <View style={styles.modalHeaderLeft}>
+              <Icon name="category" size={28} color="#FF6B00" />
+              <Text style={styles.modalTitle}>Filter by Category</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => setShowCategoryModal(false)}
+              style={styles.modalCloseButton}
+            >
+              <Icon name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.categoryList}>
+            <TouchableOpacity
+              style={[
+                styles.categoryOption,
+                selectedCategory === 'All' && styles.categoryOptionSelected
+              ]}
+              onPress={() => {
+                setSelectedCategory('All');
+                setShowCategoryModal(false);
+              }}
+            >
+              <Text style={[
+                styles.categoryOptionText,
+                selectedCategory === 'All' && styles.categoryOptionTextSelected
+              ]}>
+                All Categories
+              </Text>
+              {selectedCategory === 'All' && (
+                <Icon name="check-circle" size={20} color="#FF6B00" />
+              )}
+            </TouchableOpacity>
+            
+            {allCategories.map((cat) => (
+              <TouchableOpacity
+                key={cat.id}
+                style={[
+                  styles.categoryOption,
+                  selectedCategory === cat.name && styles.categoryOptionSelected
+                ]}
+                onPress={() => {
+                  setSelectedCategory(cat.name);
+                  setShowCategoryModal(false);
+                }}
+              >
+                <Text style={[
+                  styles.categoryOptionText,
+                  selectedCategory === cat.name && styles.categoryOptionTextSelected
+                ]}>
+                  {cat.name}
+                </Text>
+                {selectedCategory === cat.name && (
+                  <Icon name="check-circle" size={20} color="#FF6B00" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={styles.manageCategoriesButton}
+            onPress={() => {
+              setShowCategoryModal(false);
+              navigation.navigate('CategoryManagement');
+            }}
+          >
+            <Icon name="settings" size={20} color="#FF6B00" />
+            <Text style={styles.manageCategoriesText}>Manage Categories</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+
   const renderProductItem = ({ item }) => (
-    <TouchableOpacity style={styles.productCard} onPress={() => addToCart(item)}>
+    <TouchableOpacity 
+      style={styles.productCard} 
+      onPress={() => addToCart(item)}
+      activeOpacity={0.7}
+    >
       <View style={styles.productImagePlaceholder}>
         {item.image ? (
           <Image source={{ uri: item.image }} style={styles.productImage} />
         ) : (
           <Icon name="inventory-2" size={32} color="#ccc" />
+        )}
+        {item.quantity <= 5 && item.quantity > 0 && (
+          <View style={styles.lowStockBadge}>
+            <Text style={styles.lowStockBadgeText}>Low</Text>
+          </View>
+        )}
+        {item.quantity === 0 && (
+          <View style={styles.outOfStockBadge}>
+            <Text style={styles.outOfStockBadgeText}>Out</Text>
+          </View>
         )}
       </View>
       <Text style={styles.productName} numberOfLines={1}>{item.name || 'Unnamed'}</Text>
@@ -280,7 +451,10 @@ export default function POSScreen({ navigation }) {
 
   const renderCartItem = ({ item }) => (
     <View style={styles.cartItem}>
-      <Text style={styles.cartItemName}>{item.name}</Text>
+      <View style={styles.cartItemInfo}>
+        <Text style={styles.cartItemName} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.cartItemPrice}>${item.price.toFixed(2)}</Text>
+      </View>
       <View style={styles.cartItemControls}>
         <TouchableOpacity 
           style={styles.cartItemButton}
@@ -332,7 +506,7 @@ export default function POSScreen({ navigation }) {
           </View>
 
           <ScrollView style={styles.modalItemsList} showsVerticalScrollIndicator={false}>
-            {cart.map((item, index) => (
+            {cart.map((item) => (
               <View key={item.id} style={styles.modalItem}>
                 <View style={styles.modalItemLeft}>
                   <View style={styles.modalItemQuantity}>
@@ -359,7 +533,7 @@ export default function POSScreen({ navigation }) {
             </View>
             <View style={styles.modalTotalRow}>
               <Text style={styles.modalTotalLabel}>Total Items</Text>
-              <Text style={styles.modalTotalAmount}>{cart.length} items</Text>
+              <Text style={styles.modalTotalAmount}>{cart.reduce((sum, item) => sum + item.cartQuantity, 0)} items</Text>
             </View>
             <View style={styles.modalGrandTotalRow}>
               <Text style={styles.modalGrandTotalLabel}>Total Amount</Text>
@@ -388,7 +562,7 @@ export default function POSScreen({ navigation }) {
               ) : (
                 <>
                   <Icon name="check-circle" size={22} color="white" />
-                  <Text style={styles.modalConfirmButtonText}>Payment</Text>
+                  <Text style={styles.modalConfirmButtonText}>Confirm Payment</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -418,13 +592,28 @@ export default function POSScreen({ navigation }) {
             <View style={styles.searchContainer}>
               <Icon name="search" size={20} color="#999" style={styles.searchIcon} />
               <TextInput
+                ref={searchInputRef}
                 style={styles.searchInput}
                 placeholder="Search products..."
                 placeholderTextColor="#999"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity 
+                  onPress={() => setSearchQuery('')}
+                  style={styles.clearSearchButton}
+                >
+                  <Icon name="close" size={18} color="#999" />
+                </TouchableOpacity>
+              )}
             </View>
+            <TouchableOpacity 
+              onPress={() => setShowCategoryModal(true)} 
+              style={styles.categoryFilterButton}
+            >
+              <Icon name="filter-list" size={20} color="#ff6b00" />
+            </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
               <Icon name="logout" size={20} color="#ff6b00" />
             </TouchableOpacity>
@@ -469,7 +658,18 @@ export default function POSScreen({ navigation }) {
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Icon name="inventory" size={50} color="#ddd" />
-                <Text style={styles.emptyText}>No products available</Text>
+                <Text style={styles.emptyText}>
+                  {searchQuery ? 'No products match your search' : 'No products available'}
+                </Text>
+                {!searchQuery && (
+                  <TouchableOpacity
+                    style={styles.emptyManageCategoriesButton}
+                    onPress={() => navigation.navigate('CategoryManagement')}
+                  >
+                    <Icon name="category" size={16} color="#ff6b00" />
+                    <Text style={styles.emptyManageCategoriesText}>Manage Categories</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             }
             contentContainerStyle={styles.productListContent}
@@ -481,7 +681,9 @@ export default function POSScreen({ navigation }) {
           <View style={styles.cartHeader}>
             <View>
               <Text style={styles.cartTitle}>Shopping Cart</Text>
-              <Text style={styles.cartSubtitle}>{cart.length} items</Text>
+              <Text style={styles.cartSubtitle}>
+                {cart.reduce((sum, item) => sum + item.cartQuantity, 0)} items
+              </Text>
             </View>
             {cart.length > 0 && (
               <TouchableOpacity onPress={clearCart} style={styles.clearCartButton}>
@@ -500,7 +702,8 @@ export default function POSScreen({ navigation }) {
               ListEmptyComponent={
                 <View style={styles.emptyCartContainer}>
                   <Icon name="shopping-cart" size={50} color="#ddd" />
-          
+                  <Text style={styles.emptyCartText}>Cart is Empty</Text>
+                  <Text style={styles.emptyCartSubText}>Add items from the catalog</Text>
                 </View>
               }
               contentContainerStyle={cart.length === 0 && styles.emptyCartContent}
@@ -524,7 +727,7 @@ export default function POSScreen({ navigation }) {
             >
               <Icon name="payment" size={20} color="white" />
               <Text style={styles.checkoutButtonText}>
-                {cart.length > 0 ? `Checkout (${cart.length})` : 'Cart Empty'}
+                {cart.length > 0 ? `Checkout (${cart.reduce((sum, item) => sum + item.cartQuantity, 0)})` : 'Cart Empty'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -532,6 +735,7 @@ export default function POSScreen({ navigation }) {
       </View>
 
       <CheckoutModal />
+      <CategorySelectorModal />
     </SafeAreaView>
   );
 }
@@ -604,7 +808,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
     paddingHorizontal: 10,
-    marginRight: 10,
+    marginRight: 8,
   },
   searchIcon: {
     marginRight: 6,
@@ -614,6 +818,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 14,
     color: '#333',
+  },
+  clearSearchButton: {
+    padding: 4,
+  },
+  categoryFilterButton: {
+    padding: 8,
+    backgroundColor: '#fff3e0',
+    borderRadius: 10,
+    marginRight: 8,
   },
   logoutButton: {
     padding: 8,
@@ -685,11 +898,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
+    position: 'relative',
   },
   productImage: {
     width: 48,
     height: 48,
     borderRadius: 24,
+  },
+  lowStockBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#ff9800',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 8,
+  },
+  lowStockBadgeText: {
+    fontSize: 8,
+    color: 'white',
+    fontWeight: '700',
+  },
+  outOfStockBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#f44336',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 8,
+  },
+  outOfStockBadgeText: {
+    fontSize: 8,
+    color: 'white',
+    fontWeight: '700',
   },
   productName: {
     fontSize: 13,
@@ -760,15 +1002,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
+  cartItemInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   cartItemName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#1a1a2e',
-    marginBottom: 6,
+    flex: 1,
+    marginRight: 8,
+  },
+  cartItemPrice: {
+    fontSize: 13,
+    color: '#ff6b00',
+    fontWeight: '600',
   },
   cartItemControls: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   cartItemButton: {
     backgroundColor: '#ff6b00',
@@ -867,6 +1122,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
     marginTop: 8,
+  },
+  emptyManageCategoriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff3e0',
+    borderRadius: 8,
+  },
+  emptyManageCategoriesText: {
+    color: '#ff6b00',
+    fontWeight: '600',
+    fontSize: 13,
+    marginLeft: 6,
   },
   emptyCartContainer: {
     padding: 30,
@@ -1045,5 +1315,53 @@ const styles = StyleSheet.create({
     color: 'white',
     marginLeft: 8,
     letterSpacing: 0.5,
+  },
+  // Category Selector Modal
+  categorySelectorContent: {
+    backgroundColor: 'white',
+    borderRadius: 28,
+    padding: 24,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '70%',
+  },
+  categoryList: {
+    maxHeight: 300,
+  },
+  categoryOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
+  },
+  categoryOptionSelected: {
+    backgroundColor: '#fff3e0',
+    borderRadius: 8,
+  },
+  categoryOptionText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  categoryOptionTextSelected: {
+    color: '#ff6b00',
+    fontWeight: '600',
+  },
+  manageCategoriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  manageCategoriesText: {
+    color: '#ff6b00',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
