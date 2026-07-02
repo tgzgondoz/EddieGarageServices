@@ -1,5 +1,6 @@
+// AppNavigator.js
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
@@ -30,26 +31,21 @@ function LogoutButton({ navigation }) {
   };
 
   return (
-    <Icon
-      name="logout"
-      size={24}
-      color="#fff"
-      style={{ marginRight: 15 }}
-      onPress={handleLogout}
-    />
+    <TouchableOpacity onPress={handleLogout} style={{ marginRight: 15 }}>
+      <Icon name="logout" size={24} color="#fff" />
+    </TouchableOpacity>
   );
 }
 
 // Profile button component
 function ProfileButton({ navigation }) {
   return (
-    <Icon
-      name="person"
-      size={24}
-      color="#fff"
+    <TouchableOpacity 
+      onPress={() => navigation.navigate('Profile')} 
       style={{ marginRight: 15 }}
-      onPress={() => navigation.navigate('Profile')}
-    />
+    >
+      <Icon name="person" size={24} color="#fff" />
+    </TouchableOpacity>
   );
 }
 
@@ -105,7 +101,53 @@ function ProductStack() {
         name="AddEditProduct" 
         component={AddEditProductScreen} 
       />
+      <Stack.Screen 
+        name="CategoryManagement" 
+        component={CategoryManagementScreen} 
+      />
     </Stack.Navigator>
+  );
+}
+
+// POS Stack Navigator (for standalone POS with header)
+function POSStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen 
+        name="POSMain" 
+        component={POSScreen} 
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Sales Stack Navigator
+function SalesStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen 
+        name="SalesHistory" 
+        component={SalesHistoryScreen} 
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Custom Tab Bar Button for Profile
+function ProfileTabButton({ navigation }) {
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('Profile')}
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 8,
+      }}
+    >
+      <Icon name="person" size={26} color="#ff6b00" />
+      <Text style={{ fontSize: 10, color: '#ff6b00', marginTop: 2 }}>Profile</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -123,6 +165,7 @@ function AdminTabs() {
             case 'Inventory': iconName = 'inventory'; break;
             case 'Products': iconName = 'shopping-cart'; break;
             case 'Sales': iconName = 'history'; break;
+            case 'Categories': iconName = 'category'; break;
             default: iconName = 'home';
           }
           return <Icon name={iconName} size={size} color={color} />;
@@ -130,19 +173,80 @@ function AdminTabs() {
         tabBarActiveTintColor: '#ff6b00',
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
-        headerRight: () => (
-          <View style={{ flexDirection: 'row' }}>
-            <ProfileButton navigation={navigation} />
-            <LogoutButton navigation={navigation} />
-          </View>
-        ),
       })}
     >
-      <Tab.Screen name="Dashboard" component={AdminDashboardScreen} />
-      <Tab.Screen name="POS" component={POSScreen} />
-      <Tab.Screen name="Inventory" component={InventoryStack} />
-      <Tab.Screen name="Products" component={ProductStack} />
-      <Tab.Screen name="Sales" component={SalesHistoryScreen} />
+      <Tab.Screen 
+        name="Dashboard" 
+        component={AdminDashboardScreen} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="POS" 
+        component={POSStack} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Inventory" 
+        component={InventoryStack} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Products" 
+        component={ProductStack} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Categories" 
+        component={CategoryManagementScreen} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Sales" 
+        component={SalesStack} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 }
@@ -159,6 +263,7 @@ function StaffTabs() {
             case 'Dashboard': iconName = 'dashboard'; break;
             case 'POS': iconName = 'point-of-sale'; break;
             case 'Sales': iconName = 'history'; break;
+            case 'Profile': iconName = 'person'; break;
             default: iconName = 'home';
           }
           return <Icon name={iconName} size={size} color={color} />;
@@ -166,17 +271,44 @@ function StaffTabs() {
         tabBarActiveTintColor: '#ff6b00',
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
-        headerRight: () => (
-          <View style={{ flexDirection: 'row' }}>
-            <ProfileButton navigation={navigation} />
-            <LogoutButton navigation={navigation} />
-          </View>
-        ),
       })}
     >
-      <Tab.Screen name="Dashboard" component={StaffDashboardScreen} />
-      <Tab.Screen name="POS" component={POSScreen} />
-      <Tab.Screen name="Sales" component={SalesHistoryScreen} />
+      <Tab.Screen 
+        name="Dashboard" 
+        component={StaffDashboardScreen} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="POS" 
+        component={POSStack} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Sales" 
+        component={SalesStack} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 }
@@ -195,8 +327,19 @@ export default function AppNavigator() {
   if (loading) {
     console.log('⏳ Showing loading screen');
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Loading...</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
+        <View style={{ alignItems: 'center' }}>
+          <View style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            borderWidth: 3,
+            borderColor: '#ff6b00',
+            borderTopColor: 'transparent',
+            marginBottom: 12,
+          }} />
+          <Text style={{ color: '#666', fontSize: 16 }}>Loading...</Text>
+        </View>
       </View>
     );
   }

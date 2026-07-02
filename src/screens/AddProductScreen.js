@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// screens/AddEditProductScreen.js
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,38 +8,105 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  ActivityIndicator,
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { database } from '../config/firebase';
-import { ref, set, update, push } from 'firebase/database';
+import { ref, set, update, push, onValue, off } from 'firebase/database';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+
+const { width } = Dimensions.get('window');
 
 export default function AddEditProductScreen({ route, navigation }) {
   const product = route.params?.product;
   const isEditing = !!product;
-
+  const [loading, setLoading] = useState(false);
   const [name, setName] = useState(product?.name || '');
   const [description, setDescription] = useState(product?.description || '');
   const [price, setPrice] = useState(product?.price?.toString() || '');
   const [quantity, setQuantity] = useState(product?.quantity?.toString() || '');
   const [category, setCategory] = useState(product?.category || '');
   const [sku, setSku] = useState(product?.sku || '');
-  const [image, setImage] = useState(product?.image || '');
-  const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState(product?.imageUrl || '');
+  const [errors, setErrors] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryLoading, setCategoryLoading] = useState(true);
+
+  // Fetch categories from Realtime Database
+  useEffect(() => {
+    const categoriesRef = ref(database, 'categories');
+    
+    const unsubscribe = onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const categoriesData = Object.keys(data).map(key => ({
+          id: key,
+          name: data[key].name,
+          ...data[key]
+        }));
+        // Sort alphabetically
+        categoriesData.sort((a, b) => a.name.localeCompare(b.name));
+        setCategories(categoriesData);
+      } else {
+        setCategories([]);
+      }
+      setCategoryLoading(false);
+    }, (error) => {
+      console.error('Error fetching categories:', error);
+      setCategoryLoading(false);
+    });
+
+    return () => off(categoriesRef);
+  }, []);
+
+  const validateField = (field, value) => {
+    const newErrors = { ...errors };
+    switch (field) {
+      case 'name':
+        if (!value.trim()) {
+          newErrors.name = 'Product name is required';
+        } else {
+          delete newErrors.name;
+        }
+        break;
+      case 'price':
+        if (!value || isNaN(parseFloat(value)) || parseFloat(value) < 0) {
+          newErrors.price = 'Please enter a valid price';
+        } else {
+          delete newErrors.price;
+        }
+        break;
+      case 'quantity':
+        if (!value || isNaN(parseInt(value)) || parseInt(value) < 0) {
+          newErrors.quantity = 'Please enter a valid quantity';
+        } else {
+          delete newErrors.quantity;
+        }
+        break;
+      default:
+        break;
+    }
+    setErrors(newErrors);
+  };
 
   const handleSubmit = async () => {
-    if (!name.trim()) {
-      Alert.alert('Error', 'Product name is required');
+    validateField('name', name);
+    validateField('price', price);
+    validateField('quantity', quantity);
+
+    if (!name.trim() || !price || !quantity) {
+      Alert.alert('Validation Error', 'Please fill in all required fields');
       return;
     }
-    if (!price || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
-      Alert.alert('Error', 'Valid price is required');
-      return;
-    }
-    if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) < 0) {
-      Alert.alert('Error', 'Valid quantity is required');
+
+    if (Object.keys(errors).length > 0) {
+      Alert.alert('Validation Error', 'Please fix all errors before submitting');
       return;
     }
 
@@ -47,38 +115,126 @@ export default function AddEditProductScreen({ route, navigation }) {
     const productData = {
       name: name.trim(),
       description: description.trim(),
+      category: category || 'Uncategorized',
+      sku: sku.trim() || '',
+      imageUrl: imageUrl.trim() || 'https://via.placeholder.com/300',
       price: parseFloat(price),
       quantity: parseInt(quantity),
-      category: category.trim(),
-      sku: sku.trim(),
-      image: image.trim(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     try {
       if (isEditing) {
-        // Update existing product
         const productRef = ref(database, `products/${product.id}`);
         await update(productRef, productData);
         Alert.alert('Success', 'Product updated successfully');
       } else {
-        // Add new product
+        productData.createdAt = new Date().toISOString();
         const productsRef = ref(database, 'products');
         const newProductRef = push(productsRef);
-        await set(newProductRef, {
-          ...productData,
-          createdAt: new Date().toISOString(),
-        });
+        await set(newProductRef, productData);
         Alert.alert('Success', 'Product added successfully');
       }
+      
       navigation.goBack();
     } catch (error) {
       console.error('Error saving product:', error);
-      Alert.alert('Error', 'Failed to save product');
+      Alert.alert('Error', `Failed to save product: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  const selectCategory = (categoryName) => {
+    setCategory(categoryName);
+    setShowCategoryModal(false);
+  };
+
+  const getCategoryDisplay = () => {
+    if (!category || category === 'Uncategorized') return 'Select Category';
+    return category;
+  };
+
+  // Category Selection Modal
+  const CategoryModal = () => (
+    <Modal
+      visible={showCategoryModal}
+      transparent={true}
+      animationType="slide"
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Category</Text>
+            <TouchableOpacity
+              onPress={() => setShowCategoryModal(false)}
+              style={styles.modalCloseButton}
+            >
+              <Icon name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {categoryLoading ? (
+            <View style={styles.modalLoadingContainer}>
+              <ActivityIndicator size="large" color="#ff6b00" />
+              <Text style={styles.modalLoadingText}>Loading categories...</Text>
+            </View>
+          ) : (
+            <>
+              <FlatList
+                data={categories}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryItem,
+                      category === item.name && styles.categoryItemSelected
+                    ]}
+                    onPress={() => selectCategory(item.name)}
+                  >
+                    <Text style={[
+                      styles.categoryItemText,
+                      category === item.name && styles.categoryItemTextSelected
+                    ]}>
+                      {item.name}
+                    </Text>
+                    {category === item.name && (
+                      <Icon name="check-circle" size={20} color="#ff6b00" />
+                    )}
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <View style={styles.modalEmptyContainer}>
+                    <Icon name="category" size={40} color="#ddd" />
+                    <Text style={styles.modalEmptyText}>No categories found</Text>
+                    <TouchableOpacity
+                      style={styles.modalAddCategoryButton}
+                      onPress={() => {
+                        setShowCategoryModal(false);
+                        navigation.navigate('CategoryManagement');
+                      }}
+                    >
+                      <Text style={styles.modalAddCategoryText}>Manage Categories</Text>
+                    </TouchableOpacity>
+                  </View>
+                }
+              />
+              <TouchableOpacity
+                style={styles.manageCategoriesButton}
+                onPress={() => {
+                  setShowCategoryModal(false);
+                  navigation.navigate('CategoryManagement');
+                }}
+              >
+                <Icon name="settings" size={20} color="#ff6b00" />
+                <Text style={styles.manageCategoriesText}>Manage Categories</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -105,19 +261,24 @@ export default function AddEditProductScreen({ route, navigation }) {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.formContainer}>
-            {/* Product Image */}
+            {/* Image Section */}
             <View style={styles.imageSection}>
-              <View style={styles.imagePlaceholder}>
-                <Icon name="image" size={40} color="#ccc" />
+              <View style={styles.imagePreviewContainer}>
+                <View style={styles.imagePlaceholder}>
+                  <Icon name="image" size={50} color="#ccc" />
+                </View>
+                <Text style={styles.imageHint}>Product Image</Text>
               </View>
-              <Text style={styles.imageHint}>Tap to add image</Text>
-              <TextInput
-                style={styles.imageInput}
-                value={image}
-                onChangeText={setImage}
-                placeholder="Enter image URL (optional)"
-                placeholderTextColor="#999"
-              />
+              <View style={styles.imageUrlContainer}>
+                <Icon name="link" size={20} color="#999" style={styles.imageUrlIcon} />
+                <TextInput
+                  style={styles.imageUrlInput}
+                  value={imageUrl}
+                  onChangeText={setImageUrl}
+                  placeholder="Enter image URL"
+                  placeholderTextColor="#999"
+                />
+              </View>
             </View>
 
             <View style={styles.divider} />
@@ -127,38 +288,55 @@ export default function AddEditProductScreen({ route, navigation }) {
               <Text style={styles.sectionTitle}>Basic Information</Text>
               
               <View style={styles.formGroup}>
-                <Text style={styles.label}>
-                  Product Name <Text style={styles.required}>*</Text>
-                </Text>
+                <View style={styles.labelContainer}>
+                  <Text style={styles.label}>Product Name</Text>
+                  <Text style={styles.required}>*</Text>
+                </View>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, errors.name && styles.inputError]}
                   value={name}
-                  onChangeText={setName}
+                  onChangeText={(text) => {
+                    setName(text);
+                    validateField('name', text);
+                  }}
                   placeholder="Enter product name"
                   placeholderTextColor="#999"
                 />
+                {errors.name && (
+                  <Text style={styles.errorText}>{errors.name}</Text>
+                )}
               </View>
 
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>SKU</Text>
-                <TextInput
-                  style={styles.input}
-                  value={sku}
-                  onChangeText={setSku}
-                  placeholder="Enter SKU (optional)"
-                  placeholderTextColor="#999"
-                />
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Category</Text>
-                <TextInput
-                  style={styles.input}
-                  value={category}
-                  onChangeText={setCategory}
-                  placeholder="Enter category (optional)"
-                  placeholderTextColor="#999"
-                />
+              <View style={styles.formRow}>
+                <View style={[styles.formGroup, styles.rowItem]}>
+                  <View style={styles.labelContainer}>
+                    <Text style={styles.label}>SKU</Text>
+                  </View>
+                  <TextInput
+                    style={styles.input}
+                    value={sku}
+                    onChangeText={setSku}
+                    placeholder="SKU"
+                    placeholderTextColor="#999"
+                  />
+                </View>
+                <View style={[styles.formGroup, styles.rowItem]}>
+                  <View style={styles.labelContainer}>
+                    <Text style={styles.label}>Category</Text>
+                    <TouchableOpacity
+                      onPress={() => setShowCategoryModal(true)}
+                      style={styles.categorySelector}
+                    >
+                      <Text style={[
+                        styles.categorySelectorText,
+                        !category && styles.categorySelectorPlaceholder
+                      ]}>
+                        {getCategoryDisplay()}
+                      </Text>
+                      <Icon name="arrow-drop-down" size={24} color="#999" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             </View>
 
@@ -168,32 +346,49 @@ export default function AddEditProductScreen({ route, navigation }) {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Pricing & Stock</Text>
               
-              <View style={styles.row}>
+              <View style={styles.formRow}>
                 <View style={[styles.formGroup, styles.rowItem]}>
-                  <Text style={styles.label}>
-                    Price ($) <Text style={styles.required}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    value={price}
-                    onChangeText={setPrice}
-                    placeholder="0.00"
-                    keyboardType="decimal-pad"
-                    placeholderTextColor="#999"
-                  />
+                  <View style={styles.labelContainer}>
+                    <Text style={styles.label}>Price ($)</Text>
+                    <Text style={styles.required}>*</Text>
+                  </View>
+                  <View style={styles.inputWithIcon}>
+                    <Text style={styles.currencySymbol}>$</Text>
+                    <TextInput
+                      style={[styles.inputWithIconField, errors.price && styles.inputError]}
+                      value={price}
+                      onChangeText={(text) => {
+                        setPrice(text);
+                        validateField('price', text);
+                      }}
+                      placeholder="0.00"
+                      keyboardType="decimal-pad"
+                      placeholderTextColor="#999"
+                    />
+                  </View>
+                  {errors.price && (
+                    <Text style={styles.errorText}>{errors.price}</Text>
+                  )}
                 </View>
                 <View style={[styles.formGroup, styles.rowItem]}>
-                  <Text style={styles.label}>
-                    Quantity <Text style={styles.required}>*</Text>
-                  </Text>
+                  <View style={styles.labelContainer}>
+                    <Text style={styles.label}>Quantity</Text>
+                    <Text style={styles.required}>*</Text>
+                  </View>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, errors.quantity && styles.inputError]}
                     value={quantity}
-                    onChangeText={setQuantity}
+                    onChangeText={(text) => {
+                      setQuantity(text);
+                      validateField('quantity', text);
+                    }}
                     placeholder="0"
                     keyboardType="number-pad"
                     placeholderTextColor="#999"
                   />
+                  {errors.quantity && (
+                    <Text style={styles.errorText}>{errors.quantity}</Text>
+                  )}
                 </View>
               </View>
             </View>
@@ -214,18 +409,21 @@ export default function AddEditProductScreen({ route, navigation }) {
                   numberOfLines={4}
                   textAlignVertical="top"
                 />
+                <Text style={styles.charCount}>
+                  {description.length} characters
+                </Text>
               </View>
             </View>
 
             {/* Submit Button */}
             <TouchableOpacity 
-              style={[styles.submitButton, loading && styles.disabledButton]}
+              style={[styles.submitButton, loading && styles.submitButtonDisabled]} 
               onPress={handleSubmit}
               disabled={loading}
             >
               {loading ? (
                 <View style={styles.loadingContainer}>
-                  <View style={styles.loadingSpinner} />
+                  <ActivityIndicator color="white" />
                   <Text style={styles.submitButtonText}>
                     {isEditing ? 'Updating...' : 'Adding...'}
                   </Text>
@@ -233,8 +431,8 @@ export default function AddEditProductScreen({ route, navigation }) {
               ) : (
                 <>
                   <Icon 
-                    name={isEditing ? 'update' : 'add'} 
-                    size={22} 
+                    name={isEditing ? 'update' : 'add-circle'} 
+                    size={24} 
                     color="white" 
                   />
                   <Text style={styles.submitButtonText}>
@@ -243,9 +441,43 @@ export default function AddEditProductScreen({ route, navigation }) {
                 </>
               )}
             </TouchableOpacity>
+
+            {isEditing && (
+              <TouchableOpacity 
+                style={styles.deleteButton}
+                onPress={() => {
+                  Alert.alert(
+                    'Delete Product',
+                    'Are you sure you want to delete this product?',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { 
+                        text: 'Delete', 
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            const productRef = ref(database, `products/${product.id}`);
+                            await set(productRef, null);
+                            Alert.alert('Success', 'Product deleted successfully');
+                            navigation.goBack();
+                          } catch (error) {
+                            Alert.alert('Error', 'Failed to delete product');
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
+                <Icon name="delete" size={20} color="#f44336" />
+                <Text style={styles.deleteButtonText}>Delete Product</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <CategoryModal />
     </SafeAreaView>
   );
 }
@@ -289,37 +521,46 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   imageSection: {
-    alignItems: 'center',
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
+  imagePreviewContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   imagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
   },
   imageHint: {
     fontSize: 12,
     color: '#999',
-    marginBottom: 8,
+    marginTop: 6,
   },
-  imageInput: {
-    width: '100%',
+  imageUrlContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+  },
+  imageUrlIcon: {
+    marginRight: 8,
+  },
+  imageUrlInput: {
+    flex: 1,
+    paddingVertical: 10,
     fontSize: 14,
     color: '#333',
-    backgroundColor: '#fafafa',
   },
   divider: {
     height: 1,
@@ -342,14 +583,20 @@ const styles = StyleSheet.create({
   formGroup: {
     marginBottom: 12,
   },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 6,
   },
   required: {
     color: '#f44336',
+    marginLeft: 4,
+    fontWeight: '600',
   },
   input: {
     borderWidth: 1,
@@ -361,17 +608,53 @@ const styles = StyleSheet.create({
     color: '#333',
     backgroundColor: '#fafafa',
   },
-  textArea: {
-    minHeight: 100,
-    paddingTop: 12,
+  inputError: {
+    borderColor: '#f44336',
+    borderWidth: 2,
   },
-  row: {
+  errorText: {
+    color: '#f44336',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  inputWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 10,
+    backgroundColor: '#fafafa',
+    paddingHorizontal: 14,
+  },
+  currencySymbol: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '600',
+    marginRight: 4,
+  },
+  inputWithIconField: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#333',
+  },
+  formRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   rowItem: {
     flex: 1,
     marginRight: 8,
+  },
+  textArea: {
+    minHeight: 100,
+    paddingTop: 12,
+  },
+  charCount: {
+    fontSize: 11,
+    color: '#999',
+    textAlign: 'right',
+    marginTop: 4,
   },
   submitButton: {
     backgroundColor: '#ff6b00',
@@ -390,8 +673,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  disabledButton: {
-    backgroundColor: '#ccc',
+  submitButtonDisabled: {
+    opacity: 0.7,
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -406,13 +689,138 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  loadingSpinner: {
-    width: 20,
-    height: 20,
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    marginTop: 12,
+    borderRadius: 14,
+    backgroundColor: '#ffebee',
+    borderWidth: 1,
+    borderColor: '#ffcdd2',
+  },
+  deleteButtonText: {
+    color: '#f44336',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  categorySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fafafa',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
     borderRadius: 10,
-    borderWidth: 2,
-    borderColor: 'white',
-    borderTopColor: 'transparent',
-    marginRight: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    justifyContent: 'space-between',
+    flex: 1,
+  },
+  categorySelectorText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  categorySelectorPlaceholder: {
+    color: '#999',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 20,
+    maxHeight: '70%',
+    minHeight: 300,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a2e',
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 30,
+  },
+  modalLoadingText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 12,
+  },
+  categoryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
+  },
+  categoryItemSelected: {
+    backgroundColor: '#fff3e0',
+  },
+  categoryItemText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  categoryItemTextSelected: {
+    color: '#ff6b00',
+    fontWeight: '600',
+  },
+  modalEmptyContainer: {
+    padding: 30,
+    alignItems: 'center',
+  },
+  modalEmptyText: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 8,
+  },
+  modalAddCategoryButton: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff3e0',
+    borderRadius: 8,
+  },
+  modalAddCategoryText: {
+    color: '#ff6b00',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  manageCategoriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  manageCategoriesText: {
+    color: '#ff6b00',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });

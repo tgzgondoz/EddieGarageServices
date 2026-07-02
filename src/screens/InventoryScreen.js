@@ -35,16 +35,23 @@ export default function InventoryScreen({ navigation }) {
   const [editQuantity, setEditQuantity] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [processingUpdate, setProcessingUpdate] = useState(false);
+  const [showCategorySelector, setShowCategorySelector] = useState(false);
+  const [allCategories, setAllCategories] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
   const { logout } = useAuth();
 
   // Animation values
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0.9))[0];
+  const categoryFadeAnim = useState(new Animated.Value(0))[0];
+  const categorySlideAnim = useState(new Animated.Value(50))[0];
 
+  // Fetch products and categories
   useEffect(() => {
     const productsRef = ref(database, 'products');
+    const categoriesRef = ref(database, 'categories');
     
-    const unsubscribe = onValue(productsRef, (snapshot) => {
+    const unsubscribeProducts = onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const productsData = Object.keys(data).map(key => ({
@@ -53,6 +60,7 @@ export default function InventoryScreen({ navigation }) {
         }));
         setProducts(productsData);
         
+        // Extract unique categories from products
         const uniqueCategories = new Set();
         uniqueCategories.add('All');
         
@@ -84,9 +92,31 @@ export default function InventoryScreen({ navigation }) {
       setLoading(false);
     });
 
-    return () => off(productsRef);
+    // Fetch all categories for the selector
+    const unsubscribeCategories = onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const categoriesData = Object.keys(data).map(key => ({
+          id: key,
+          name: data[key].name,
+          ...data[key]
+        }));
+        categoriesData.sort((a, b) => a.name.localeCompare(b.name));
+        setAllCategories(categoriesData);
+      } else {
+        setAllCategories([]);
+      }
+    }, (error) => {
+      console.error('Error fetching categories:', error);
+    });
+
+    return () => {
+      off(productsRef);
+      off(categoriesRef);
+    };
   }, []);
 
+  // Animate modals
   useEffect(() => {
     if (showEditModal) {
       Animated.parallel([
@@ -118,6 +148,39 @@ export default function InventoryScreen({ navigation }) {
       ]).start();
     }
   }, [showEditModal]);
+
+  // Animate category selector
+  useEffect(() => {
+    if (showCategorySelector) {
+      Animated.parallel([
+        Animated.timing(categoryFadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(categorySlideAnim, {
+          toValue: 0,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(categoryFadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.spring(categorySlideAnim, {
+          toValue: 50,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [showCategorySelector]);
 
   const updateStock = async (productId, currentStock, change) => {
     const newStock = currentStock + change;
@@ -189,7 +252,7 @@ export default function InventoryScreen({ navigation }) {
         name: editName.trim(),
         price: parseFloat(editPrice),
         quantity: parseInt(editQuantity),
-        category: editCategory.trim(),
+        category: editCategory.trim() || 'Uncategorized',
       });
       setProcessingUpdate(false);
       setShowEditModal(false);
@@ -220,6 +283,11 @@ export default function InventoryScreen({ navigation }) {
     return String(product.category);
   };
 
+  const selectCategoryForEdit = (categoryName) => {
+    setEditCategory(categoryName);
+    setShowCategorySelector(false);
+  };
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     const productCategory = getProductCategory(product);
@@ -229,7 +297,11 @@ export default function InventoryScreen({ navigation }) {
   });
 
   const renderProductItem = ({ item }) => (
-    <View style={styles.productCard}>
+    <TouchableOpacity
+      style={styles.productCard}
+      onPress={() => navigation.navigate('ProductDetails', { product: item })}
+      activeOpacity={0.7}
+    >
       <View style={styles.productInfo}>
         <View style={styles.productHeader}>
           <Text style={styles.productName}>{item.name || 'Unnamed Product'}</Text>
@@ -275,7 +347,110 @@ export default function InventoryScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
+  );
+
+  // Category Selector Modal for Edit
+  const CategorySelectorModal = () => (
+    <Modal
+      visible={showCategorySelector}
+      transparent={true}
+      animationType="none"
+    >
+      <View style={styles.modalOverlay}>
+        <Animated.View 
+          style={[
+            styles.categorySelectorContent,
+            {
+              opacity: categoryFadeAnim,
+              transform: [{ translateY: categorySlideAnim }]
+            }
+          ]}
+        >
+          <View style={styles.modalHeader}>
+            <View style={styles.modalHeaderLeft}>
+              <Icon name="category" size={28} color="#FF6B00" />
+              <Text style={styles.modalTitle}>Select Category</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => setShowCategorySelector(false)}
+              style={styles.modalCloseButton}
+            >
+              <Icon name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.categoryList}>
+            {allCategories.length === 0 ? (
+              <View style={styles.emptyCategoryContainer}>
+                <Icon name="category" size={40} color="#ddd" />
+                <Text style={styles.emptyCategoryText}>No categories available</Text>
+                <TouchableOpacity
+                  style={styles.createCategoryButton}
+                  onPress={() => {
+                    setShowCategorySelector(false);
+                    navigation.navigate('CategoryManagement');
+                  }}
+                >
+                  <Text style={styles.createCategoryText}>Manage Categories</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryOption,
+                    !editCategory && styles.categoryOptionSelected
+                  ]}
+                  onPress={() => selectCategoryForEdit('')}
+                >
+                  <Text style={[
+                    styles.categoryOptionText,
+                    !editCategory && styles.categoryOptionTextSelected
+                  ]}>
+                    None (Uncategorized)
+                  </Text>
+                  {!editCategory && (
+                    <Icon name="check-circle" size={20} color="#FF6B00" />
+                  )}
+                </TouchableOpacity>
+                {allCategories.map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[
+                      styles.categoryOption,
+                      editCategory === cat.name && styles.categoryOptionSelected
+                    ]}
+                    onPress={() => selectCategoryForEdit(cat.name)}
+                  >
+                    <Text style={[
+                      styles.categoryOptionText,
+                      editCategory === cat.name && styles.categoryOptionTextSelected
+                    ]}>
+                      {cat.name}
+                    </Text>
+                    {editCategory === cat.name && (
+                      <Icon name="check-circle" size={20} color="#FF6B00" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </>
+            )}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={styles.manageCategoriesButton}
+            onPress={() => {
+              setShowCategorySelector(false);
+              navigation.navigate('CategoryManagement');
+            }}
+          >
+            <Icon name="settings" size={20} color="#FF6B00" />
+            <Text style={styles.manageCategoriesText}>Manage Categories</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 
   // Edit Modal Component
@@ -322,13 +497,18 @@ export default function InventoryScreen({ navigation }) {
 
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Category</Text>
-              <TextInput
-                style={styles.formInput}
-                value={editCategory}
-                onChangeText={setEditCategory}
-                placeholder="Enter category"
-                placeholderTextColor="#999"
-              />
+              <TouchableOpacity
+                style={styles.categorySelectorInput}
+                onPress={() => setShowCategorySelector(true)}
+              >
+                <Text style={[
+                  styles.categorySelectorText,
+                  !editCategory && styles.categorySelectorPlaceholder
+                ]}>
+                  {editCategory || 'Select a category'}
+                </Text>
+                <Icon name="arrow-drop-down" size={24} color="#999" />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.formRow}>
@@ -412,6 +592,12 @@ export default function InventoryScreen({ navigation }) {
             onChangeText={setSearchQuery}
           />
         </View>
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('CategoryManagement')} 
+          style={styles.categoryNavButton}
+        >
+          <Icon name="category" size={20} color="#ff6b00" />
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Icon name="logout" size={20} color="#ff6b00" />
         </TouchableOpacity>
@@ -469,7 +655,16 @@ export default function InventoryScreen({ navigation }) {
               {searchQuery || lowStockOnly ? 'No products match your filters' : 'No products available'}
             </Text>
             {!searchQuery && !lowStockOnly && (
-              <Text style={styles.emptySubText}>Add your first product using the + button</Text>
+              <>
+                <Text style={styles.emptySubText}>Add your first product using the + button</Text>
+                <TouchableOpacity
+                  style={styles.manageCategoriesEmptyButton}
+                  onPress={() => navigation.navigate('CategoryManagement')}
+                >
+                  <Icon name="category" size={16} color="#ff6b00" />
+                  <Text style={styles.manageCategoriesEmptyText}>Manage Categories</Text>
+                </TouchableOpacity>
+              </>
             )}
           </View>
         }
@@ -483,6 +678,7 @@ export default function InventoryScreen({ navigation }) {
       </TouchableOpacity>
 
       <EditModal />
+      <CategorySelectorModal />
     </SafeAreaView>
   );
 }
@@ -528,6 +724,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    alignItems: 'center',
   },
   searchContainer: {
     flex: 1,
@@ -536,7 +733,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 10,
     paddingHorizontal: 12,
-    marginRight: 10,
+    marginRight: 8,
   },
   searchIcon: {
     marginRight: 8,
@@ -546,6 +743,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     color: '#333',
+  },
+  categoryNavButton: {
+    padding: 8,
+    backgroundColor: '#fff3e0',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
   logoutButton: {
     padding: 8,
@@ -713,6 +918,21 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 4,
   },
+  manageCategoriesEmptyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff3e0',
+    borderRadius: 8,
+  },
+  manageCategoriesEmptyText: {
+    color: '#ff6b00',
+    fontWeight: '600',
+    fontSize: 13,
+    marginLeft: 6,
+  },
   fab: {
     position: 'absolute',
     bottom: 24,
@@ -797,6 +1017,24 @@ const styles = StyleSheet.create({
     color: '#333',
     backgroundColor: '#fafafa',
   },
+  categorySelectorInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#fafafa',
+  },
+  categorySelectorText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  categorySelectorPlaceholder: {
+    color: '#999',
+  },
   modalButtonContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -835,5 +1073,74 @@ const styles = StyleSheet.create({
     color: 'white',
     marginLeft: 8,
     letterSpacing: 0.5,
+  },
+  // Category Selector Modal
+  categorySelectorContent: {
+    backgroundColor: 'white',
+    borderRadius: 28,
+    padding: 24,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '70%',
+  },
+  categoryList: {
+    maxHeight: 300,
+  },
+  categoryOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
+  },
+  categoryOptionSelected: {
+    backgroundColor: '#fff3e0',
+    borderRadius: 8,
+  },
+  categoryOptionText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  categoryOptionTextSelected: {
+    color: '#ff6b00',
+    fontWeight: '600',
+  },
+  emptyCategoryContainer: {
+    padding: 30,
+    alignItems: 'center',
+  },
+  emptyCategoryText: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 8,
+  },
+  createCategoryButton: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff3e0',
+    borderRadius: 8,
+  },
+  createCategoryText: {
+    color: '#ff6b00',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  manageCategoriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  manageCategoriesText: {
+    color: '#ff6b00',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// screens/AddEditProductScreen.js
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,9 +13,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { database } from '../config/firebase';
-import { ref, set, update, push } from 'firebase/database';
+import { ref, set, update, push, onValue, off } from 'firebase/database';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width } = Dimensions.get('window');
@@ -31,6 +34,36 @@ export default function AddEditProductScreen({ route, navigation }) {
   const [sku, setSku] = useState(product?.sku || '');
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || '');
   const [errors, setErrors] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryLoading, setCategoryLoading] = useState(true);
+
+  // Fetch categories from Realtime Database
+  useEffect(() => {
+    const categoriesRef = ref(database, 'categories');
+    
+    const unsubscribe = onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const categoriesData = Object.keys(data).map(key => ({
+          id: key,
+          name: data[key].name,
+          ...data[key]
+        }));
+        // Sort alphabetically
+        categoriesData.sort((a, b) => a.name.localeCompare(b.name));
+        setCategories(categoriesData);
+      } else {
+        setCategories([]);
+      }
+      setCategoryLoading(false);
+    }, (error) => {
+      console.error('Error fetching categories:', error);
+      setCategoryLoading(false);
+    });
+
+    return () => off(categoriesRef);
+  }, []);
 
   const validateField = (field, value) => {
     const newErrors = { ...errors };
@@ -63,7 +96,6 @@ export default function AddEditProductScreen({ route, navigation }) {
   };
 
   const handleSubmit = async () => {
-    // Validate all fields
     validateField('name', name);
     validateField('price', price);
     validateField('quantity', quantity);
@@ -83,7 +115,7 @@ export default function AddEditProductScreen({ route, navigation }) {
     const productData = {
       name: name.trim(),
       description: description.trim(),
-      category: category.trim() || 'Uncategorized',
+      category: category || 'Uncategorized',
       sku: sku.trim() || '',
       imageUrl: imageUrl.trim() || 'https://via.placeholder.com/300',
       price: parseFloat(price),
@@ -112,6 +144,97 @@ export default function AddEditProductScreen({ route, navigation }) {
       setLoading(false);
     }
   };
+
+  const selectCategory = (categoryName) => {
+    setCategory(categoryName);
+    setShowCategoryModal(false);
+  };
+
+  const getCategoryDisplay = () => {
+    if (!category || category === 'Uncategorized') return 'Select Category';
+    return category;
+  };
+
+  // Category Selection Modal
+  const CategoryModal = () => (
+    <Modal
+      visible={showCategoryModal}
+      transparent={true}
+      animationType="slide"
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Category</Text>
+            <TouchableOpacity
+              onPress={() => setShowCategoryModal(false)}
+              style={styles.modalCloseButton}
+            >
+              <Icon name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {categoryLoading ? (
+            <View style={styles.modalLoadingContainer}>
+              <ActivityIndicator size="large" color="#ff6b00" />
+              <Text style={styles.modalLoadingText}>Loading categories...</Text>
+            </View>
+          ) : (
+            <>
+              <FlatList
+                data={categories}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryItem,
+                      category === item.name && styles.categoryItemSelected
+                    ]}
+                    onPress={() => selectCategory(item.name)}
+                  >
+                    <Text style={[
+                      styles.categoryItemText,
+                      category === item.name && styles.categoryItemTextSelected
+                    ]}>
+                      {item.name}
+                    </Text>
+                    {category === item.name && (
+                      <Icon name="check-circle" size={20} color="#ff6b00" />
+                    )}
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <View style={styles.modalEmptyContainer}>
+                    <Icon name="category" size={40} color="#ddd" />
+                    <Text style={styles.modalEmptyText}>No categories found</Text>
+                    <TouchableOpacity
+                      style={styles.modalAddCategoryButton}
+                      onPress={() => {
+                        setShowCategoryModal(false);
+                        navigation.navigate('CategoryManagement');
+                      }}
+                    >
+                      <Text style={styles.modalAddCategoryText}>Manage Categories</Text>
+                    </TouchableOpacity>
+                  </View>
+                }
+              />
+              <TouchableOpacity
+                style={styles.manageCategoriesButton}
+                onPress={() => {
+                  setShowCategoryModal(false);
+                  navigation.navigate('CategoryManagement');
+                }}
+              >
+                <Icon name="settings" size={20} color="#ff6b00" />
+                <Text style={styles.manageCategoriesText}>Manage Categories</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -200,14 +323,19 @@ export default function AddEditProductScreen({ route, navigation }) {
                 <View style={[styles.formGroup, styles.rowItem]}>
                   <View style={styles.labelContainer}>
                     <Text style={styles.label}>Category</Text>
+                    <TouchableOpacity
+                      onPress={() => setShowCategoryModal(true)}
+                      style={styles.categorySelector}
+                    >
+                      <Text style={[
+                        styles.categorySelectorText,
+                        !category && styles.categorySelectorPlaceholder
+                      ]}>
+                        {getCategoryDisplay()}
+                      </Text>
+                      <Icon name="arrow-drop-down" size={24} color="#999" />
+                    </TouchableOpacity>
                   </View>
-                  <TextInput
-                    style={styles.input}
-                    value={category}
-                    onChangeText={setCategory}
-                    placeholder="Category"
-                    placeholderTextColor="#999"
-                  />
                 </View>
               </View>
             </View>
@@ -348,6 +476,8 @@ export default function AddEditProductScreen({ route, navigation }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <CategoryModal />
     </SafeAreaView>
   );
 }
@@ -572,6 +702,123 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#f44336',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  categorySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fafafa',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    justifyContent: 'space-between',
+    flex: 1,
+  },
+  categorySelectorText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  categorySelectorPlaceholder: {
+    color: '#999',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 20,
+    maxHeight: '70%',
+    minHeight: 300,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a2e',
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 30,
+  },
+  modalLoadingText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 12,
+  },
+  categoryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
+  },
+  categoryItemSelected: {
+    backgroundColor: '#fff3e0',
+  },
+  categoryItemText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  categoryItemTextSelected: {
+    color: '#ff6b00',
+    fontWeight: '600',
+  },
+  modalEmptyContainer: {
+    padding: 30,
+    alignItems: 'center',
+  },
+  modalEmptyText: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 8,
+  },
+  modalAddCategoryButton: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff3e0',
+    borderRadius: 8,
+  },
+  modalAddCategoryText: {
+    color: '#ff6b00',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  manageCategoriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  manageCategoriesText: {
+    color: '#ff6b00',
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,
