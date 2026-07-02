@@ -500,8 +500,7 @@ export default function POSScreen({ navigation }) {
               ListEmptyComponent={
                 <View style={styles.emptyCartContainer}>
                   <Icon name="shopping-cart" size={50} color="#ddd" />
-                  <Text style={styles.emptyCartText}>Cart is empty</Text>
-                  <Text style={styles.emptyCartSubText}>Add items from the left panel</Text>
+          
                 </View>
               }
               contentContainerStyle={cart.length === 0 && styles.emptyCartContent}
