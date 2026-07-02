@@ -30,6 +30,7 @@ export default function CategoryManagementScreen({ navigation }) {
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [totalProducts, setTotalProducts] = useState(0);
   
   // Refs
   const inputRef = useRef(null);
@@ -42,8 +43,10 @@ export default function CategoryManagementScreen({ navigation }) {
 
   useEffect(() => {
     const categoriesRef = ref(database, 'categories');
+    const productsRef = ref(database, 'products');
     
-    const unsubscribe = onValue(categoriesRef, (snapshot) => {
+    // Fetch categories
+    const unsubscribeCategories = onValue(categoriesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const categoriesData = Object.keys(data).map(key => ({
@@ -63,7 +66,56 @@ export default function CategoryManagementScreen({ navigation }) {
       setLoading(false);
     });
 
-    return () => off(categoriesRef);
+    // Fetch products to count categories
+    const unsubscribeProducts = onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const products = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setTotalProducts(products.length);
+        
+        // Update product counts for each category
+        const categoryCounts = {};
+        products.forEach(product => {
+          let categoryName = '';
+          if (product.category) {
+            if (typeof product.category === 'object') {
+              categoryName = product.category.name || product.category.value || String(product.category);
+            } else {
+              categoryName = String(product.category);
+            }
+          }
+          if (categoryName && categoryName.trim() !== '') {
+            categoryName = categoryName.trim();
+            categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
+          }
+        });
+
+        // Update categories with product counts
+        setCategories(prevCategories => {
+          return prevCategories.map(cat => ({
+            ...cat,
+            productCount: categoryCounts[cat.name] || 0
+          }));
+        });
+      } else {
+        setTotalProducts(0);
+        // Reset product counts
+        setCategories(prevCategories => {
+          return prevCategories.map(cat => ({
+            ...cat,
+            productCount: 0
+          }));
+        });
+      }
+    });
+
+    return () => {
+      off(categoriesRef);
+      off(productsRef);
+    };
   }, []);
 
   useEffect(() => {
@@ -115,11 +167,6 @@ export default function CategoryManagementScreen({ navigation }) {
       setErrorMessage('Category name must be less than 30 characters');
       return null;
     }
-    // Check for special characters (optional - allow only letters, numbers, spaces, and basic punctuation)
-    // if (!/^[a-zA-Z0-9\s\-&']+$/.test(trimmed)) {
-    //   setErrorMessage('Category name contains invalid characters');
-    //   return null;
-    // }
     return trimmed;
   };
 
@@ -135,7 +182,6 @@ export default function CategoryManagementScreen({ navigation }) {
     // Validate name
     const name = validateCategoryName(newCategoryName);
     if (!name) {
-      // Focus input if there's an error
       inputRef.current?.focus();
       return;
     }
@@ -161,7 +207,6 @@ export default function CategoryManagementScreen({ navigation }) {
       setErrorMessage('');
       inputRef.current?.focus();
       
-      // Show success feedback
       Alert.alert('Success', `Category "${name}" added successfully`);
     } catch (error) {
       console.error('Error adding category:', error);
@@ -172,39 +217,17 @@ export default function CategoryManagementScreen({ navigation }) {
   };
 
   const deleteCategory = async (category) => {
+    // Check if category has products
+    if (category.productCount > 0) {
+      Alert.alert(
+        'Category In Use',
+        `"${category.name}" has ${category.productCount} product(s) associated with it. Please reassign or delete those products first.`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
-      // Check if category is being used by any product
-      const productsRef = ref(database, 'products');
-      const productsSnapshot = await new Promise((resolve) => {
-        onValue(productsRef, (snapshot) => {
-          resolve(snapshot);
-        }, { onlyOnce: true });
-      });
-      
-      const productsData = productsSnapshot.val();
-      let isUsed = false;
-      if (productsData) {
-        const products = Object.keys(productsData).map(key => ({
-          id: key,
-          ...productsData[key]
-        }));
-        isUsed = products.some(p => {
-          const cat = typeof p.category === 'object' 
-            ? p.category.name || p.category.value || String(p.category)
-            : String(p.category || '');
-          return cat.toLowerCase() === category.name.toLowerCase();
-        });
-      }
-
-      if (isUsed) {
-        Alert.alert(
-          'Category In Use',
-          `"${category.name}" is being used by some products. Please reassign or delete those products first.`,
-          [{ text: 'OK' }]
-        );
-        return;
-      }
-
       const categoryRef = ref(database, `categories/${category.id}`);
       await remove(categoryRef);
       Alert.alert('Success', `Category "${category.name}" deleted successfully`);
@@ -219,19 +242,16 @@ export default function CategoryManagementScreen({ navigation }) {
     setEditingName(category.name);
     setErrorMessage('');
     setShowEditModal(true);
-    // Focus input after modal opens
     setTimeout(() => editInputRef.current?.focus(), 300);
   };
 
   const updateCategory = async () => {
-    // Validate name
     const name = validateCategoryName(editingName);
     if (!name) {
       editInputRef.current?.focus();
       return;
     }
 
-    // Check for duplicate (excluding current category)
     if (isDuplicateCategory(name, editingCategory.id)) {
       setErrorMessage(`Category "${name}" already exists`);
       editInputRef.current?.focus();
@@ -279,11 +299,14 @@ export default function CategoryManagementScreen({ navigation }) {
       >
         <View style={styles.categoryInfo}>
           <View style={[styles.categoryColorDot, { backgroundColor: getCategoryColor(index) }]} />
-          <View>
-            <Text style={styles.categoryName}>{item.name}</Text>
-            <Text style={styles.categorySubtext}>
-              {item.productCount || 0} products
-            </Text>
+          <View style={styles.categoryNameContainer}>
+            <Text style={styles.categoryName} numberOfLines={1}>{item.name}</Text>
+            <View style={styles.productCountBadge}>
+              <Icon name="inventory-2" size={12} color="#666" />
+              <Text style={styles.productCountText}>
+                {item.productCount || 0} {item.productCount === 1 ? 'product' : 'products'}
+              </Text>
+            </View>
           </View>
         </View>
         <View style={styles.categoryActions}>
@@ -322,12 +345,15 @@ export default function CategoryManagementScreen({ navigation }) {
           <Text style={styles.modalTitle}>Delete Category</Text>
           <Text style={styles.modalText}>
             Are you sure you want to delete "{categoryToDelete?.name}"?
-            {categoryToDelete?.productCount > 0 && (
-              <Text style={styles.modalWarning}>
-                \nThis category has {categoryToDelete.productCount} products associated with it.
-              </Text>
-            )}
           </Text>
+          {categoryToDelete?.productCount > 0 && (
+            <View style={styles.modalWarningContainer}>
+              <Icon name="error-outline" size={20} color="#f44336" />
+              <Text style={styles.modalWarningText}>
+                This category has {categoryToDelete.productCount} product(s) associated with it.
+              </Text>
+            </View>
+          )}
           <View style={styles.modalButtons}>
             <TouchableOpacity
               style={[styles.modalButton, styles.modalCancelButton]}
@@ -336,13 +362,19 @@ export default function CategoryManagementScreen({ navigation }) {
               <Text style={styles.modalCancelText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.modalButton, styles.modalDeleteButton]}
+              style={[
+                styles.modalButton, 
+                categoryToDelete?.productCount > 0 ? styles.modalDisabledButton : styles.modalDeleteButton
+              ]}
               onPress={() => {
                 setShowDeleteModal(false);
                 deleteCategory(categoryToDelete);
               }}
+              disabled={categoryToDelete?.productCount > 0}
             >
-              <Text style={styles.modalDeleteText}>Delete</Text>
+              <Text style={categoryToDelete?.productCount > 0 ? styles.modalDisabledText : styles.modalDeleteText}>
+                Delete
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -401,6 +433,25 @@ export default function CategoryManagementScreen({ navigation }) {
             )}
           </View>
 
+          {editingCategory && (
+            <View style={styles.editCategoryInfo}>
+              <View style={styles.editInfoRow}>
+                <Icon name="inventory-2" size={16} color="#666" />
+                <Text style={styles.editInfoText}>
+                  {editingCategory.productCount || 0} products in this category
+                </Text>
+              </View>
+              {editingCategory.createdAt && (
+                <View style={styles.editInfoRow}>
+                  <Icon name="calendar-today" size={16} color="#666" />
+                  <Text style={styles.editInfoText}>
+                    Created: {new Date(editingCategory.createdAt).toLocaleDateString()}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
           <View style={styles.editModalButtons}>
             <TouchableOpacity
               style={[styles.editModalButton, styles.editCancelButton]}
@@ -455,7 +506,6 @@ export default function CategoryManagementScreen({ navigation }) {
         <Text style={styles.headerTitle}>Categories</Text>
         <TouchableOpacity 
           onPress={() => {
-            // Sort categories alphabetically
             const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
             setCategories(sorted);
           }}
@@ -515,7 +565,7 @@ export default function CategoryManagementScreen({ navigation }) {
       ) : (
         <View style={styles.categoryCount}>
           <Text style={styles.categoryCountText}>
-            {categories.length} {categories.length === 1 ? 'category' : 'categories'}
+            {categories.length} {categories.length === 1 ? 'category' : 'categories'} · {totalProducts} total products
           </Text>
           {categories.length > 0 && (
             <Text style={styles.categoryCountHint}>
@@ -719,15 +769,23 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 12,
   },
+  categoryNameContainer: {
+    flex: 1,
+  },
   categoryName: {
     fontSize: 15,
     fontWeight: '600',
     color: '#1a1a2e',
   },
-  categorySubtext: {
+  productCountBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  productCountText: {
     fontSize: 11,
     color: '#888',
-    marginTop: 1,
+    marginLeft: 4,
   },
   categoryActions: {
     flexDirection: 'row',
@@ -792,9 +850,20 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 20,
   },
-  modalWarning: {
+  modalWarningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    width: '100%',
+  },
+  modalWarningText: {
+    fontSize: 13,
     color: '#f44336',
-    fontWeight: '500',
+    marginLeft: 8,
+    flex: 1,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -822,6 +891,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'white',
+  },
+  modalDisabledButton: {
+    backgroundColor: '#e0e0e0',
+  },
+  modalDisabledText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#999',
   },
   // Edit Modal
   editModalContent: {
@@ -872,6 +949,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#f44336',
     marginTop: 4,
+  },
+  editCategoryInfo: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  editInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  editInfoText: {
+    fontSize: 13,
+    color: '#666',
+    marginLeft: 8,
   },
   editModalButtons: {
     flexDirection: 'row',
