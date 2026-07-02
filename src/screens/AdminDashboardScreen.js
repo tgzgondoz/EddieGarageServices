@@ -1,3 +1,4 @@
+// screens/AdminDashboardScreen.js
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -13,6 +14,7 @@ import {
   RefreshControl,
   StatusBar,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import { database } from '../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
@@ -40,6 +42,7 @@ export default function AdminDashboardScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const slideAnim = useRef(new Animated.Value(-100)).current;
+  const statFadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -58,6 +61,12 @@ export default function AdminDashboardScreen({ navigation }) {
         toValue: 0,
         friction: 8,
         tension: 40,
+        useNativeDriver: true,
+      }),
+      Animated.timing(statFadeAnim, {
+        toValue: 1,
+        duration: 800,
+        delay: 300,
         useNativeDriver: true,
       }),
     ]).start();
@@ -177,7 +186,14 @@ export default function AdminDashboardScreen({ navigation }) {
     }
   };
 
-  const StatCard = ({ title, value, color, onPress }) => {
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
+  const StatCard = ({ title, value, icon, color, onPress, subtitle }) => {
     const scaleValue = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
@@ -197,7 +213,7 @@ export default function AdminDashboardScreen({ navigation }) {
     };
 
     return (
-      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      <Animated.View style={{ transform: [{ scale: scaleValue }], opacity: statFadeAnim }}>
         <TouchableOpacity
           style={[styles.statCard, { borderLeftColor: color }]}
           onPress={onPress}
@@ -205,12 +221,18 @@ export default function AdminDashboardScreen({ navigation }) {
           onPressOut={handlePressOut}
           activeOpacity={0.9}
         >
+          <View style={styles.statIconContainer}>
+            <Icon name={icon} size={24} color={color} />
+          </View>
           <View style={styles.statInfo}>
             <Text style={styles.statValue}>{value}</Text>
             <Text style={styles.statTitle}>{title}</Text>
+            {subtitle && (
+              <Text style={styles.statSubtitle}>{subtitle}</Text>
+            )}
           </View>
           {onPress && (
-            <Text style={styles.statArrow}>›</Text>
+            <Icon name="chevron-right" size={20} color="#ccc" />
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -242,7 +264,7 @@ export default function AdminDashboardScreen({ navigation }) {
   const handleDeleteUser = async (uid) => {
     Alert.alert(
       'Delete User',
-      'Are you sure you want to delete this user?',
+      'Are you sure you want to delete this user? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -261,13 +283,33 @@ export default function AdminDashboardScreen({ navigation }) {
     );
   };
 
+  const renderRecentSale = ({ item }) => (
+    <View style={styles.saleItem}>
+      <View style={styles.saleHeader}>
+        <View style={styles.saleLeft}>
+          <View style={styles.saleIcon}>
+            <Icon name="receipt" size={18} color="#FF6B00" />
+          </View>
+          <View>
+            <Text style={styles.saleId}>Order #{item.id.slice(-6)}</Text>
+            <Text style={styles.saleDate}>{formatDate(item.timestamp)}</Text>
+          </View>
+        </View>
+        <View style={styles.saleRight}>
+          <Text style={styles.saleTotal}>${item.total?.toFixed(2) || '0.00'}</Text>
+          <Text style={styles.saleItems}>{item.items?.length || 0} items</Text>
+        </View>
+      </View>
+    </View>
+  );
+
   const LogoutModal = () => (
     <Modal
       visible={showLogoutModal}
       transparent={true}
       animationType="fade"
     >
-      <View style={styles.logoutModalOverlay}>
+      <View style={styles.modalOverlay}>
         <Animated.View 
           style={[
             styles.logoutModalContent,
@@ -278,7 +320,7 @@ export default function AdminDashboardScreen({ navigation }) {
           ]}
         >
           <View style={styles.logoutIconContainer}>
-            <Text style={styles.logoutIconText}>🚪</Text>
+            <Icon name="logout" size={40} color="#FF6B00" />
           </View>
           <Text style={styles.logoutModalTitle}>Logout</Text>
           <Text style={styles.logoutModalText}>
@@ -295,6 +337,7 @@ export default function AdminDashboardScreen({ navigation }) {
               style={[styles.logoutModalButton, styles.logoutConfirmButton]}
               onPress={handleLogout}
             >
+              <Icon name="logout" size={18} color="white" />
               <Text style={styles.logoutConfirmText}>Logout</Text>
             </TouchableOpacity>
           </View>
@@ -309,7 +352,7 @@ export default function AdminDashboardScreen({ navigation }) {
       animationType="slide"
       transparent={true}
     >
-      <View style={styles.modalContainer}>
+      <View style={styles.modalOverlay}>
         <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
           <View style={styles.modalHeader}>
             <View>
@@ -322,7 +365,7 @@ export default function AdminDashboardScreen({ navigation }) {
               onPress={() => setShowUsersModal(false)}
               style={styles.closeButton}
             >
-              <Text style={styles.closeButtonText}>✕</Text>
+              <Icon name="close" size={24} color="#666" />
             </TouchableOpacity>
           </View>
           
@@ -333,7 +376,7 @@ export default function AdminDashboardScreen({ navigation }) {
               <View style={styles.userCard}>
                 <View style={styles.userInfo}>
                   <View style={styles.userHeader}>
-                    <View style={styles.userAvatar}>
+                    <View style={[styles.userAvatar, item.role === 'admin' ? styles.adminAvatar : styles.staffAvatar]}>
                       <Text style={styles.userAvatarText}>
                         {item.email?.charAt(0).toUpperCase() || 'U'}
                       </Text>
@@ -344,6 +387,11 @@ export default function AdminDashboardScreen({ navigation }) {
                       </Text>
                       <View style={styles.userMeta}>
                         <View style={[styles.roleBadge, item.role === 'admin' ? styles.adminBadge : styles.staffBadge]}>
+                          <Icon 
+                            name={item.role === 'admin' ? 'admin-panel-settings' : 'person'} 
+                            size={10} 
+                            color="white" 
+                          />
                           <Text style={styles.roleText}>
                             {item.role?.toUpperCase() || 'STAFF'}
                           </Text>
@@ -361,6 +409,7 @@ export default function AdminDashboardScreen({ navigation }) {
                     style={[styles.actionButton, styles.roleButton]}
                     onPress={() => handleUpdateUserRole(item.uid, item.role)}
                   >
+                    <Icon name="swap-horiz" size={14} color="#2196F3" />
                     <Text style={[styles.actionButtonText, { color: '#2196F3' }]}>
                       Change Role
                     </Text>
@@ -369,6 +418,7 @@ export default function AdminDashboardScreen({ navigation }) {
                     style={[styles.actionButton, styles.deleteButton]}
                     onPress={() => handleDeleteUser(item.uid)}
                   >
+                    <Icon name="delete" size={14} color="#f44336" />
                     <Text style={[styles.actionButtonText, { color: '#f44336' }]}>
                       Delete
                     </Text>
@@ -378,8 +428,9 @@ export default function AdminDashboardScreen({ navigation }) {
             )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyIcon}>👤</Text>
-                <Text style={styles.emptyText}>No users found</Text>
+                <Icon name="people" size={60} color="#ddd" />
+                <Text style={styles.emptyTitle}>No Users Found</Text>
+                <Text style={styles.emptySubtitle}>Users will appear here once they register</Text>
               </View>
             }
             showsVerticalScrollIndicator={false}
@@ -419,24 +470,31 @@ export default function AdminDashboardScreen({ navigation }) {
               style={styles.menuButton}
               onPress={() => navigation.openDrawer?.()}
             >
-              <Text style={styles.menuIcon}>☰</Text>
+              <Icon name="menu" size={24} color="white" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Dashboard</Text>
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity 
-              style={styles.logoutButton}
+              style={styles.headerIconButton}
+              onPress={() => navigation.navigate('Profile')}
+            >
+              <Icon name="person" size={22} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.headerIconButton}
               onPress={() => setShowLogoutModal(true)}
             >
-              <Text style={styles.logoutButtonText}>Logout</Text>
+              <Icon name="logout" size={22} color="white" />
             </TouchableOpacity>
           </View>
         </Animated.View>
 
         <ScrollView 
           style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF6B00']} />
           }
         >
           <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
@@ -444,10 +502,33 @@ export default function AdminDashboardScreen({ navigation }) {
             <View style={styles.welcomeSection}>
               <View style={styles.welcomeContent}>
                 <View>
-                  <Text style={styles.welcomeGreeting}>Good Morning 👋</Text>
+                  <Text style={styles.welcomeGreeting}>{getGreeting()} 👋</Text>
                   <Text style={styles.welcomeText}>Welcome back, Admin</Text>
                   <Text style={styles.welcomeSubtext}>{userData?.email || 'Admin User'}</Text>
                 </View>
+                <View style={styles.welcomeAvatar}>
+                  <Text style={styles.welcomeAvatarText}>
+                    {userData?.email?.charAt(0).toUpperCase() || 'A'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Quick Stats */}
+            <View style={styles.quickStatsContainer}>
+              <View style={styles.quickStatItem}>
+                <Text style={styles.quickStatValue}>{stats.totalProducts}</Text>
+                <Text style={styles.quickStatLabel}>Products</Text>
+              </View>
+              <View style={styles.quickStatDivider} />
+              <View style={styles.quickStatItem}>
+                <Text style={styles.quickStatValue}>{stats.totalSales}</Text>
+                <Text style={styles.quickStatLabel}>Sales</Text>
+              </View>
+              <View style={styles.quickStatDivider} />
+              <View style={styles.quickStatItem}>
+                <Text style={styles.quickStatValue}>${stats.revenue.toFixed(0)}</Text>
+                <Text style={styles.quickStatLabel}>Revenue</Text>
               </View>
             </View>
 
@@ -456,34 +537,117 @@ export default function AdminDashboardScreen({ navigation }) {
               <StatCard
                 title="Total Products"
                 value={stats.totalProducts}
+                icon="inventory-2"
                 color="#4CAF50"
                 onPress={() => navigation.navigate('Inventory')}
               />
               <StatCard
-                title="Low Stock"
+                title="Low Stock Alert"
                 value={stats.lowStock}
+                icon="warning"
                 color="#FF9800"
                 onPress={() => navigation.navigate('Inventory')}
+                subtitle={stats.lowStock > 0 ? `${stats.lowStock} items need restock` : 'All items in stock'}
               />
               <StatCard
                 title="Total Sales"
                 value={stats.totalSales}
+                icon="receipt"
                 color="#2196F3"
                 onPress={() => navigation.navigate('Sales')}
               />
               <StatCard
                 title="Revenue"
                 value={`$${stats.revenue.toFixed(2)}`}
+                icon="attach-money"
                 color="#E91E63"
                 onPress={() => navigation.navigate('Sales')}
               />
               <StatCard
                 title="Total Users"
                 value={stats.totalUsers}
+                icon="people"
                 color="#9C27B0"
                 onPress={() => setShowUsersModal(true)}
               />
             </View>
+
+            {/* Recent Sales Section */}
+            {recentSales.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View>
+                    <Text style={styles.sectionTitle}>Recent Sales</Text>
+                    <Text style={styles.sectionSubtitle}>Latest 10 transactions</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => navigation.navigate('Sales')}>
+                    <Text style={styles.viewAllText}>View All</Text>
+                  </TouchableOpacity>
+                </View>
+                {recentSales.slice(0, 5).map((item) => renderRecentSale({ item }))}
+                {recentSales.length > 5 && (
+                  <TouchableOpacity 
+                    style={styles.viewAllButton}
+                    onPress={() => navigation.navigate('Sales')}
+                  >
+                    <Text style={styles.viewAllButtonText}>View All {recentSales.length} Sales</Text>
+                    <Icon name="arrow-forward" size={16} color="#FF6B00" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
+            {/* Quick Actions */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Quick Actions</Text>
+              <View style={styles.actionGrid}>
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => navigation.navigate('POS')}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: '#FFF3E0' }]}>
+                    <Icon name="point-of-sale" size={28} color="#FF6B00" />
+                  </View>
+                  <Text style={styles.actionText}>POS</Text>
+                  <Text style={styles.actionSubtext}>Start new sale</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => navigation.navigate('AddEditProduct')}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
+                    <Icon name="add-shopping-cart" size={28} color="#4CAF50" />
+                  </View>
+                  <Text style={styles.actionText}>Add Product</Text>
+                  <Text style={styles.actionSubtext}>Add new product</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => navigation.navigate('CategoryManagement')}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: '#E3F2FD' }]}>
+                    <Icon name="category" size={28} color="#2196F3" />
+                  </View>
+                  <Text style={styles.actionText}>Categories</Text>
+                  <Text style={styles.actionSubtext}>Manage categories</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.actionCard}
+                  onPress={() => navigation.navigate('Sales')}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: '#FCE4EC' }]}>
+                    <Icon name="history" size={28} color="#E91E63" />
+                  </View>
+                  <Text style={styles.actionText}>Sales History</Text>
+                  <Text style={styles.actionSubtext}>View transactions</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.footerSpacer} />
           </Animated.View>
         </ScrollView>
 
@@ -506,6 +670,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    flex: 1,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -546,10 +711,6 @@ const styles = StyleSheet.create({
     padding: 4,
     marginRight: 12,
   },
-  menuIcon: {
-    fontSize: 24,
-    color: 'white',
-  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -559,18 +720,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  logoutButton: {
+  headerIconButton: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    padding: 8,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  logoutButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
+    marginLeft: 8,
   },
   // Welcome Section
   welcomeSection: {
@@ -581,22 +735,75 @@ const styles = StyleSheet.create({
   welcomeContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   welcomeGreeting: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   welcomeText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1a1a2e',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   welcomeSubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#888',
+  },
+  welcomeAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FF6B00',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  welcomeAvatarText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  // Quick Stats
+  quickStatsContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 16,
+    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  quickStatItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  quickStatValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a2e',
+  },
+  quickStatLabel: {
+    fontSize: 11,
+    color: '#888',
+    marginTop: 2,
+  },
+  quickStatDivider: {
+    width: 1,
+    backgroundColor: '#f0f0f0',
   },
   // Stats
   statsContainer: {
@@ -612,13 +819,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     borderLeftWidth: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+  },
+  statIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
   },
   statInfo: {
     flex: 1,
@@ -631,12 +846,12 @@ const styles = StyleSheet.create({
   statTitle: {
     fontSize: 11,
     color: '#888',
-    marginTop: 2,
+    marginTop: 1,
   },
-  statArrow: {
-    fontSize: 20,
+  statSubtitle: {
+    fontSize: 9,
     color: '#bbb',
-    fontWeight: '300',
+    marginTop: 1,
   },
   // Section
   section: {
@@ -656,13 +871,13 @@ const styles = StyleSheet.create({
     color: '#1a1a2e',
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#888',
-    marginTop: 2,
+    marginTop: 1,
   },
   viewAllText: {
     color: '#FF6B00',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   // Quick Actions
@@ -685,20 +900,22 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   actionIcon: {
-    width: 50,
-    height: 50,
+    width: 56,
+    height: 56,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
-  actionIconText: {
-    fontSize: 24,
-  },
   actionText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#1a1a2e',
+  },
+  actionSubtext: {
+    fontSize: 10,
+    color: '#888',
+    marginTop: 1,
   },
   // Sales Items
   saleItem: {
@@ -720,6 +937,7 @@ const styles = StyleSheet.create({
   saleLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   saleIcon: {
     width: 36,
@@ -730,18 +948,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  saleIconText: {
-    fontSize: 18,
-  },
   saleId: {
     fontSize: 14,
     fontWeight: '600',
     color: '#1a1a2e',
   },
   saleDate: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#888',
-    marginTop: 2,
+    marginTop: 1,
   },
   saleRight: {
     alignItems: 'flex-end',
@@ -752,32 +967,35 @@ const styles = StyleSheet.create({
     color: '#FF6B00',
   },
   saleItems: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#888',
-    marginTop: 2,
+    marginTop: 1,
   },
-  emptySalesContainer: {
-    padding: 30,
+  viewAllButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
     backgroundColor: 'white',
     borderRadius: 12,
-  },
-  emptySalesIcon: {
-    fontSize: 40,
-  },
-  emptySalesText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1a1a2e',
-    marginTop: 10,
-  },
-  emptySalesSubtext: {
-    fontSize: 13,
-    color: '#888',
     marginTop: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  viewAllButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF6B00',
+    marginRight: 4,
+  },
+  footerSpacer: {
+    height: 20,
   },
   // Logout Modal
-  logoutModalOverlay: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
@@ -805,9 +1023,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-  },
-  logoutIconText: {
-    fontSize: 32,
   },
   logoutModalTitle: {
     fontSize: 22,
@@ -851,19 +1066,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'white',
+    marginLeft: 6,
   },
   // Users Modal
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
   modalContent: {
     backgroundColor: 'white',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 20,
     maxHeight: '85%',
+    width: '100%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -892,11 +1104,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  closeButtonText: {
-    fontSize: 18,
-    color: '#666',
-    fontWeight: '600',
-  },
   userCard: {
     backgroundColor: '#f8f9fa',
     padding: 14,
@@ -914,10 +1121,15 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FF6B00',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
+  },
+  adminAvatar: {
+    backgroundColor: '#FF6B00',
+  },
+  staffAvatar: {
+    backgroundColor: '#2196F3',
   },
   userAvatarText: {
     color: 'white',
@@ -938,6 +1150,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -953,6 +1167,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 9,
     fontWeight: '700',
+    marginLeft: 3,
   },
   statusDot: {
     width: 6,
@@ -982,6 +1197,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flex: 1,
     justifyContent: 'center',
+    gap: 4,
   },
   roleButton: {
     backgroundColor: '#E3F2FD',
@@ -994,15 +1210,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   emptyContainer: {
-    padding: 30,
+    padding: 40,
     alignItems: 'center',
   },
-  emptyIcon: {
-    fontSize: 48,
-  },
-  emptyText: {
-    fontSize: 15,
-    color: '#888',
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
     marginTop: 10,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: '#999',
+    marginTop: 4,
   },
 });
