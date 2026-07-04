@@ -39,18 +39,6 @@ function LogoutButton({ navigation }) {
   );
 }
 
-// Profile button component
-function ProfileButton({ navigation }) {
-  return (
-    <TouchableOpacity 
-      onPress={() => navigation.navigate('Profile')} 
-      style={{ marginRight: 15 }}
-    >
-      <Icon name="person" size={24} color="#FFFFFF" />
-    </TouchableOpacity>
-  );
-}
-
 // Profile Stack Navigator
 function ProfileStack() {
   return (
@@ -185,24 +173,6 @@ function ProfitStack() {
   );
 }
 
-// Custom Tab Bar Button for Profile
-function ProfileTabButton({ navigation }) {
-  return (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('Profile')}
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingTop: 8,
-      }}
-    >
-      <Icon name="person" size={26} color="#178556" />
-      <Text style={{ fontSize: 10, color: '#178556', marginTop: 2 }}>Profile</Text>
-    </TouchableOpacity>
-  );
-}
-
 // ADMIN TABS - Full access for Admin
 function AdminTabs() {
   console.log('🎯 Rendering Admin Tabs');
@@ -219,6 +189,7 @@ function AdminTabs() {
             case 'Sales': iconName = 'history'; break;
             case 'Categories': iconName = 'category'; break;
             case 'Profit': iconName = 'trending-up'; break;
+            case 'Profile': iconName = 'person'; break;
             default: iconName = 'home';
           }
           return <Icon name={iconName} size={size} color={color} />;
@@ -246,7 +217,6 @@ function AdminTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -258,7 +228,6 @@ function AdminTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -270,7 +239,6 @@ function AdminTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -282,7 +250,6 @@ function AdminTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -294,7 +261,6 @@ function AdminTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -306,7 +272,6 @@ function AdminTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -318,7 +283,20 @@ function AdminTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileStack} 
+        options={{
+          tabBarIcon: ({ focused, color, size }) => (
+            <Icon name="person" size={size} color={color} />
+          ),
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -368,7 +346,6 @@ function StaffTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -380,7 +357,6 @@ function StaffTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -392,7 +368,20 @@ function StaffTabs() {
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>
-              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileStack} 
+        options={{
+          tabBarIcon: ({ focused, color, size }) => (
+            <Icon name="person" size={size} color={color} />
+          ),
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
               <LogoutButton navigation={navigation} />
             </View>
           ),
@@ -431,7 +420,6 @@ export default function AppNavigator() {
             borderColor: '#178556',
             borderTopColor: 'transparent',
             marginBottom: 12,
-            animation: 'spin 1s linear infinite',
           }} />
           <Text style={{ color: '#90a5a0', fontSize: 16 }}>Loading...</Text>
         </View>
