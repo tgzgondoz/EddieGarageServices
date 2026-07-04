@@ -120,6 +120,7 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
           </View>
+
           {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
   logoWrapper: {
     width: 120,
     height: 120,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#178556',
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',

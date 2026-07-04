@@ -173,7 +173,7 @@ export default function StaffDashboardScreen({ navigation }) {
           onPressOut={handlePressOut}
           activeOpacity={0.9}
         >
-          <View style={styles.statIconContainer}>
+          <View style={[styles.statIconContainer, { backgroundColor: color + '20' }]}>
             <Icon name={icon} size={24} color={color} />
           </View>
           <View style={styles.statInfo}>
@@ -181,7 +181,7 @@ export default function StaffDashboardScreen({ navigation }) {
             <Text style={styles.statTitle}>{title}</Text>
           </View>
           {onPress && (
-            <Icon name="chevron-right" size={20} color="#ccc" />
+            <Icon name="chevron-right" size={20} color="#152d2a" />
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -205,7 +205,7 @@ export default function StaffDashboardScreen({ navigation }) {
           ]}
         >
           <View style={styles.logoutIconContainer}>
-            <Icon name="logout" size={40} color="#2196F3" />
+            <Icon name="logout" size={40} color="#178556" />
           </View>
           <Text style={styles.logoutModalTitle}>Logout</Text>
           <Text style={styles.logoutModalText}>
@@ -222,7 +222,7 @@ export default function StaffDashboardScreen({ navigation }) {
               style={[styles.logoutModalButton, styles.logoutConfirmButton]}
               onPress={handleLogout}
             >
-              <Icon name="logout" size={18} color="white" />
+              <Icon name="logout" size={18} color="#FFFFFF" />
               <Text style={styles.logoutConfirmText}>Logout</Text>
             </TouchableOpacity>
           </View>
@@ -236,7 +236,7 @@ export default function StaffDashboardScreen({ navigation }) {
       <View style={styles.saleHeader}>
         <View style={styles.saleLeft}>
           <View style={styles.saleIcon}>
-            <Icon name="receipt" size={18} color="#2196F3" />
+            <Icon name="receipt" size={18} color="#178556" />
           </View>
           <View>
             <Text style={styles.saleId}>Order #{item.id.slice(-6)}</Text>
@@ -264,7 +264,7 @@ export default function StaffDashboardScreen({ navigation }) {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#2196F3" />
+      <StatusBar barStyle="light-content" backgroundColor="#178556" />
       <SafeAreaView style={styles.container}>
         {/* Header */}
         <Animated.View 
@@ -281,7 +281,7 @@ export default function StaffDashboardScreen({ navigation }) {
               style={styles.menuButton}
               onPress={() => navigation.openDrawer?.()}
             >
-              <Icon name="menu" size={24} color="white" />
+              <Icon name="menu" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Staff Dashboard</Text>
           </View>
@@ -290,13 +290,13 @@ export default function StaffDashboardScreen({ navigation }) {
               style={styles.headerIconButton}
               onPress={() => navigation.navigate('Profile')}
             >
-              <Icon name="person" size={22} color="white" />
+              <Icon name="person" size={22} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.headerIconButton}
               onPress={() => setShowLogoutModal(true)}
             >
-              <Icon name="logout" size={22} color="white" />
+              <Icon name="logout" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -305,7 +305,7 @@ export default function StaffDashboardScreen({ navigation }) {
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2196F3']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#178556']} />
           }
         >
           <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
@@ -344,14 +344,14 @@ export default function StaffDashboardScreen({ navigation }) {
                 title="Total Sales"
                 value={stats.totalSales}
                 icon="receipt"
-                color="#2196F3"
+                color="#178556"
                 onPress={() => navigation.navigate('Sales')}
               />
               <StatCard
                 title="Revenue"
                 value={`$${stats.revenue.toFixed(2)}`}
                 icon="attach-money"
-                color="#FF6B00"
+                color="#FF9800"
                 onPress={() => navigation.navigate('Sales')}
               />
             </View>
@@ -364,8 +364,8 @@ export default function StaffDashboardScreen({ navigation }) {
                   style={styles.actionCard}
                   onPress={() => navigation.navigate('POS')}
                 >
-                  <View style={[styles.actionIcon, { backgroundColor: '#FFF3E0' }]}>
-                    <Icon name="point-of-sale" size={28} color="#FF6B00" />
+                  <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
+                    <Icon name="point-of-sale" size={28} color="#178556" />
                   </View>
                   <Text style={styles.actionText}>Start New Sale</Text>
                   <Text style={styles.actionSubtext}>Process customer orders</Text>
@@ -376,7 +376,7 @@ export default function StaffDashboardScreen({ navigation }) {
                   onPress={() => navigation.navigate('Sales')}
                 >
                   <View style={[styles.actionIcon, { backgroundColor: '#E3F2FD' }]}>
-                    <Icon name="history" size={28} color="#2196F3" />
+                    <Icon name="history" size={28} color="#178556" />
                   </View>
                   <Text style={styles.actionText}>Sales History</Text>
                   <Text style={styles.actionSubtext}>View past transactions</Text>
@@ -403,7 +403,7 @@ export default function StaffDashboardScreen({ navigation }) {
                     onPress={() => navigation.navigate('Sales')}
                   >
                     <Text style={styles.viewAllButtonText}>View All {recentSales.length} Sales</Text>
-                    <Icon name="arrow-forward" size={16} color="#2196F3" />
+                    <Icon name="arrow-forward" size={16} color="#178556" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -422,7 +422,7 @@ export default function StaffDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#152d2a',
   },
   scrollView: {
     flex: 1,
@@ -441,17 +441,17 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 3,
-    borderColor: '#2196F3',
+    borderColor: '#178556',
     borderTopColor: 'transparent',
     marginBottom: 12,
   },
   loadingText: {
-    color: '#666',
+    color: '#90a5a0',
     fontSize: 16,
   },
   // Header
   customHeader: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#178556',
     paddingHorizontal: 16,
     paddingTop: 48,
     paddingBottom: 14,
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: 'white',
+    color: '#FFFFFF',
   },
   headerRight: {
     flexDirection: 'row',
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     padding: 16,
     borderRadius: 16,
     shadowColor: '#000',
@@ -505,39 +505,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   welcomeGreeting: {
     fontSize: 14,
-    color: '#666',
+    color: '#152d2a',
     marginBottom: 2,
   },
   welcomeText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 2,
   },
   welcomeSubtext: {
     fontSize: 13,
-    color: '#888',
+    color: '#152d2a',
   },
   welcomeAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#178556',
     justifyContent: 'center',
     alignItems: 'center',
   },
   welcomeAvatarText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '700',
   },
   // Quick Stats
   quickStatsContainer: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     marginHorizontal: 16,
     marginTop: 12,
     borderRadius: 16,
@@ -547,6 +549,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   quickStatItem: {
     flex: 1,
@@ -555,16 +559,16 @@ const styles = StyleSheet.create({
   quickStatValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   quickStatLabel: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 2,
   },
   quickStatDivider: {
     width: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#152d2a',
   },
   // Stats
   statsContainer: {
@@ -573,7 +577,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   statCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     width: (width - 44) / 2,
     margin: 5,
     padding: 14,
@@ -586,12 +590,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   statIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#f8f9fa',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -602,11 +607,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   statTitle: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   // Section
@@ -624,15 +629,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#FFFFFF',
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: '#888',
+    color: '#90a5a0',
     marginTop: 1,
   },
   viewAllText: {
-    color: '#2196F3',
+    color: '#178556',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -643,7 +648,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   actionCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     width: (width - 48) / 2,
     marginBottom: 10,
     padding: 16,
@@ -654,6 +659,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   actionIcon: {
     width: 56,
@@ -666,16 +673,16 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   actionSubtext: {
     fontSize: 10,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   // Sales Items
   saleItem: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     padding: 14,
     borderRadius: 12,
     marginBottom: 8,
@@ -684,6 +691,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   saleHeader: {
     flexDirection: 'row',
@@ -699,7 +708,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -707,11 +716,11 @@ const styles = StyleSheet.create({
   saleId: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   saleDate: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   saleRight: {
@@ -720,11 +729,11 @@ const styles = StyleSheet.create({
   saleTotal: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FF6B00',
+    color: '#152d2a',
   },
   saleItems: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   viewAllButton: {
@@ -732,7 +741,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 12,
     marginTop: 4,
     shadowColor: '#000',
@@ -740,11 +749,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   viewAllButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2196F3',
+    color: '#178556',
     marginRight: 4,
   },
   footerSpacer: {
@@ -759,7 +770,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logoutModalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 24,
     padding: 28,
     width: '90%',
@@ -770,12 +781,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 30,
     elevation: 10,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   logoutIconContainer: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -783,12 +796,12 @@ const styles = StyleSheet.create({
   logoutModalTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 8,
   },
   logoutModalText: {
     fontSize: 14,
-    color: '#666',
+    color: '#152d2a',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
@@ -807,21 +820,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   logoutCancelButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   logoutCancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#90a5a0',
   },
   logoutConfirmButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#178556',
     gap: 6,
   },
   logoutConfirmText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    color: '#FFFFFF',
     marginLeft: 6,
   },
 });

@@ -314,7 +314,7 @@ export default function CategoryManagementScreen({ navigation }) {
             style={styles.actionButton}
             onPress={() => openEditModal(item)}
           >
-            <Icon name="edit" size={20} color="#178556" />
+            <Icon name="edit" size={20} color="#152d2a" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
@@ -405,7 +405,7 @@ export default function CategoryManagementScreen({ navigation }) {
               }}
               style={styles.modalCloseButton}
             >
-              <Icon name="close" size={24} color="#90a5a0" />
+              <Icon name="close" size={24} color="#152d2a" />
             </TouchableOpacity>
           </View>
           
@@ -419,7 +419,7 @@ export default function CategoryManagementScreen({ navigation }) {
                 if (errorMessage) setErrorMessage('');
               }}
               placeholder="Enter category name"
-              placeholderTextColor="#90a5a0"
+              placeholderTextColor="#152d2a"
               autoFocus
               onSubmitEditing={updateCategory}
               maxLength={30}
@@ -468,7 +468,7 @@ export default function CategoryManagementScreen({ navigation }) {
               style={[styles.editModalButton, styles.editSaveButton]}
               onPress={updateCategory}
             >
-              <Icon name="save" size={20} color="#FFF" />
+              <Icon name="save" size={20} color="#FFFFFF" />
               <Text style={styles.editSaveText}>Save</Text>
             </TouchableOpacity>
           </View>
@@ -501,7 +501,7 @@ export default function CategoryManagementScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Icon name="arrow-back" size={24} color="#FFF" />
+          <Icon name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Categories</Text>
         <TouchableOpacity 
@@ -511,18 +511,18 @@ export default function CategoryManagementScreen({ navigation }) {
           }}
           style={styles.sortButton}
         >
-          <Icon name="sort" size={24} color="#FFF" />
+          <Icon name="sort" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.inputContainer}>
         <View style={[styles.inputWrapper, errorMessage && styles.inputWrapperError]}>
-          <Icon name="category" size={20} color="#90a5a0" style={styles.inputIcon} />
+          <Icon name="category" size={20} color="#152d2a" style={styles.inputIcon} />
           <TextInput
             ref={inputRef}
             style={[styles.input, errorMessage && styles.inputError]}
             placeholder="Enter new category name"
-            placeholderTextColor="#90a5a0"
+            placeholderTextColor="#152d2a"
             value={newCategoryName}
             onChangeText={(text) => {
               setNewCategoryName(text);
@@ -537,7 +537,7 @@ export default function CategoryManagementScreen({ navigation }) {
               onPress={handleClearInput}
               style={styles.clearInputButton}
             >
-              <Icon name="close" size={18} color="#90a5a0" />
+              <Icon name="close" size={18} color="#152d2a" />
             </TouchableOpacity>
           )}
         </View>
@@ -552,7 +552,7 @@ export default function CategoryManagementScreen({ navigation }) {
           {isAddingCategory ? (
             <View style={styles.addingSpinner} />
           ) : (
-            <Icon name="add" size={24} color="#FFF" />
+            <Icon name="add" size={24} color="#FFFFFF" />
           )}
         </TouchableOpacity>
       </View>
@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#FFF',
+    borderColor: '#FFFFFF',
     borderTopColor: 'transparent',
   },
   loadingText: {
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFF',
+    color: '#FFFFFF',
   },
   sortButton: {
     padding: 4,
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     paddingHorizontal: 12,
     marginRight: 10,
@@ -715,7 +715,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#ffebee',
+    backgroundColor: '#FFEBEE',
   },
   errorContainerText: {
     fontSize: 13,
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFF',
+    color: '#FFFFFF',
     marginTop: 12,
   },
   emptySubtitle: {
@@ -836,7 +836,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#ffebee',
+    backgroundColor: '#FFEBEE',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -857,7 +857,7 @@ const styles = StyleSheet.create({
   modalWarningContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffebee',
+    backgroundColor: '#FFEBEE',
     padding: 10,
     borderRadius: 8,
     marginBottom: 16,
@@ -894,7 +894,7 @@ const styles = StyleSheet.create({
   modalDeleteText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFF',
+    color: '#FFFFFF',
   },
   modalDisabledButton: {
     backgroundColor: '#90a5a0',
@@ -939,7 +939,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: '#152d2a',
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFFFFF',
   },
   editInputError: {
     borderColor: '#f44336',
@@ -957,7 +957,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   editCategoryInfo: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
@@ -999,6 +999,6 @@ const styles = StyleSheet.create({
   editSaveText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFF',
+    color: '#FFFFFF',
   },
 });

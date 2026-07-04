@@ -532,70 +532,7 @@ export default function AdminDashboardScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Stats Grid */}
-            <View style={styles.statsContainer}>
-              <StatCard
-                title="Total Products"
-                value={stats.totalProducts}
-                icon="inventory-2"
-                color="#4CAF50"
-                onPress={() => navigation.navigate('Inventory')}
-              />
-              <StatCard
-                title="Low Stock Alert"
-                value={stats.lowStock}
-                icon="warning"
-                color="#FF9800"
-                onPress={() => navigation.navigate('Inventory')}
-                subtitle={stats.lowStock > 0 ? `${stats.lowStock} items need restock` : 'All items in stock'}
-              />
-              <StatCard
-                title="Total Sales"
-                value={stats.totalSales}
-                icon="receipt"
-                color="#2196F3"
-                onPress={() => navigation.navigate('Sales')}
-              />
-              <StatCard
-                title="Revenue"
-                value={`$${stats.revenue.toFixed(2)}`}
-                icon="attach-money"
-                color="#E91E63"
-                onPress={() => navigation.navigate('Sales')}
-              />
-              <StatCard
-                title="Total Users"
-                value={stats.totalUsers}
-                icon="people"
-                color="#9C27B0"
-                onPress={() => setShowUsersModal(true)}
-              />
-            </View>
-
-            {/* Recent Sales Section */}
-            {recentSales.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <View>
-                    <Text style={styles.sectionTitle}>Recent Sales</Text>
-                    <Text style={styles.sectionSubtitle}>Latest 10 transactions</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => navigation.navigate('Sales')}>
-                    <Text style={styles.viewAllText}>View All</Text>
-                  </TouchableOpacity>
-                </View>
-                {recentSales.slice(0, 5).map((item) => renderRecentSale({ item }))}
-                {recentSales.length > 5 && (
-                  <TouchableOpacity 
-                    style={styles.viewAllButton}
-                    onPress={() => navigation.navigate('Sales')}
-                  >
-                    <Text style={styles.viewAllButtonText}>View All {recentSales.length} Sales</Text>
-                    <Icon name="arrow-forward" size={16} color="#178556" />
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
+          
 
             {/* Quick Actions */}
             <View style={styles.section}>
