@@ -28,7 +28,8 @@ export default function AddEditProductScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState(product?.name || '');
   const [description, setDescription] = useState(product?.description || '');
-  const [price, setPrice] = useState(product?.price?.toString() || '');
+  const [purchasePrice, setPurchasePrice] = useState(product?.purchasePrice?.toString() || '');
+  const [sellingPrice, setSellingPrice] = useState(product?.sellingPrice?.toString() || '');
   const [quantity, setQuantity] = useState(product?.quantity?.toString() || '');
   const [category, setCategory] = useState(product?.category || '');
   const [sku, setSku] = useState(product?.sku || '');
@@ -37,6 +38,23 @@ export default function AddEditProductScreen({ route, navigation }) {
   const [categories, setCategories] = useState([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categoryLoading, setCategoryLoading] = useState(true);
+  const [profit, setProfit] = useState(0);
+  const [profitMargin, setProfitMargin] = useState(0);
+
+  // Calculate profit and margin
+  useEffect(() => {
+    const cost = parseFloat(purchasePrice) || 0;
+    const price = parseFloat(sellingPrice) || 0;
+    const calculatedProfit = price - cost;
+    setProfit(calculatedProfit);
+    
+    if (cost > 0 && price > 0) {
+      const calculatedMargin = ((price - cost) / price) * 100;
+      setProfitMargin(calculatedMargin);
+    } else {
+      setProfitMargin(0);
+    }
+  }, [purchasePrice, sellingPrice]);
 
   // Fetch categories from Realtime Database
   useEffect(() => {
@@ -50,7 +68,6 @@ export default function AddEditProductScreen({ route, navigation }) {
           name: data[key].name,
           ...data[key]
         }));
-        // Sort alphabetically
         categoriesData.sort((a, b) => a.name.localeCompare(b.name));
         setCategories(categoriesData);
       } else {
@@ -75,11 +92,18 @@ export default function AddEditProductScreen({ route, navigation }) {
           delete newErrors.name;
         }
         break;
-      case 'price':
+      case 'purchasePrice':
         if (!value || isNaN(parseFloat(value)) || parseFloat(value) < 0) {
-          newErrors.price = 'Please enter a valid price';
+          newErrors.purchasePrice = 'Please enter a valid purchase price';
         } else {
-          delete newErrors.price;
+          delete newErrors.purchasePrice;
+        }
+        break;
+      case 'sellingPrice':
+        if (!value || isNaN(parseFloat(value)) || parseFloat(value) < 0) {
+          newErrors.sellingPrice = 'Please enter a valid selling price';
+        } else {
+          delete newErrors.sellingPrice;
         }
         break;
       case 'quantity':
@@ -97,10 +121,11 @@ export default function AddEditProductScreen({ route, navigation }) {
 
   const handleSubmit = async () => {
     validateField('name', name);
-    validateField('price', price);
+    validateField('purchasePrice', purchasePrice);
+    validateField('sellingPrice', sellingPrice);
     validateField('quantity', quantity);
 
-    if (!name.trim() || !price || !quantity) {
+    if (!name.trim() || !purchasePrice || !sellingPrice || !quantity) {
       Alert.alert('Validation Error', 'Please fill in all required fields');
       return;
     }
@@ -108,6 +133,12 @@ export default function AddEditProductScreen({ route, navigation }) {
     if (Object.keys(errors).length > 0) {
       Alert.alert('Validation Error', 'Please fix all errors before submitting');
       return;
+    }
+
+    const cost = parseFloat(purchasePrice);
+    const price = parseFloat(sellingPrice);
+    if (price < cost) {
+      Alert.alert('Warning', 'Selling price is less than purchase price. This will result in a loss.');
     }
 
     setLoading(true);
@@ -118,8 +149,11 @@ export default function AddEditProductScreen({ route, navigation }) {
       category: category || 'Uncategorized',
       sku: sku.trim() || '',
       imageUrl: imageUrl.trim() || 'https://via.placeholder.com/300',
-      price: parseFloat(price),
+      purchasePrice: parseFloat(purchasePrice),
+      sellingPrice: parseFloat(sellingPrice),
       quantity: parseInt(quantity),
+      profit: parseFloat(sellingPrice) - parseFloat(purchasePrice),
+      profitMargin: ((parseFloat(sellingPrice) - parseFloat(purchasePrice)) / parseFloat(sellingPrice)) * 100,
       updatedAt: new Date().toISOString()
     };
 
@@ -153,6 +187,12 @@ export default function AddEditProductScreen({ route, navigation }) {
   const getCategoryDisplay = () => {
     if (!category || category === 'Uncategorized') return 'Select Category';
     return category;
+  };
+
+  const getProfitColor = () => {
+    if (profit > 0) return '#4caf50';
+    if (profit < 0) return '#f44336';
+    return '#FF9800';
   };
 
   // Category Selection Modal
@@ -342,54 +382,113 @@ export default function AddEditProductScreen({ route, navigation }) {
 
             <View style={styles.divider} />
 
-            {/* Pricing & Stock */}
+            {/* Pricing Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Pricing & Stock</Text>
+              <Text style={styles.sectionTitle}>Pricing</Text>
               
               <View style={styles.formRow}>
                 <View style={[styles.formGroup, styles.rowItem]}>
                   <View style={styles.labelContainer}>
-                    <Text style={styles.label}>Price ($)</Text>
+                    <Text style={styles.label}>Purchase Price ($)</Text>
                     <Text style={styles.required}>*</Text>
                   </View>
                   <View style={styles.inputWithIcon}>
                     <Text style={styles.currencySymbol}>$</Text>
                     <TextInput
-                      style={[styles.inputWithIconField, errors.price && styles.inputError]}
-                      value={price}
+                      style={[styles.inputWithIconField, errors.purchasePrice && styles.inputError]}
+                      value={purchasePrice}
                       onChangeText={(text) => {
-                        setPrice(text);
-                        validateField('price', text);
+                        setPurchasePrice(text);
+                        validateField('purchasePrice', text);
                       }}
                       placeholder="0.00"
                       keyboardType="decimal-pad"
                       placeholderTextColor="#90a5a0"
                     />
                   </View>
-                  {errors.price && (
-                    <Text style={styles.errorText}>{errors.price}</Text>
+                  {errors.purchasePrice && (
+                    <Text style={styles.errorText}>{errors.purchasePrice}</Text>
                   )}
                 </View>
                 <View style={[styles.formGroup, styles.rowItem]}>
                   <View style={styles.labelContainer}>
-                    <Text style={styles.label}>Quantity</Text>
+                    <Text style={styles.label}>Selling Price ($)</Text>
                     <Text style={styles.required}>*</Text>
                   </View>
-                  <TextInput
-                    style={[styles.input, errors.quantity && styles.inputError]}
-                    value={quantity}
-                    onChangeText={(text) => {
-                      setQuantity(text);
-                      validateField('quantity', text);
-                    }}
-                    placeholder="0"
-                    keyboardType="number-pad"
-                    placeholderTextColor="#90a5a0"
-                  />
-                  {errors.quantity && (
-                    <Text style={styles.errorText}>{errors.quantity}</Text>
+                  <View style={styles.inputWithIcon}>
+                    <Text style={styles.currencySymbol}>$</Text>
+                    <TextInput
+                      style={[styles.inputWithIconField, errors.sellingPrice && styles.inputError]}
+                      value={sellingPrice}
+                      onChangeText={(text) => {
+                        setSellingPrice(text);
+                        validateField('sellingPrice', text);
+                      }}
+                      placeholder="0.00"
+                      keyboardType="decimal-pad"
+                      placeholderTextColor="#90a5a0"
+                    />
+                  </View>
+                  {errors.sellingPrice && (
+                    <Text style={styles.errorText}>{errors.sellingPrice}</Text>
                   )}
                 </View>
+              </View>
+
+              {/* Profit Preview */}
+              {(purchasePrice || sellingPrice) && (
+                <View style={styles.profitPreview}>
+                  <View style={styles.profitCard}>
+                    <View style={styles.profitItem}>
+                      <Icon name="attach-money" size={20} color="#152d2a" />
+                      <Text style={styles.profitLabel}>Profit per unit:</Text>
+                      <Text style={[styles.profitValue, { color: getProfitColor() }]}>
+                        ${profit.toFixed(2)}
+                      </Text>
+                    </View>
+                    <View style={styles.profitItem}>
+                      <Icon name="trending-up" size={20} color="#152d2a" />
+                      <Text style={styles.profitLabel}>Margin:</Text>
+                      <Text style={[styles.profitValue, { color: getProfitColor() }]}>
+                        {profitMargin.toFixed(1)}%
+                      </Text>
+                    </View>
+                  </View>
+                  {sellingPrice && purchasePrice && parseFloat(sellingPrice) < parseFloat(purchasePrice) && (
+                    <View style={styles.warningBanner}>
+                      <Icon name="warning" size={20} color="#f44336" />
+                      <Text style={styles.warningText}>Loss: Selling below purchase price!</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* Stock */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Stock</Text>
+              
+              <View style={styles.formGroup}>
+                <View style={styles.labelContainer}>
+                  <Text style={styles.label}>Quantity</Text>
+                  <Text style={styles.required}>*</Text>
+                </View>
+                <TextInput
+                  style={[styles.input, errors.quantity && styles.inputError]}
+                  value={quantity}
+                  onChangeText={(text) => {
+                    setQuantity(text);
+                    validateField('quantity', text);
+                  }}
+                  placeholder="0"
+                  keyboardType="number-pad"
+                  placeholderTextColor="#90a5a0"
+                />
+                {errors.quantity && (
+                  <Text style={styles.errorText}>{errors.quantity}</Text>
+                )}
               </View>
             </View>
 
@@ -655,6 +754,46 @@ const styles = StyleSheet.create({
     color: '#152d2a',
     textAlign: 'right',
     marginTop: 4,
+  },
+  profitPreview: {
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#152d2a',
+    paddingTop: 12,
+  },
+  profitCard: {
+    backgroundColor: '#152d2a',
+    borderRadius: 8,
+    padding: 12,
+  },
+  profitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  profitLabel: {
+    fontSize: 13,
+    color: '#90a5a0',
+    marginLeft: 8,
+    flex: 1,
+  },
+  profitValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  warningText: {
+    color: '#f44336',
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '600',
   },
   submitButton: {
     backgroundColor: '#178556',

@@ -18,6 +18,8 @@ import RestrictedScreen from '../screens/RestrictedScreen';
 import CategoryManagementScreen from '../screens/CategoryManagementScreen';
 import StaffDashboardScreen from '../screens/StaffDashboardScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
+import ProfitAnalyticsScreen from '../screens/ProfitAnalyticsScreen';
+import ProductProfitScreen from '../screens/ProductProfitScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -120,6 +122,10 @@ function ProductStack() {
         name="CategoryManagement" 
         component={CategoryManagementScreen} 
       />
+      <Stack.Screen 
+        name="ProductProfit" 
+        component={ProductProfitScreen} 
+      />
     </Stack.Navigator>
   );
 }
@@ -158,6 +164,27 @@ function SalesStack() {
   );
 }
 
+// Profit Analytics Stack Navigator
+function ProfitStack() {
+  return (
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        cardStyle: { backgroundColor: '#152d2a' }
+      }}
+    >
+      <Stack.Screen 
+        name="ProfitAnalytics" 
+        component={ProfitAnalyticsScreen} 
+      />
+      <Stack.Screen 
+        name="ProductProfit" 
+        component={ProductProfitScreen} 
+      />
+    </Stack.Navigator>
+  );
+}
+
 // Custom Tab Bar Button for Profile
 function ProfileTabButton({ navigation }) {
   return (
@@ -191,6 +218,7 @@ function AdminTabs() {
             case 'Products': iconName = 'shopping-cart'; break;
             case 'Sales': iconName = 'history'; break;
             case 'Categories': iconName = 'category'; break;
+            case 'Profit': iconName = 'trending-up'; break;
             default: iconName = 'home';
           }
           return <Icon name={iconName} size={size} color={color} />;
@@ -275,6 +303,18 @@ function AdminTabs() {
       <Tab.Screen 
         name="Sales" 
         component={SalesStack} 
+        options={{
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <ProfileButton navigation={navigation} />
+              <LogoutButton navigation={navigation} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Profit" 
+        component={ProfitStack} 
         options={{
           headerRight: () => (
             <View style={{ flexDirection: 'row' }}>

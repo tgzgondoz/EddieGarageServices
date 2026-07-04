@@ -1,3 +1,4 @@
+// screens/ProductDetailsScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -50,8 +51,15 @@ export default function ProductDetailsScreen({ route, navigation }) {
   const getStockStatus = () => {
     const stock = product.quantity || 0;
     if (stock <= 0) return { label: 'Out of Stock', color: '#f44336', icon: 'do-not-disturb' };
-    if (stock <= 5) return { label: 'Low Stock', color: '#ff9800', icon: 'warning' };
-    return { label: 'In Stock', color: '#4caf50', icon: 'check-circle' };
+    if (stock <= 5) return { label: 'Low Stock', color: '#FF9800', icon: 'warning' };
+    return { label: 'In Stock', color: '#178556', icon: 'check-circle' };
+  };
+
+  const getProfitColor = () => {
+    const profit = (product.sellingPrice || 0) - (product.purchasePrice || 0);
+    if (profit > 0) return '#178556';
+    if (profit < 0) return '#f44336';
+    return '#FF9800';
   };
 
   const handleDelete = () => {
@@ -80,6 +88,10 @@ export default function ProductDetailsScreen({ route, navigation }) {
   };
 
   const stockStatus = getStockStatus();
+  const profit = (product.sellingPrice || 0) - (product.purchasePrice || 0);
+  const profitMargin = product.sellingPrice > 0 
+    ? ((profit) / product.sellingPrice * 100) 
+    : 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -88,7 +100,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Icon name="arrow-back" size={24} color="#1a1a2e" />
+          <Icon name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Product Details</Text>
         <TouchableOpacity 
@@ -98,7 +110,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
           <Icon 
             name={isFavorite ? 'favorite' : 'favorite-border'} 
             size={24} 
-            color={isFavorite ? '#f44336' : '#666'} 
+            color={isFavorite ? '#f44336' : '#90a5a0'} 
           />
         </TouchableOpacity>
       </View>
@@ -108,20 +120,20 @@ export default function ProductDetailsScreen({ route, navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <Animated.View style={[styles.imageContainer, { opacity: fadeAnim }]}>
-          {product.image ? (
+          {product.imageUrl ? (
             <Image
-              source={{ uri: product.image }}
+              source={{ uri: product.imageUrl }}
               style={styles.productImage}
               resizeMode="cover"
             />
           ) : (
             <View style={styles.imagePlaceholder}>
-              <Icon name="inventory-2" size={80} color="#ccc" />
+              <Icon name="inventory-2" size={80} color="#90a5a0" />
               <Text style={styles.imagePlaceholderText}>No Image</Text>
             </View>
           )}
           <View style={[styles.stockStatusBadge, { backgroundColor: stockStatus.color }]}>
-            <Icon name={stockStatus.icon} size={14} color="white" />
+            <Icon name={stockStatus.icon} size={14} color="#FFF" />
             <Text style={styles.stockStatusText}>{stockStatus.label}</Text>
           </View>
         </Animated.View>
@@ -138,18 +150,23 @@ export default function ProductDetailsScreen({ route, navigation }) {
           <View style={styles.nameRow}>
             <Text style={styles.productName}>{product.name || 'Unnamed Product'}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('AddEditProduct', { product })}>
-              <Icon name="edit" size={22} color="#ff6b00" />
+              <Icon name="edit" size={22} color="#178556" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.productPrice}>${product.price?.toFixed(2) || '0.00'}</Text>
+            <View>
+              <Text style={styles.sellingPrice}>${product.sellingPrice?.toFixed(2) || '0.00'}</Text>
+              <Text style={styles.purchasePriceText}>
+                Cost: ${product.purchasePrice?.toFixed(2) || '0.00'}
+              </Text>
+            </View>
             <View style={styles.quantitySelector}>
               <TouchableOpacity 
                 style={styles.quantityButton}
                 onPress={() => setQuantity(Math.max(1, quantity - 1))}
               >
-                <Icon name="remove" size={18} color="#fff" />
+                <Icon name="remove" size={18} color="#FFF" />
               </TouchableOpacity>
               <Text style={styles.quantityText}>{quantity}</Text>
               <TouchableOpacity 
@@ -157,9 +174,36 @@ export default function ProductDetailsScreen({ route, navigation }) {
                 onPress={() => setQuantity(Math.min(product.quantity || 0, quantity + 1))}
                 disabled={(product.quantity || 0) <= quantity}
               >
-                <Icon name="add" size={18} color="#fff" />
+                <Icon name="add" size={18} color="#FFF" />
               </TouchableOpacity>
             </View>
+          </View>
+
+          {/* Profit Display */}
+          <View style={styles.profitContainer}>
+            <View style={[styles.profitCard, { backgroundColor: '#90a5a0' }]}>
+              <View style={styles.profitItem}>
+                <Icon name="attach-money" size={20} color={getProfitColor()} />
+                <Text style={styles.profitLabel}>Profit per unit</Text>
+                <Text style={[styles.profitValue, { color: getProfitColor() }]}>
+                  ${profit.toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.profitDivider} />
+              <View style={styles.profitItem}>
+                <Icon name="trending-up" size={20} color={getProfitColor()} />
+                <Text style={styles.profitLabel}>Profit Margin</Text>
+                <Text style={[styles.profitValue, { color: getProfitColor() }]}>
+                  {profitMargin.toFixed(1)}%
+                </Text>
+              </View>
+            </View>
+            {product.purchasePrice > product.sellingPrice && (
+              <View style={styles.lossWarning}>
+                <Icon name="warning" size={16} color="#f44336" />
+                <Text style={styles.lossWarningText}>Selling at a loss!</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.divider} />
@@ -171,7 +215,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
             <View style={styles.infoGrid}>
               <View style={styles.infoItem}>
                 <View style={styles.infoIconContainer}>
-                  <Icon name="category" size={18} color="#ff6b00" />
+                  <Icon name="category" size={18} color="#178556" />
                 </View>
                 <View>
                   <Text style={styles.infoLabel}>Category</Text>
@@ -181,7 +225,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
 
               <View style={styles.infoItem}>
                 <View style={styles.infoIconContainer}>
-                  <Icon name="inventory" size={18} color="#ff6b00" />
+                  <Icon name="inventory" size={18} color="#178556" />
                 </View>
                 <View>
                   <Text style={styles.infoLabel}>Stock Quantity</Text>
@@ -191,7 +235,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
 
               <View style={styles.infoItem}>
                 <View style={styles.infoIconContainer}>
-                  <Icon name="qr-code" size={18} color="#ff6b00" />
+                  <Icon name="qr-code" size={18} color="#178556" />
                 </View>
                 <View>
                   <Text style={styles.infoLabel}>SKU</Text>
@@ -201,7 +245,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
 
               <View style={styles.infoItem}>
                 <View style={styles.infoIconContainer}>
-                  <Icon name="calendar-today" size={18} color="#ff6b00" />
+                  <Icon name="calendar-today" size={18} color="#178556" />
                 </View>
                 <View>
                   <Text style={styles.infoLabel}>Added</Text>
@@ -233,7 +277,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
               style={[styles.actionButton, styles.editButton]}
               onPress={() => navigation.navigate('AddEditProduct', { product })}
             >
-              <Icon name="edit" size={20} color="white" />
+              <Icon name="edit" size={20} color="#FFF" />
               <Text style={styles.actionButtonText}>Edit Product</Text>
             </TouchableOpacity>
 
@@ -241,7 +285,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
               style={[styles.actionButton, styles.deleteButton]}
               onPress={handleDelete}
             >
-              <Icon name="delete" size={20} color="white" />
+              <Icon name="delete" size={20} color="#FFF" />
               <Text style={styles.actionButtonText}>Delete</Text>
             </TouchableOpacity>
           </View>
@@ -253,14 +297,20 @@ export default function ProductDetailsScreen({ route, navigation }) {
             ]}
             disabled={(product.quantity || 0) <= 0}
             onPress={() => {
+              const totalCost = (product.purchasePrice || 0) * quantity;
+              const totalSell = (product.sellingPrice || 0) * quantity;
+              const totalProfit = totalSell - totalCost;
               Alert.alert(
                 'Add to Cart',
-                `Added ${quantity} x ${product.name} to cart`,
+                `Added ${quantity} x ${product.name}\n` +
+                `Cost: $${totalCost.toFixed(2)}\n` +
+                `Sell: $${totalSell.toFixed(2)}\n` +
+                `Profit: $${totalProfit.toFixed(2)}`,
                 [{ text: 'OK' }]
               );
             }}
           >
-            <Icon name="shopping-cart" size={22} color="white" />
+            <Icon name="shopping-cart" size={22} color="#FFF" />
             <Text style={styles.addToCartText}>
               {((product.quantity || 0) <= 0) 
                 ? 'Out of Stock' 
@@ -276,7 +326,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   header: {
     flexDirection: 'row',
@@ -284,9 +334,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: 'white',
+    backgroundColor: '#178556',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#152d2a',
   },
   backButton: {
     padding: 4,
@@ -294,7 +344,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#FFF',
   },
   favoriteButton: {
     padding: 4,
@@ -303,30 +353,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   imageContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     padding: 20,
     alignItems: 'center',
     position: 'relative',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#178556',
   },
   productImage: {
     width: width - 60,
     height: 280,
     borderRadius: 16,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFF',
   },
   imagePlaceholder: {
     width: width - 60,
     height: 280,
     borderRadius: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   imagePlaceholderText: {
     fontSize: 14,
-    color: '#999',
+    color: '#90a5a0',
     marginTop: 8,
   },
   stockStatusBadge: {
@@ -338,17 +390,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: '#4caf50',
+    backgroundColor: '#178556',
   },
   stockStatusText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 4,
   },
   detailsContainer: {
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     marginTop: 8,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -362,7 +414,7 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     flex: 1,
     marginRight: 12,
   },
@@ -372,37 +424,88 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  productPrice: {
+  sellingPrice: {
     fontSize: 28,
-    color: '#ff6b00',
+    color: '#178556',
     fontWeight: '700',
+  },
+  purchasePriceText: {
+    fontSize: 14,
+    color: '#152d2a',
+    marginTop: 2,
   },
   quantitySelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFF',
     borderRadius: 12,
     padding: 4,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   quantityButton: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
     justifyContent: 'center',
     alignItems: 'center',
   },
   quantityText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
     paddingHorizontal: 12,
     minWidth: 30,
     textAlign: 'center',
   },
+  profitContainer: {
+    marginVertical: 8,
+  },
+  profitCard: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#178556',
+  },
+  profitItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profitDivider: {
+    width: 1,
+    backgroundColor: '#152d2a',
+    marginHorizontal: 12,
+  },
+  profitLabel: {
+    fontSize: 12,
+    color: '#152d2a',
+    marginLeft: 6,
+    flex: 1,
+  },
+  profitValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  lossWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  lossWarningText: {
+    color: '#f44336',
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '600',
+  },
   divider: {
     height: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#152d2a',
     marginVertical: 16,
   },
   section: {
@@ -411,7 +514,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 12,
   },
   infoGrid: {
@@ -429,24 +532,26 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   infoLabel: {
     fontSize: 11,
-    color: '#999',
+    color: '#152d2a',
     fontWeight: '500',
   },
   infoValue: {
     fontSize: 14,
-    color: '#333',
+    color: '#152d2a',
     fontWeight: '600',
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    color: '#152d2a',
     lineHeight: 22,
   },
   actionsContainer: {
@@ -463,27 +568,29 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     gap: 6,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   editButton: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
   },
   deleteButton: {
     backgroundColor: '#f44336',
   },
   actionButtonText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 14,
     fontWeight: '600',
   },
   addToCartButton: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 14,
     marginTop: 4,
-    shadowColor: '#ff6b00',
+    shadowColor: '#178556',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -491,14 +598,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   disabledButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#90a5a0',
     shadowOpacity: 0,
     elevation: 0,
   },
   addToCartText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
     marginLeft: 8,
