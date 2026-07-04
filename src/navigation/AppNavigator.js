@@ -32,7 +32,7 @@ function LogoutButton({ navigation }) {
 
   return (
     <TouchableOpacity onPress={handleLogout} style={{ marginRight: 15 }}>
-      <Icon name="logout" size={24} color="#fff" />
+      <Icon name="logout" size={24} color="#FFFFFF" />
     </TouchableOpacity>
   );
 }
@@ -44,7 +44,7 @@ function ProfileButton({ navigation }) {
       onPress={() => navigation.navigate('Profile')} 
       style={{ marginRight: 15 }}
     >
-      <Icon name="person" size={24} color="#fff" />
+      <Icon name="person" size={24} color="#FFFFFF" />
     </TouchableOpacity>
   );
 }
@@ -52,7 +52,12 @@ function ProfileButton({ navigation }) {
 // Profile Stack Navigator
 function ProfileStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        cardStyle: { backgroundColor: '#152d2a' }
+      }}
+    >
       <Stack.Screen 
         name="Profile" 
         component={UserProfileScreen} 
@@ -64,7 +69,12 @@ function ProfileStack() {
 // Inventory Stack Navigator
 function InventoryStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        cardStyle: { backgroundColor: '#152d2a' }
+      }}
+    >
       <Stack.Screen 
         name="InventoryList" 
         component={InventoryScreen} 
@@ -88,7 +98,12 @@ function InventoryStack() {
 // Product Stack Navigator
 function ProductStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        cardStyle: { backgroundColor: '#152d2a' }
+      }}
+    >
       <Stack.Screen 
         name="ProductList" 
         component={ProductListScreen} 
@@ -112,7 +127,12 @@ function ProductStack() {
 // POS Stack Navigator (for standalone POS with header)
 function POSStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        cardStyle: { backgroundColor: '#152d2a' }
+      }}
+    >
       <Stack.Screen 
         name="POSMain" 
         component={POSScreen} 
@@ -124,7 +144,12 @@ function POSStack() {
 // Sales Stack Navigator
 function SalesStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        cardStyle: { backgroundColor: '#152d2a' }
+      }}
+    >
       <Stack.Screen 
         name="SalesHistory" 
         component={SalesHistoryScreen} 
@@ -145,8 +170,8 @@ function ProfileTabButton({ navigation }) {
         paddingTop: 8,
       }}
     >
-      <Icon name="person" size={26} color="#ff6b00" />
-      <Text style={{ fontSize: 10, color: '#ff6b00', marginTop: 2 }}>Profile</Text>
+      <Icon name="person" size={26} color="#178556" />
+      <Text style={{ fontSize: 10, color: '#178556', marginTop: 2 }}>Profile</Text>
     </TouchableOpacity>
   );
 }
@@ -170,8 +195,20 @@ function AdminTabs() {
           }
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#ff6b00',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#178556',
+        tabBarInactiveTintColor: '#90a5a0',
+        tabBarStyle: {
+          backgroundColor: '#152d2a',
+          borderTopColor: '#178556',
+          borderTopWidth: 1,
+          paddingBottom: 5,
+          paddingTop: 5,
+          height: 60,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
+        },
         headerShown: false,
       })}
     >
@@ -268,8 +305,20 @@ function StaffTabs() {
           }
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#ff6b00',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#178556',
+        tabBarInactiveTintColor: '#90a5a0',
+        tabBarStyle: {
+          backgroundColor: '#152d2a',
+          borderTopColor: '#178556',
+          borderTopWidth: 1,
+          paddingBottom: 5,
+          paddingTop: 5,
+          height: 60,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
+        },
         headerShown: false,
       })}
     >
@@ -327,18 +376,24 @@ export default function AppNavigator() {
   if (loading) {
     console.log('⏳ Showing loading screen');
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        backgroundColor: '#152d2a' 
+      }}>
         <View style={{ alignItems: 'center' }}>
           <View style={{
             width: 40,
             height: 40,
             borderRadius: 20,
             borderWidth: 3,
-            borderColor: '#ff6b00',
+            borderColor: '#178556',
             borderTopColor: 'transparent',
             marginBottom: 12,
+            animation: 'spin 1s linear infinite',
           }} />
-          <Text style={{ color: '#666', fontSize: 16 }}>Loading...</Text>
+          <Text style={{ color: '#90a5a0', fontSize: 16 }}>Loading...</Text>
         </View>
       </View>
     );
@@ -347,7 +402,12 @@ export default function AppNavigator() {
   if (!currentUser) {
     console.log('🔐 No user - showing Login');
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          cardStyle: { backgroundColor: '#152d2a' }
+        }}
+      >
         <Stack.Screen 
           name="Login" 
           component={LoginScreen} 
@@ -359,7 +419,12 @@ export default function AppNavigator() {
   if (userRole === 'restricted') {
     console.log('🚫 User is restricted');
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          cardStyle: { backgroundColor: '#152d2a' }
+        }}
+      >
         <Stack.Screen 
           name="Restricted" 
           component={RestrictedScreen} 

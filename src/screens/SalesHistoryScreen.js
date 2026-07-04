@@ -170,13 +170,13 @@ export default function SalesHistoryScreen({ navigation }) {
         
         <View style={styles.saleFooter}>
           <View style={styles.saleStats}>
-            <Icon name="shopping-bag" size={16} color="#888" />
+            <Icon name="shopping-bag" size={16} color="#152d2a" />
             <Text style={styles.saleItems}>
               {item.items?.length || 0} items
             </Text>
           </View>
           <View style={styles.saleStatusBadge}>
-            <Icon name="check-circle" size={14} color="#4caf50" />
+            <Icon name="check-circle" size={14} color="#4CAF50" />
             <Text style={styles.saleStatusText}>Completed</Text>
           </View>
         </View>
@@ -204,7 +204,7 @@ export default function SalesHistoryScreen({ navigation }) {
               onPress={() => setShowDetailModal(false)}
               style={styles.modalCloseButton}
             >
-              <Icon name="close" size={24} color="#666" />
+              <Icon name="close" size={24} color="#90a5a0" />
             </TouchableOpacity>
           </View>
 
@@ -290,25 +290,25 @@ export default function SalesHistoryScreen({ navigation }) {
             setTimeout(() => setLoading(false), 500);
           }}
         >
-          <Icon name="refresh" size={22} color="#ff6b00" />
+          <Icon name="refresh" size={22} color="#178556" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.summaryContainer}>
         <View style={styles.summaryCard}>
-          <Icon name="receipt" size={24} color="#ff6b00" />
+          <Icon name="receipt" size={24} color="#178556" />
           <Text style={styles.summaryLabel}>Total Sales</Text>
           <Text style={styles.summaryValue}>{stats.count}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryCard}>
-          <Icon name="attach-money" size={24} color="#ff6b00" />
+          <Icon name="attach-money" size={24} color="#178556" />
           <Text style={styles.summaryLabel}>Revenue</Text>
           <Text style={styles.summaryValue}>${stats.revenue.toFixed(2)}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryCard}>
-          <Icon name="shopping-cart" size={24} color="#ff6b00" />
+          <Icon name="shopping-cart" size={24} color="#178556" />
           <Text style={styles.summaryLabel}>Items Sold</Text>
           <Text style={styles.summaryValue}>{stats.items}</Text>
         </View>
@@ -348,7 +348,7 @@ export default function SalesHistoryScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="receipt" size={60} color="#ddd" />
+            <Icon name="receipt" size={60} color="#90a5a0" />
             <Text style={styles.emptyTitle}>No Sales Recorded</Text>
             <Text style={styles.emptySubtitle}>
               {filterPeriod !== 'all' 
@@ -367,7 +367,7 @@ export default function SalesHistoryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   centerContent: {
     justifyContent: 'center',
@@ -382,13 +382,13 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 3,
-    borderColor: '#ff6b00',
+    borderColor: '#178556',
     borderTopColor: 'transparent',
     marginBottom: 12,
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: '#90a5a0',
   },
   header: {
     flexDirection: 'row',
@@ -396,27 +396,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#178556',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   refreshButton: {
     padding: 8,
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#152d2a',
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   summaryContainer: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     paddingVertical: 12,
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#178556',
   },
   summaryCard: {
     flex: 1,
@@ -425,25 +427,25 @@ const styles = StyleSheet.create({
   },
   summaryDivider: {
     width: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#152d2a',
   },
   summaryLabel: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 4,
   },
   summaryValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginTop: 2,
   },
   filterContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#178556',
   },
   filterScrollContent: {
     paddingRight: 8,
@@ -453,29 +455,29 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginRight: 8,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   filterButtonActive: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
   },
   filterText: {
     fontSize: 13,
-    color: '#666',
+    color: '#90a5a0',
     fontWeight: '500',
   },
   filterTextActive: {
-    color: 'white',
+    color: '#FFFFFF',
   },
   list: {
     padding: 12,
   },
   saleCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#178556',
   },
   saleHeader: {
     flexDirection: 'row',
@@ -488,7 +490,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saleIdBadge: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -496,17 +498,17 @@ const styles = StyleSheet.create({
   },
   saleIdText: {
     fontSize: 11,
-    color: '#666',
+    color: '#90a5a0',
     fontWeight: '600',
   },
   saleDate: {
     fontSize: 13,
-    color: '#888',
+    color: '#152d2a',
   },
   saleTotal: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#ff6b00',
+    color: '#152d2a',
   },
   saleFooter: {
     flexDirection: 'row',
@@ -514,7 +516,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#f5f5f5',
+    borderTopColor: '#152d2a',
   },
   saleStats: {
     flexDirection: 'row',
@@ -522,20 +524,20 @@ const styles = StyleSheet.create({
   },
   saleItems: {
     fontSize: 13,
-    color: '#666',
+    color: '#152d2a',
     marginLeft: 4,
   },
   saleStatusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e8f5e9',
+    backgroundColor: '#152d2a',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,
   },
   saleStatusText: {
     fontSize: 11,
-    color: '#4caf50',
+    color: '#4CAF50',
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -548,12 +550,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 28,
     padding: 24,
     width: '100%',
     maxWidth: 500,
     maxHeight: '90%',
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -564,11 +568,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   modalSubtitle: {
     fontSize: 13,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 2,
   },
   modalCloseButton: {
@@ -576,7 +580,7 @@ const styles = StyleSheet.create({
   },
   modalSummary: {
     flexDirection: 'row',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#152d2a',
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
@@ -587,21 +591,21 @@ const styles = StyleSheet.create({
   },
   modalSummaryLabel: {
     fontSize: 11,
-    color: '#888',
+    color: '#90a5a0',
   },
   modalSummaryValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#90a5a0',
     marginTop: 2,
   },
   modalTotalValue: {
-    color: '#ff6b00',
+    color: '#178556',
     fontSize: 16,
   },
   modalDivider: {
     height: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#152d2a',
     marginBottom: 16,
   },
   modalItemsList: {
@@ -610,7 +614,7 @@ const styles = StyleSheet.create({
   modalItemsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 12,
   },
   modalItem: {
@@ -619,7 +623,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    borderBottomColor: '#152d2a',
   },
   modalItemLeft: {
     flexDirection: 'row',
@@ -627,7 +631,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalItemQuantityBadge: {
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#152d2a',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -636,25 +640,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalItemQuantityText: {
-    color: '#ff6b00',
+    color: '#178556',
     fontWeight: '700',
     fontSize: 12,
   },
   modalItemName: {
     fontSize: 14,
-    color: '#333',
+    color: '#152d2a',
   },
   modalItemPrice: {
     fontSize: 12,
-    color: '#888',
+    color: '#152d2a',
   },
   modalItemTotal: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#ff6b00',
+    color: '#178556',
   },
   modalCloseAction: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
@@ -663,7 +667,7 @@ const styles = StyleSheet.create({
   modalCloseActionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#90a5a0',
   },
   emptyContainer: {
     padding: 40,
@@ -674,12 +678,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#666',
+    color: '#90a5a0',
     marginTop: 12,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#999',
+    color: '#90a5a0',
     marginTop: 4,
     textAlign: 'center',
   },

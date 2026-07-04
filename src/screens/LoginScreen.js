@@ -9,7 +9,8 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  Image
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -66,8 +67,12 @@ export default function LoginScreen() {
         <View style={styles.content}>
           {/* Logo Section */}
           <View style={styles.logoContainer}>
-            <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoText}>🔧</Text>
+            <View style={styles.logoWrapper}>
+              <Image 
+                source={require('../../assets/logo.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.title}>Eddie Garage Services</Text>
             <Text style={styles.subtitle}>Point of Sale System</Text>
@@ -75,29 +80,33 @@ export default function LoginScreen() {
 
           {/* Login Form */}
           <View style={styles.form}>
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              placeholderTextColor="#90a5a0"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoCorrect={false}
-              editable={!loading}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                placeholderTextColor="#8ba8a8"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoCorrect={false}
+                editable={!loading}
+              />
+            </View>
 
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              placeholderTextColor="#90a5a0"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              editable={!loading}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                placeholderTextColor="#8ba8a8"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!loading}
+              />
+            </View>
 
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
@@ -107,53 +116,10 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={styles.buttonText}>Login</Text>
+                <Text style={styles.buttonText}>Sign In</Text>
               )}
             </TouchableOpacity>
           </View>
-
-          {/* Demo Accounts Section */}
-          <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>Demo Accounts</Text>
-            <Text style={styles.demoSubtitle}>Tap to auto-fill credentials</Text>
-
-            <View style={styles.demoButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.demoButton,
-                  styles.adminButton,
-                  selectedRole === 'admin' && styles.selectedButton
-                ]}
-                onPress={() => setDemoAccount('admin')}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.demoIcon}>👤</Text>
-                <Text style={styles.demoButtonText}>Admin</Text>
-                <Text style={styles.demoButtonSubtext}>Full Access</Text>
-                <View style={styles.demoPasswordTag}>
-                  <Text style={styles.demoPasswordText}>admin123</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.demoButton,
-                  styles.staffButton,
-                  selectedRole === 'staff' && styles.selectedButton
-                ]}
-                onPress={() => setDemoAccount('staff')}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.demoIcon}>👥</Text>
-                <Text style={styles.demoButtonText}>Staff</Text>
-                <Text style={styles.demoButtonSubtext}>Limited Access</Text>
-                <View style={styles.demoPasswordTag}>
-                  <Text style={styles.demoPasswordText}>staff123</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
           {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
@@ -169,7 +135,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#152d2a',
+    backgroundColor: '#0f1e1c',
   },
   scrollContent: {
     flexGrow: 1,
@@ -177,156 +143,181 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
     paddingTop: 40,
     paddingBottom: 40,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 32,
   },
-  logoPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#178556',
+  logoWrapper: {
+    width: 120,
+    height: 120,
+    backgroundColor: '#ffffff',
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
-    borderWidth: 3,
-    borderColor: '#90a5a0',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    padding: 20,
   },
-  logoText: {
-    fontSize: 45,
+  logo: {
+    width: 80,
+    height: 80,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFFFFF',
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#90a5a0',
-    marginTop: 5,
+    fontSize: 15,
+    color: '#7fa8a8',
+    marginTop: 4,
     textAlign: 'center',
+    letterSpacing: 0.3,
   },
   form: {
-    backgroundColor: '#90a5a0',
-    padding: 20,
-    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    padding: 24,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  inputContainer: {
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#152d2a',
-    marginBottom: 8,
+    color: '#1a3a36',
+    marginBottom: 6,
+    letterSpacing: 0.3,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#152d2a',
+    borderWidth: 1.5,
+    borderColor: '#d0e0e0',
     padding: 14,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 16,
-    backgroundColor: '#FFF',
-    color: '#152d2a',
+    borderRadius: 10,
+    fontSize: 15,
+    backgroundColor: '#f8fafa',
+    color: '#1a3a36',
   },
   button: {
     backgroundColor: '#178556',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#152d2a',
+    shadowColor: '#178556',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonDisabled: {
     opacity: 0.7,
   },
   buttonText: {
-    color: '#FFF',
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
   demoContainer: {
-    marginTop: 25,
+    marginTop: 28,
     alignItems: 'center',
   },
   demoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   demoSubtitle: {
     fontSize: 12,
-    color: '#90a5a0',
-    marginBottom: 12,
+    color: '#7fa8a8',
+    marginBottom: 14,
+    marginTop: 2,
   },
   demoButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
+    gap: 12,
   },
   demoButton: {
     flex: 1,
-    padding: 15,
-    borderRadius: 10,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginHorizontal: 5,
     borderWidth: 2,
     borderColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   selectedButton: {
-    borderColor: '#FFF',
+    borderColor: '#FFFFFF',
     borderWidth: 2,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   adminButton: {
     backgroundColor: '#178556',
   },
   staffButton: {
-    backgroundColor: '#90a5a0',
-    borderColor: '#152d2a',
+    backgroundColor: '#4a7a7a',
   },
   demoIcon: {
-    fontSize: 24,
+    fontSize: 28,
     color: 'white',
   },
   demoButtonText: {
-    color: '#FFF',
-    fontSize: 18,
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 5,
+    marginTop: 4,
   },
   demoButtonSubtext: {
-    color: 'rgba(255,255,255,0.9)',
+    color: 'rgba(255,255,255,0.85)',
     fontSize: 10,
-    marginTop: 3,
+    marginTop: 2,
   },
   demoPasswordTag: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 12,
-    marginTop: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 14,
+    marginTop: 6,
   },
   demoPasswordText: {
-    color: '#FFF',
+    color: '#FFFFFF',
     fontSize: 10,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
   footer: {
-    marginTop: 20,
+    marginTop: 24,
     alignItems: 'center',
   },
   footerText: {
     fontSize: 12,
-    color: '#90a5a0',
+    color: '#5a7a7a',
     textAlign: 'center',
+    letterSpacing: 0.3,
   },
 });

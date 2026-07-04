@@ -345,14 +345,14 @@ export default function POSScreen({ navigation }) {
         >
           <View style={styles.modalHeader}>
             <View style={styles.modalHeaderLeft}>
-              <Icon name="category" size={28} color="#FF6B00" />
+              <Icon name="category" size={28} color="#178556" />
               <Text style={styles.modalTitle}>Filter by Category</Text>
             </View>
             <TouchableOpacity 
               onPress={() => setShowCategoryModal(false)}
               style={styles.modalCloseButton}
             >
-              <Icon name="close" size={24} color="#666" />
+              <Icon name="close" size={24} color="#90a5a0" />
             </TouchableOpacity>
           </View>
 
@@ -374,7 +374,7 @@ export default function POSScreen({ navigation }) {
                 All Categories
               </Text>
               {selectedCategory === 'All' && (
-                <Icon name="check-circle" size={20} color="#FF6B00" />
+                <Icon name="check-circle" size={20} color="#178556" />
               )}
             </TouchableOpacity>
             
@@ -397,7 +397,7 @@ export default function POSScreen({ navigation }) {
                   {cat.name}
                 </Text>
                 {selectedCategory === cat.name && (
-                  <Icon name="check-circle" size={20} color="#FF6B00" />
+                  <Icon name="check-circle" size={20} color="#178556" />
                 )}
               </TouchableOpacity>
             ))}
@@ -410,7 +410,7 @@ export default function POSScreen({ navigation }) {
               navigation.navigate('CategoryManagement');
             }}
           >
-            <Icon name="settings" size={20} color="#FF6B00" />
+            <Icon name="settings" size={20} color="#178556" />
             <Text style={styles.manageCategoriesText}>Manage Categories</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -428,7 +428,7 @@ export default function POSScreen({ navigation }) {
         {item.image ? (
           <Image source={{ uri: item.image }} style={styles.productImage} />
         ) : (
-          <Icon name="inventory-2" size={32} color="#ccc" />
+          <Icon name="inventory-2" size={32} color="#90a5a0" />
         )}
         {item.quantity <= 5 && item.quantity > 0 && (
           <View style={styles.lowStockBadge}>
@@ -460,7 +460,7 @@ export default function POSScreen({ navigation }) {
           style={styles.cartItemButton}
           onPress={() => updateCartQuantity(item.id, -1)}
         >
-          <Icon name="remove" size={16} color="#fff" />
+          <Icon name="remove" size={16} color="#FFFFFF" />
         </TouchableOpacity>
         <View style={styles.cartItemQuantityBadge}>
           <Text style={styles.cartItemQuantityText}>{item.cartQuantity}</Text>
@@ -469,7 +469,7 @@ export default function POSScreen({ navigation }) {
           style={styles.cartItemButton}
           onPress={() => updateCartQuantity(item.id, 1)}
         >
-          <Icon name="add" size={16} color="#fff" />
+          <Icon name="add" size={16} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>
@@ -494,14 +494,14 @@ export default function POSScreen({ navigation }) {
         >
           <View style={styles.modalHeader}>
             <View style={styles.modalHeaderLeft}>
-              <Icon name="shopping-bag" size={28} color="#FF6B00" />
+              <Icon name="shopping-bag" size={28} color="#178556" />
               <Text style={styles.modalTitle}>Order Summary</Text>
             </View>
             <TouchableOpacity 
               onPress={() => setShowCheckoutModal(false)}
               style={styles.modalCloseButton}
             >
-              <Icon name="close" size={24} color="#666" />
+              <Icon name="close" size={24} color="#90a5a0" />
             </TouchableOpacity>
           </View>
 
@@ -561,7 +561,7 @@ export default function POSScreen({ navigation }) {
                 </View>
               ) : (
                 <>
-                  <Icon name="check-circle" size={22} color="white" />
+                  <Icon name="check-circle" size={22} color="#FFFFFF" />
                   <Text style={styles.modalConfirmButtonText}>Confirm Payment</Text>
                 </>
               )}
@@ -590,12 +590,12 @@ export default function POSScreen({ navigation }) {
         <View style={styles.leftPanel}>
           <View style={styles.headerRow}>
             <View style={styles.searchContainer}>
-              <Icon name="search" size={20} color="#999" style={styles.searchIcon} />
+              <Icon name="search" size={20} color="#90a5a0" style={styles.searchIcon} />
               <TextInput
                 ref={searchInputRef}
                 style={styles.searchInput}
                 placeholder="Search products..."
-                placeholderTextColor="#999"
+                placeholderTextColor="#90a5a0"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -604,7 +604,7 @@ export default function POSScreen({ navigation }) {
                   onPress={() => setSearchQuery('')}
                   style={styles.clearSearchButton}
                 >
-                  <Icon name="close" size={18} color="#999" />
+                  <Icon name="close" size={18} color="#90a5a0" />
                 </TouchableOpacity>
               )}
             </View>
@@ -612,10 +612,10 @@ export default function POSScreen({ navigation }) {
               onPress={() => setShowCategoryModal(true)} 
               style={styles.categoryFilterButton}
             >
-              <Icon name="filter-list" size={20} color="#ff6b00" />
+              <Icon name="filter-list" size={20} color="#178556" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-              <Icon name="logout" size={20} color="#ff6b00" />
+              <Icon name="logout" size={20} color="#178556" />
             </TouchableOpacity>
           </View>
           
@@ -657,7 +657,7 @@ export default function POSScreen({ navigation }) {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Icon name="inventory" size={50} color="#ddd" />
+                <Icon name="inventory" size={50} color="#90a5a0" />
                 <Text style={styles.emptyText}>
                   {searchQuery ? 'No products match your search' : 'No products available'}
                 </Text>
@@ -666,7 +666,7 @@ export default function POSScreen({ navigation }) {
                     style={styles.emptyManageCategoriesButton}
                     onPress={() => navigation.navigate('CategoryManagement')}
                   >
-                    <Icon name="category" size={16} color="#ff6b00" />
+                    <Icon name="category" size={16} color="#178556" />
                     <Text style={styles.emptyManageCategoriesText}>Manage Categories</Text>
                   </TouchableOpacity>
                 )}
@@ -701,7 +701,7 @@ export default function POSScreen({ navigation }) {
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
                 <View style={styles.emptyCartContainer}>
-                  <Icon name="shopping-cart" size={50} color="#ddd" />
+                  <Icon name="shopping-cart" size={50} color="#90a5a0" />
                   <Text style={styles.emptyCartText}>Cart is Empty</Text>
                   <Text style={styles.emptyCartSubText}>Add items from the catalog</Text>
                 </View>
@@ -725,7 +725,7 @@ export default function POSScreen({ navigation }) {
               onPress={handleCheckout}
               disabled={cart.length === 0}
             >
-              <Icon name="payment" size={20} color="white" />
+              <Icon name="payment" size={20} color="#FFFFFF" />
               <Text style={styles.checkoutButtonText}>
                 {cart.length > 0 ? `Checkout (${cart.reduce((sum, item) => sum + item.cartQuantity, 0)})` : 'Cart Empty'}
               </Text>
@@ -743,7 +743,7 @@ export default function POSScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   mainContainer: {
     flex: 1,
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 3,
-    borderColor: '#ff6b00',
+    borderColor: '#178556',
     borderTopColor: 'transparent',
     marginBottom: 12,
   },
@@ -771,24 +771,24 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: '#FFFFFF',
     borderTopColor: 'transparent',
     marginRight: 8,
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: '#90a5a0',
   },
   leftPanel: {
     flex: 2,
     padding: 10,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#152d2a',
   },
   rightPanel: {
     flex: 1.2,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderLeftWidth: 1,
-    borderLeftColor: '#e0e0e0',
+    borderLeftColor: '#178556',
     padding: 12,
     display: 'flex',
     flexDirection: 'column',
@@ -803,10 +803,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#178556',
     paddingHorizontal: 10,
     marginRight: 8,
   },
@@ -817,27 +817,33 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     fontSize: 14,
-    color: '#333',
+    color: '#152d2a',
   },
   clearSearchButton: {
     padding: 4,
   },
   categoryFilterButton: {
     padding: 8,
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#90a5a0',
     borderRadius: 10,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   logoutButton: {
     padding: 8,
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#90a5a0',
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   categoryFilterContainer: {
     marginBottom: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 10,
     paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   categoryScrollContent: {
     paddingHorizontal: 10,
@@ -848,19 +854,19 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginRight: 6,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
     position: 'relative',
   },
   categoryButtonActive: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
   },
   categoryText: {
-    color: '#666',
+    color: '#90a5a0',
     fontSize: 13,
     fontWeight: '500',
   },
   categoryTextActive: {
-    color: 'white',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   categoryActiveIndicator: {
@@ -871,7 +877,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
   },
   productListContent: {
     paddingBottom: 10,
@@ -881,20 +887,20 @@ const styles = StyleSheet.create({
   },
   productCard: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     margin: 4,
     padding: 12,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#178556',
     minHeight: 120,
   },
   productImagePlaceholder: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
@@ -909,14 +915,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: '#ff9800',
+    backgroundColor: '#FF9800',
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 8,
   },
   lowStockBadgeText: {
     fontSize: 8,
-    color: 'white',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   outOfStockBadge: {
@@ -930,25 +936,25 @@ const styles = StyleSheet.create({
   },
   outOfStockBadgeText: {
     fontSize: 8,
-    color: 'white',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   productName: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 2,
     textAlign: 'center',
   },
   productPrice: {
     fontSize: 14,
-    color: '#ff6b00',
+    color: '#152d2a',
     fontWeight: '700',
     marginBottom: 2,
   },
   productStock: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
   },
   lowStock: {
     color: '#f44336',
@@ -960,16 +966,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingBottom: 8,
     borderBottomWidth: 2,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#152d2a',
   },
   cartTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   cartSubtitle: {
     fontSize: 12,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   clearCartButton: {
@@ -978,7 +984,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
-    backgroundColor: '#ffebee',
+    backgroundColor: '#FFEBEE',
   },
   clearCartText: {
     color: '#f44336',
@@ -995,12 +1001,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cartItem: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#152d2a',
     borderRadius: 8,
     marginBottom: 4,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#178556',
   },
   cartItemInfo: {
     flexDirection: 'row',
@@ -1011,13 +1017,13 @@ const styles = StyleSheet.create({
   cartItemName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#FFFFFF',
     flex: 1,
     marginRight: 8,
   },
   cartItemPrice: {
     fontSize: 13,
-    color: '#ff6b00',
+    color: '#178556',
     fontWeight: '600',
   },
   cartItemControls: {
@@ -1026,7 +1032,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   cartItemButton: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -1034,7 +1040,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cartItemQuantityBadge: {
-    backgroundColor: '#fff',
+    backgroundColor: '#90a5a0',
     paddingHorizontal: 10,
     paddingVertical: 2,
     minWidth: 30,
@@ -1042,18 +1048,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#178556',
   },
   cartItemQuantityText: {
-    color: '#1a1a2e',
+    color: '#152d2a',
     fontSize: 14,
     fontWeight: '700',
   },
   totalContainer: {
     borderTopWidth: 2,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: '#152d2a',
     paddingTop: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     paddingBottom: 2,
   },
   totalRow: {
@@ -1066,34 +1072,34 @@ const styles = StyleSheet.create({
     marginTop: 2,
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: '#152d2a',
   },
   totalDivider: {
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#152d2a',
     marginVertical: 4,
   },
   totalLabel: {
     fontSize: 13,
-    color: '#666',
+    color: '#152d2a',
   },
   totalAmount: {
     fontSize: 13,
-    color: '#333',
+    color: '#152d2a',
     fontWeight: '500',
   },
   grandTotalLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   grandTotalAmount: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#ff6b00',
+    color: '#152d2a',
   },
   checkoutButton: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
     paddingVertical: 10,
     borderRadius: 12,
     flexDirection: 'row',
@@ -1103,10 +1109,11 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   disabledButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#90a5a0',
+    opacity: 0.6,
   },
   checkoutButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
     marginLeft: 8,
@@ -1120,7 +1127,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#90a5a0',
     marginTop: 8,
   },
   emptyManageCategoriesButton: {
@@ -1129,11 +1136,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#90a5a0',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   emptyManageCategoriesText: {
-    color: '#ff6b00',
+    color: '#178556',
     fontWeight: '600',
     fontSize: 13,
     marginLeft: 6,
@@ -1147,12 +1156,12 @@ const styles = StyleSheet.create({
   emptyCartText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#152d2a',
     marginTop: 8,
   },
   emptyCartSubText: {
     fontSize: 12,
-    color: '#999',
+    color: '#152d2a',
     marginTop: 2,
   },
   // Modal Styles
@@ -1164,12 +1173,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 28,
     padding: 24,
     width: '100%',
     maxWidth: 500,
     maxHeight: '90%',
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -1184,7 +1195,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginLeft: 12,
   },
   modalCloseButton: {
@@ -1199,7 +1210,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    borderBottomColor: '#152d2a',
   },
   modalItemLeft: {
     flexDirection: 'row',
@@ -1207,7 +1218,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalItemQuantity: {
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#152d2a',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -1216,28 +1227,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalItemQuantityText: {
-    color: '#ff6b00',
+    color: '#178556',
     fontWeight: '700',
     fontSize: 14,
   },
   modalItemName: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   modalItemPrice: {
     fontSize: 12,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 2,
   },
   modalItemTotal: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ff6b00',
+    color: '#178556',
   },
   modalDivider: {
     height: 2,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#152d2a',
     marginVertical: 16,
   },
   modalTotalSection: {
@@ -1251,11 +1262,11 @@ const styles = StyleSheet.create({
   },
   modalTotalLabel: {
     fontSize: 15,
-    color: '#666',
+    color: '#152d2a',
   },
   modalTotalAmount: {
     fontSize: 15,
-    color: '#333',
+    color: '#152d2a',
     fontWeight: '500',
   },
   modalGrandTotalRow: {
@@ -1265,17 +1276,17 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 12,
     borderTopWidth: 2,
-    borderTopColor: '#ff6b00',
+    borderTopColor: '#178556',
   },
   modalGrandTotalLabel: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   modalGrandTotalAmount: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#ff6b00',
+    color: '#178556',
   },
   modalButtonContainer: {
     flexDirection: 'row',
@@ -1291,16 +1302,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   modalCancelButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   modalCancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#90a5a0',
   },
   modalConfirmButton: {
-    backgroundColor: '#ff6b00',
-    shadowColor: '#ff6b00',
+    backgroundColor: '#178556',
+    shadowColor: '#178556',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -1312,18 +1323,20 @@ const styles = StyleSheet.create({
   modalConfirmButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: 'white',
+    color: '#FFFFFF',
     marginLeft: 8,
     letterSpacing: 0.5,
   },
   // Category Selector Modal
   categorySelectorContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 28,
     padding: 24,
     width: '100%',
     maxWidth: 500,
     maxHeight: '70%',
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   categoryList: {
     maxHeight: 300,
@@ -1335,18 +1348,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    borderBottomColor: '#152d2a',
   },
   categoryOptionSelected: {
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#152d2a',
     borderRadius: 8,
   },
   categoryOptionText: {
     fontSize: 15,
-    color: '#333',
+    color: '#152d2a',
   },
   categoryOptionTextSelected: {
-    color: '#ff6b00',
+    color: '#178556',
     fontWeight: '600',
   },
   manageCategoriesButton: {
@@ -1356,10 +1369,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: '#152d2a',
   },
   manageCategoriesText: {
-    color: '#ff6b00',
+    color: '#178556',
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,

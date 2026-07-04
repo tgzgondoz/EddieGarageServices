@@ -106,7 +106,7 @@ export default function ProductListScreen({ navigation }) {
             <Image source={{ uri: item.image }} style={styles.gridImage} />
           ) : (
             <View style={styles.gridImagePlaceholder}>
-              <Icon name="inventory-2" size={40} color="#ccc" />
+              <Icon name="inventory-2" size={40} color="#90a5a0" />
             </View>
           )}
           {(item.quantity || 0) <= 5 && (item.quantity || 0) > 0 && (
@@ -124,7 +124,7 @@ export default function ProductListScreen({ navigation }) {
           <Text style={styles.gridName} numberOfLines={1}>{item.name || 'Unnamed'}</Text>
           <Text style={styles.gridPrice}>${item.price?.toFixed(2) || '0.00'}</Text>
           <View style={styles.gridStockRow}>
-            <Icon name="inventory" size={14} color="#888" />
+            <Icon name="inventory" size={14} color="#152d2a" />
             <Text style={styles.gridStock}>{item.quantity || 0} in stock</Text>
           </View>
           {item.category && (
@@ -148,7 +148,7 @@ export default function ProductListScreen({ navigation }) {
             <Image source={{ uri: item.image }} style={styles.listImage} />
           ) : (
             <View style={styles.listImagePlaceholder}>
-              <Icon name="inventory-2" size={30} color="#ccc" />
+              <Icon name="inventory-2" size={30} color="#90a5a0" />
             </View>
           )}
         </View>
@@ -159,7 +159,7 @@ export default function ProductListScreen({ navigation }) {
           </View>
           <View style={styles.listDetails}>
             <View style={styles.listStockRow}>
-              <Icon name="inventory" size={14} color="#888" />
+              <Icon name="inventory" size={14} color="#152d2a" />
               <Text style={[
                 styles.listStock,
                 (item.quantity || 0) <= 5 && styles.lowStockText
@@ -174,7 +174,7 @@ export default function ProductListScreen({ navigation }) {
             )}
           </View>
         </View>
-        <Icon name="chevron-right" size={20} color="#ccc" />
+        <Icon name="chevron-right" size={20} color="#152d2a" />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -196,17 +196,17 @@ export default function ProductListScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#999" style={styles.searchIcon} />
+          <Icon name="search" size={20} color="#90a5a0" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search products..."
-            placeholderTextColor="#999"
+            placeholderTextColor="#90a5a0"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-              <Icon name="close" size={18} color="#999" />
+              <Icon name="close" size={18} color="#90a5a0" />
             </TouchableOpacity>
           )}
         </View>
@@ -217,7 +217,7 @@ export default function ProductListScreen({ navigation }) {
           <Icon 
             name={viewMode === 'grid' ? 'view-list' : 'grid-view'} 
             size={24} 
-            color="#ff6b00" 
+            color="#178556" 
           />
         </TouchableOpacity>
       </View>
@@ -268,7 +268,7 @@ export default function ProductListScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="search-off" size={60} color="#ddd" />
+            <Icon name="search-off" size={60} color="#90a5a0" />
             <Text style={styles.emptyTitle}>No products found</Text>
             <Text style={styles.emptySubtitle}>
               {searchQuery ? 'Try adjusting your search' : 'No products available'}
@@ -283,7 +283,7 @@ export default function ProductListScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   centerContent: {
     justifyContent: 'center',
@@ -298,30 +298,32 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 3,
-    borderColor: '#ff6b00',
+    borderColor: '#178556',
     borderTopColor: 'transparent',
     marginBottom: 12,
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: '#90a5a0',
   },
   header: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#178556',
     alignItems: 'center',
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
     borderRadius: 10,
     paddingHorizontal: 12,
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   searchIcon: {
     marginRight: 8,
@@ -330,26 +332,28 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#333',
+    color: '#FFFFFF',
   },
   clearButton: {
     padding: 4,
   },
   viewToggle: {
     padding: 8,
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#152d2a',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   categoryContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#178556',
   },
   categoryScrollContent: {
     paddingRight: 8,
@@ -360,19 +364,19 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginRight: 8,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
     position: 'relative',
   },
   categoryButtonActive: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
   },
   categoryText: {
-    color: '#666',
+    color: '#90a5a0',
     fontSize: 13,
     fontWeight: '500',
   },
   categoryTextActive: {
-    color: 'white',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   categoryActiveIndicator: {
@@ -383,7 +387,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
   },
   resultCount: {
     marginLeft: 'auto',
@@ -391,7 +395,7 @@ const styles = StyleSheet.create({
   },
   resultCountText: {
     fontSize: 12,
-    color: '#999',
+    color: '#152d2a',
     fontWeight: '500',
   },
   list: {
@@ -410,10 +414,10 @@ const styles = StyleSheet.create({
   gridCard: {
     flex: 1,
     margin: 4,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#178556',
     overflow: 'hidden',
     maxWidth: (width - 40) / 2,
   },
@@ -423,7 +427,7 @@ const styles = StyleSheet.create({
   gridImageContainer: {
     width: '100%',
     height: 140,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#152d2a',
     position: 'relative',
   },
   gridImage: {
@@ -436,20 +440,20 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   lowStockBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: '#ff9800',
+    backgroundColor: '#FF9800',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
   lowStockBadgeText: {
     fontSize: 10,
-    color: 'white',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   outOfStockBadge: {
@@ -463,7 +467,7 @@ const styles = StyleSheet.create({
   },
   outOfStockBadgeText: {
     fontSize: 10,
-    color: 'white',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   gridInfo: {
@@ -472,12 +476,12 @@ const styles = StyleSheet.create({
   gridName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 2,
   },
   gridPrice: {
     fontSize: 16,
-    color: '#ff6b00',
+    color: '#152d2a',
     fontWeight: '700',
     marginBottom: 2,
   },
@@ -488,11 +492,11 @@ const styles = StyleSheet.create({
   },
   gridStock: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginLeft: 4,
   },
   gridCategoryBadge: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#152d2a',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -500,15 +504,15 @@ const styles = StyleSheet.create({
   },
   gridCategoryText: {
     fontSize: 10,
-    color: '#666',
+    color: '#90a5a0',
   },
   // List View Styles
   listCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#178556',
   },
   listTouchable: {
     flexDirection: 'row',
@@ -519,7 +523,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 8,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#152d2a',
     overflow: 'hidden',
   },
   listImage: {
@@ -532,7 +536,7 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   listInfo: {
     flex: 1,
@@ -547,13 +551,13 @@ const styles = StyleSheet.create({
   listName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
     flex: 1,
     marginRight: 8,
   },
   listPrice: {
     fontSize: 15,
-    color: '#ff6b00',
+    color: '#152d2a',
     fontWeight: '700',
   },
   listDetails: {
@@ -567,22 +571,22 @@ const styles = StyleSheet.create({
   },
   listStock: {
     fontSize: 12,
-    color: '#888',
+    color: '#152d2a',
     marginLeft: 4,
   },
   lowStockText: {
-    color: '#ff9800',
+    color: '#f44336',
     fontWeight: '600',
   },
   listCategoryBadge: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#152d2a',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
   listCategoryText: {
     fontSize: 11,
-    color: '#666',
+    color: '#90a5a0',
   },
   emptyContainer: {
     padding: 40,
@@ -593,12 +597,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#90a5a0',
     marginTop: 12,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#999',
+    color: '#90a5a0',
     marginTop: 4,
   },
 });

@@ -221,8 +221,8 @@ export default function AdminDashboardScreen({ navigation }) {
           onPressOut={handlePressOut}
           activeOpacity={0.9}
         >
-          <View style={styles.statIconContainer}>
-            <Icon name={icon} size={24} color={color} />
+          <View style={[styles.statIconContainer, { backgroundColor: color }]}>
+            <Icon name={icon} size={24} color="#FFFFFF" />
           </View>
           <View style={styles.statInfo}>
             <Text style={styles.statValue}>{value}</Text>
@@ -232,7 +232,7 @@ export default function AdminDashboardScreen({ navigation }) {
             )}
           </View>
           {onPress && (
-            <Icon name="chevron-right" size={20} color="#90a5a0" />
+            <Icon name="chevron-right" size={20} color="#152d2a" />
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -337,7 +337,7 @@ export default function AdminDashboardScreen({ navigation }) {
               style={[styles.logoutModalButton, styles.logoutConfirmButton]}
               onPress={handleLogout}
             >
-              <Icon name="logout" size={18} color="#FFF" />
+              <Icon name="logout" size={18} color="#FFFFFF" />
               <Text style={styles.logoutConfirmText}>Logout</Text>
             </TouchableOpacity>
           </View>
@@ -365,7 +365,7 @@ export default function AdminDashboardScreen({ navigation }) {
               onPress={() => setShowUsersModal(false)}
               style={styles.closeButton}
             >
-              <Icon name="close" size={24} color="#90a5a0" />
+              <Icon name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
           
@@ -390,7 +390,7 @@ export default function AdminDashboardScreen({ navigation }) {
                           <Icon 
                             name={item.role === 'admin' ? 'admin-panel-settings' : 'person'} 
                             size={10} 
-                            color="#FFF" 
+                            color="#FFFFFF" 
                           />
                           <Text style={styles.roleText}>
                             {item.role?.toUpperCase() || 'STAFF'}
@@ -470,7 +470,7 @@ export default function AdminDashboardScreen({ navigation }) {
               style={styles.menuButton}
               onPress={() => navigation.openDrawer?.()}
             >
-              <Icon name="menu" size={24} color="#FFF" />
+              <Icon name="menu" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Dashboard</Text>
           </View>
@@ -479,13 +479,13 @@ export default function AdminDashboardScreen({ navigation }) {
               style={styles.headerIconButton}
               onPress={() => navigation.navigate('Profile')}
             >
-              <Icon name="person" size={22} color="#FFF" />
+              <Icon name="person" size={22} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.headerIconButton}
               onPress={() => setShowLogoutModal(true)}
             >
-              <Icon name="logout" size={22} color="#FFF" />
+              <Icon name="logout" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFF',
+    color: '#FFFFFF',
   },
   headerRight: {
     flexDirection: 'row',
@@ -771,7 +771,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   welcomeAvatarText: {
-    color: '#FFF',
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '700',
   },
@@ -836,7 +836,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -874,7 +873,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFF',
+    color: '#FFFFFF',
   },
   sectionSubtitle: {
     fontSize: 12,
@@ -1079,7 +1078,7 @@ const styles = StyleSheet.create({
   logoutConfirmText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFF',
+    color: '#FFFFFF',
     marginLeft: 6,
   },
   // Users Modal
@@ -1121,7 +1120,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   userCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFFFFF',
     padding: 14,
     borderRadius: 12,
     marginBottom: 10,
@@ -1150,7 +1149,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#90a5a0',
   },
   userAvatarText: {
-    color: '#FFF',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -1182,7 +1181,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#90a5a0',
   },
   roleText: {
-    color: '#FFF',
+    color: '#FFFFFF',
     fontSize: 9,
     fontWeight: '700',
     marginLeft: 3,
