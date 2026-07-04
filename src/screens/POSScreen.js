@@ -36,7 +36,10 @@ export default function POSScreen({ navigation }) {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedProductForCategory, setSelectedProductForCategory] = useState(null);
-  const { logout } = useAuth();
+  const { logout, userData } = useAuth();
+
+  // Check if user is admin
+  const isAdmin = userData?.role === 'admin';
 
   // Refs
   const searchInputRef = useRef(null);
@@ -291,7 +294,7 @@ export default function POSScreen({ navigation }) {
 
       setProcessingPayment(false);
       setShowCheckoutModal(false);
-      Alert.alert('✅ Success', 'Checkout completed successfully!');
+      Alert.alert('Success', 'Checkout completed successfully!');
       setCart([]);
     } catch (error) {
       console.error('Checkout error:', error);
@@ -403,16 +406,18 @@ export default function POSScreen({ navigation }) {
             ))}
           </ScrollView>
 
-          <TouchableOpacity
-            style={styles.manageCategoriesButton}
-            onPress={() => {
-              setShowCategoryModal(false);
-              navigation.navigate('CategoryManagement');
-            }}
-          >
-            <Icon name="settings" size={20} color="#178556" />
-            <Text style={styles.manageCategoriesText}>Manage Categories</Text>
-          </TouchableOpacity>
+          {isAdmin && (
+            <TouchableOpacity
+              style={styles.manageCategoriesButton}
+              onPress={() => {
+                setShowCategoryModal(false);
+                navigation.navigate('CategoryManagement');
+              }}
+            >
+              <Icon name="settings" size={20} color="#178556" />
+              <Text style={styles.manageCategoriesText}>Manage Categories</Text>
+            </TouchableOpacity>
+          )}
         </Animated.View>
       </View>
     </Modal>
@@ -562,7 +567,7 @@ export default function POSScreen({ navigation }) {
               ) : (
                 <>
                   <Icon name="check-circle" size={22} color="#FFFFFF" />
-                  <Text style={styles.modalConfirmButtonText}>Confirm Payment</Text>
+                  <Text style={styles.modalConfirmButtonText}>Pay</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -664,7 +669,13 @@ export default function POSScreen({ navigation }) {
                 {!searchQuery && (
                   <TouchableOpacity
                     style={styles.emptyManageCategoriesButton}
-                    onPress={() => navigation.navigate('CategoryManagement')}
+                    onPress={() => {
+                      if (isAdmin) {
+                        navigation.navigate('CategoryManagement');
+                      } else {
+                        Alert.alert('Access Denied', 'Only administrators can manage categories');
+                      }
+                    }}
                   >
                     <Icon name="category" size={16} color="#178556" />
                     <Text style={styles.emptyManageCategoriesText}>Manage Categories</Text>
@@ -702,8 +713,7 @@ export default function POSScreen({ navigation }) {
               ListEmptyComponent={
                 <View style={styles.emptyCartContainer}>
                   <Icon name="shopping-cart" size={50} color="#90a5a0" />
-                  <Text style={styles.emptyCartText}>Cart is Empty</Text>
-                  <Text style={styles.emptyCartSubText}>Add items from the catalog</Text>
+                  <Text style={styles.emptyCartText}>Empty</Text>
                 </View>
               }
               contentContainerStyle={cart.length === 0 && styles.emptyCartContent}
@@ -803,7 +813,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#90a5a0',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#178556',
@@ -824,7 +834,7 @@ const styles = StyleSheet.create({
   },
   categoryFilterButton: {
     padding: 8,
-    backgroundColor: '#90a5a0',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     marginRight: 8,
     borderWidth: 1,
@@ -832,7 +842,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     padding: 8,
-    backgroundColor: '#90a5a0',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#178556',
@@ -854,14 +864,16 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginRight: 6,
     borderRadius: 20,
-    backgroundColor: '#152d2a',
+    backgroundColor: '#FFFFFF',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   categoryButtonActive: {
     backgroundColor: '#178556',
   },
   categoryText: {
-    color: '#90a5a0',
+    color: '#152d2a',
     fontSize: 13,
     fontWeight: '500',
   },
@@ -1107,6 +1119,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 6,
     minHeight: 44,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   disabledButton: {
     backgroundColor: '#90a5a0',
@@ -1136,7 +1150,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#90a5a0',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#178556',
@@ -1319,6 +1333,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   modalConfirmButtonText: {
     fontSize: 16,
