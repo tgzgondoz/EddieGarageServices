@@ -232,7 +232,7 @@ export default function AdminDashboardScreen({ navigation }) {
             )}
           </View>
           {onPress && (
-            <Icon name="chevron-right" size={20} color="#ccc" />
+            <Icon name="chevron-right" size={20} color="#90a5a0" />
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -288,7 +288,7 @@ export default function AdminDashboardScreen({ navigation }) {
       <View style={styles.saleHeader}>
         <View style={styles.saleLeft}>
           <View style={styles.saleIcon}>
-            <Icon name="receipt" size={18} color="#FF6B00" />
+            <Icon name="receipt" size={18} color="#178556" />
           </View>
           <View>
             <Text style={styles.saleId}>Order #{item.id.slice(-6)}</Text>
@@ -320,7 +320,7 @@ export default function AdminDashboardScreen({ navigation }) {
           ]}
         >
           <View style={styles.logoutIconContainer}>
-            <Icon name="logout" size={40} color="#FF6B00" />
+            <Icon name="logout" size={40} color="#178556" />
           </View>
           <Text style={styles.logoutModalTitle}>Logout</Text>
           <Text style={styles.logoutModalText}>
@@ -337,7 +337,7 @@ export default function AdminDashboardScreen({ navigation }) {
               style={[styles.logoutModalButton, styles.logoutConfirmButton]}
               onPress={handleLogout}
             >
-              <Icon name="logout" size={18} color="white" />
+              <Icon name="logout" size={18} color="#FFF" />
               <Text style={styles.logoutConfirmText}>Logout</Text>
             </TouchableOpacity>
           </View>
@@ -365,7 +365,7 @@ export default function AdminDashboardScreen({ navigation }) {
               onPress={() => setShowUsersModal(false)}
               style={styles.closeButton}
             >
-              <Icon name="close" size={24} color="#666" />
+              <Icon name="close" size={24} color="#90a5a0" />
             </TouchableOpacity>
           </View>
           
@@ -390,7 +390,7 @@ export default function AdminDashboardScreen({ navigation }) {
                           <Icon 
                             name={item.role === 'admin' ? 'admin-panel-settings' : 'person'} 
                             size={10} 
-                            color="white" 
+                            color="#FFF" 
                           />
                           <Text style={styles.roleText}>
                             {item.role?.toUpperCase() || 'STAFF'}
@@ -409,8 +409,8 @@ export default function AdminDashboardScreen({ navigation }) {
                     style={[styles.actionButton, styles.roleButton]}
                     onPress={() => handleUpdateUserRole(item.uid, item.role)}
                   >
-                    <Icon name="swap-horiz" size={14} color="#2196F3" />
-                    <Text style={[styles.actionButtonText, { color: '#2196F3' }]}>
+                    <Icon name="swap-horiz" size={14} color="#178556" />
+                    <Text style={[styles.actionButtonText, { color: '#178556' }]}>
                       Change Role
                     </Text>
                   </TouchableOpacity>
@@ -428,7 +428,7 @@ export default function AdminDashboardScreen({ navigation }) {
             )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Icon name="people" size={60} color="#ddd" />
+                <Icon name="people" size={60} color="#90a5a0" />
                 <Text style={styles.emptyTitle}>No Users Found</Text>
                 <Text style={styles.emptySubtitle}>Users will appear here once they register</Text>
               </View>
@@ -453,7 +453,7 @@ export default function AdminDashboardScreen({ navigation }) {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#FF6B00" />
+      <StatusBar barStyle="light-content" backgroundColor="#178556" />
       <SafeAreaView style={styles.container}>
         {/* Header */}
         <Animated.View 
@@ -470,7 +470,7 @@ export default function AdminDashboardScreen({ navigation }) {
               style={styles.menuButton}
               onPress={() => navigation.openDrawer?.()}
             >
-              <Icon name="menu" size={24} color="white" />
+              <Icon name="menu" size={24} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Dashboard</Text>
           </View>
@@ -479,13 +479,13 @@ export default function AdminDashboardScreen({ navigation }) {
               style={styles.headerIconButton}
               onPress={() => navigation.navigate('Profile')}
             >
-              <Icon name="person" size={22} color="white" />
+              <Icon name="person" size={22} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.headerIconButton}
               onPress={() => setShowLogoutModal(true)}
             >
-              <Icon name="logout" size={22} color="white" />
+              <Icon name="logout" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -494,7 +494,7 @@ export default function AdminDashboardScreen({ navigation }) {
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF6B00']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#178556']} />
           }
         >
           <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
@@ -591,7 +591,7 @@ export default function AdminDashboardScreen({ navigation }) {
                     onPress={() => navigation.navigate('Sales')}
                   >
                     <Text style={styles.viewAllButtonText}>View All {recentSales.length} Sales</Text>
-                    <Icon name="arrow-forward" size={16} color="#FF6B00" />
+                    <Icon name="arrow-forward" size={16} color="#178556" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -605,8 +605,8 @@ export default function AdminDashboardScreen({ navigation }) {
                   style={styles.actionCard}
                   onPress={() => navigation.navigate('POS')}
                 >
-                  <View style={[styles.actionIcon, { backgroundColor: '#FFF3E0' }]}>
-                    <Icon name="point-of-sale" size={28} color="#FF6B00" />
+                  <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
+                    <Icon name="point-of-sale" size={28} color="#178556" />
                   </View>
                   <Text style={styles.actionText}>POS</Text>
                   <Text style={styles.actionSubtext}>Start new sale</Text>
@@ -617,7 +617,7 @@ export default function AdminDashboardScreen({ navigation }) {
                   onPress={() => navigation.navigate('AddEditProduct')}
                 >
                   <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
-                    <Icon name="add-shopping-cart" size={28} color="#4CAF50" />
+                    <Icon name="add-shopping-cart" size={28} color="#178556" />
                   </View>
                   <Text style={styles.actionText}>Add Product</Text>
                   <Text style={styles.actionSubtext}>Add new product</Text>
@@ -627,8 +627,8 @@ export default function AdminDashboardScreen({ navigation }) {
                   style={styles.actionCard}
                   onPress={() => navigation.navigate('CategoryManagement')}
                 >
-                  <View style={[styles.actionIcon, { backgroundColor: '#E3F2FD' }]}>
-                    <Icon name="category" size={28} color="#2196F3" />
+                  <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
+                    <Icon name="category" size={28} color="#178556" />
                   </View>
                   <Text style={styles.actionText}>Categories</Text>
                   <Text style={styles.actionSubtext}>Manage categories</Text>
@@ -638,8 +638,8 @@ export default function AdminDashboardScreen({ navigation }) {
                   style={styles.actionCard}
                   onPress={() => navigation.navigate('Sales')}
                 >
-                  <View style={[styles.actionIcon, { backgroundColor: '#FCE4EC' }]}>
-                    <Icon name="history" size={28} color="#E91E63" />
+                  <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
+                    <Icon name="history" size={28} color="#178556" />
                   </View>
                   <Text style={styles.actionText}>Sales History</Text>
                   <Text style={styles.actionSubtext}>View transactions</Text>
@@ -661,7 +661,7 @@ export default function AdminDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#152d2a',
   },
   scrollView: {
     flex: 1,
@@ -680,17 +680,17 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 3,
-    borderColor: '#FF6B00',
+    borderColor: '#178556',
     borderTopColor: 'transparent',
     marginBottom: 12,
   },
   loadingText: {
-    color: '#666',
+    color: '#90a5a0',
     fontSize: 16,
   },
   // Header
   customHeader: {
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#178556',
     paddingHorizontal: 16,
     paddingTop: 48,
     paddingBottom: 14,
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: 'white',
+    color: '#FFF',
   },
   headerRight: {
     flexDirection: 'row',
@@ -736,56 +736,60 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     padding: 16,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   welcomeGreeting: {
     fontSize: 14,
-    color: '#666',
+    color: '#152d2a',
     marginBottom: 2,
   },
   welcomeText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 2,
   },
   welcomeSubtext: {
     fontSize: 13,
-    color: '#888',
+    color: '#152d2a',
   },
   welcomeAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#178556',
     justifyContent: 'center',
     alignItems: 'center',
   },
   welcomeAvatarText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 20,
     fontWeight: '700',
   },
   // Quick Stats
   quickStatsContainer: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     marginHorizontal: 16,
     marginTop: 12,
     borderRadius: 16,
     paddingVertical: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   quickStatItem: {
     flex: 1,
@@ -794,16 +798,16 @@ const styles = StyleSheet.create({
   quickStatValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   quickStatLabel: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 2,
   },
   quickStatDivider: {
     width: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#152d2a',
   },
   // Stats
   statsContainer: {
@@ -812,7 +816,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   statCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     width: (width - 44) / 2,
     margin: 5,
     padding: 14,
@@ -822,15 +826,17 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   statIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -841,16 +847,16 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   statTitle: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   statSubtitle: {
     fontSize: 9,
-    color: '#bbb',
+    color: '#152d2a',
     marginTop: 1,
   },
   // Section
@@ -868,15 +874,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#FFF',
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: '#888',
+    color: '#90a5a0',
     marginTop: 1,
   },
   viewAllText: {
-    color: '#FF6B00',
+    color: '#178556',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -887,7 +893,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   actionCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     width: (width - 48) / 2,
     marginBottom: 10,
     padding: 16,
@@ -895,9 +901,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   actionIcon: {
     width: 56,
@@ -910,24 +918,26 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   actionSubtext: {
     fontSize: 10,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   // Sales Items
   saleItem: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     padding: 14,
     borderRadius: 12,
     marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   saleHeader: {
     flexDirection: 'row',
@@ -943,7 +953,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#FFF3E0',
+    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -951,11 +961,11 @@ const styles = StyleSheet.create({
   saleId: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   saleDate: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   saleRight: {
@@ -964,11 +974,11 @@ const styles = StyleSheet.create({
   saleTotal: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FF6B00',
+    color: '#178556',
   },
   saleItems: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 1,
   },
   viewAllButton: {
@@ -976,19 +986,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 12,
     marginTop: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   viewAllButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FF6B00',
+    color: '#178556',
     marginRight: 4,
   },
   footerSpacer: {
@@ -997,13 +1009,13 @@ const styles = StyleSheet.create({
   // Logout Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   logoutModalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 24,
     padding: 28,
     width: '90%',
@@ -1014,12 +1026,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 30,
     elevation: 10,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   logoutIconContainer: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#FFF3E0',
+    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -1027,12 +1041,12 @@ const styles = StyleSheet.create({
   logoutModalTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 8,
   },
   logoutModalText: {
     fontSize: 14,
-    color: '#666',
+    color: '#152d2a',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
@@ -1051,31 +1065,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   logoutCancelButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   logoutCancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#90a5a0',
   },
   logoutConfirmButton: {
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#178556',
     gap: 6,
   },
   logoutConfirmText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    color: '#FFF',
     marginLeft: 6,
   },
   // Users Modal
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 20,
     maxHeight: '85%',
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -1084,31 +1100,33 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#152d2a',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   modalSubtitle: {
     fontSize: 13,
-    color: '#888',
+    color: '#152d2a',
     marginTop: 2,
   },
   closeButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
   },
   userCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFF',
     padding: 14,
     borderRadius: 12,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   userInfo: {
     marginBottom: 10,
@@ -1126,13 +1144,13 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   adminAvatar: {
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#178556',
   },
   staffAvatar: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#90a5a0',
   },
   userAvatarText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -1142,7 +1160,7 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 3,
   },
   userMeta: {
@@ -1158,13 +1176,13 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   adminBadge: {
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#178556',
   },
   staffBadge: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#90a5a0',
   },
   roleText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 9,
     fontWeight: '700',
     marginLeft: 3,
@@ -1183,7 +1201,7 @@ const styles = StyleSheet.create({
   },
   userStatus: {
     fontSize: 11,
-    color: '#666',
+    color: '#152d2a',
   },
   userActions: {
     flexDirection: 'row',
@@ -1216,12 +1234,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#152d2a',
     marginTop: 10,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#999',
+    color: '#152d2a',
     marginTop: 4,
   },
 });

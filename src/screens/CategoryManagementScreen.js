@@ -277,7 +277,7 @@ export default function CategoryManagementScreen({ navigation }) {
   };
 
   const getCategoryColor = (index) => {
-    const colors = ['#FF6B00', '#2196F3', '#4CAF50', '#9C27B0', '#FF9800', '#E91E63', '#00BCD4'];
+    const colors = ['#178556', '#2196F3', '#4CAF50', '#9C27B0', '#FF9800', '#E91E63', '#00BCD4'];
     return colors[index % colors.length];
   };
 
@@ -302,7 +302,7 @@ export default function CategoryManagementScreen({ navigation }) {
           <View style={styles.categoryNameContainer}>
             <Text style={styles.categoryName} numberOfLines={1}>{item.name}</Text>
             <View style={styles.productCountBadge}>
-              <Icon name="inventory-2" size={12} color="#666" />
+              <Icon name="inventory-2" size={12} color="#152d2a" />
               <Text style={styles.productCountText}>
                 {item.productCount || 0} {item.productCount === 1 ? 'product' : 'products'}
               </Text>
@@ -314,7 +314,7 @@ export default function CategoryManagementScreen({ navigation }) {
             style={styles.actionButton}
             onPress={() => openEditModal(item)}
           >
-            <Icon name="edit" size={20} color="#4CAF50" />
+            <Icon name="edit" size={20} color="#178556" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
@@ -405,7 +405,7 @@ export default function CategoryManagementScreen({ navigation }) {
               }}
               style={styles.modalCloseButton}
             >
-              <Icon name="close" size={24} color="#666" />
+              <Icon name="close" size={24} color="#90a5a0" />
             </TouchableOpacity>
           </View>
           
@@ -419,7 +419,7 @@ export default function CategoryManagementScreen({ navigation }) {
                 if (errorMessage) setErrorMessage('');
               }}
               placeholder="Enter category name"
-              placeholderTextColor="#999"
+              placeholderTextColor="#90a5a0"
               autoFocus
               onSubmitEditing={updateCategory}
               maxLength={30}
@@ -436,14 +436,14 @@ export default function CategoryManagementScreen({ navigation }) {
           {editingCategory && (
             <View style={styles.editCategoryInfo}>
               <View style={styles.editInfoRow}>
-                <Icon name="inventory-2" size={16} color="#666" />
+                <Icon name="inventory-2" size={16} color="#152d2a" />
                 <Text style={styles.editInfoText}>
                   {editingCategory.productCount || 0} products in this category
                 </Text>
               </View>
               {editingCategory.createdAt && (
                 <View style={styles.editInfoRow}>
-                  <Icon name="calendar-today" size={16} color="#666" />
+                  <Icon name="calendar-today" size={16} color="#152d2a" />
                   <Text style={styles.editInfoText}>
                     Created: {new Date(editingCategory.createdAt).toLocaleDateString()}
                   </Text>
@@ -468,7 +468,7 @@ export default function CategoryManagementScreen({ navigation }) {
               style={[styles.editModalButton, styles.editSaveButton]}
               onPress={updateCategory}
             >
-              <Icon name="save" size={20} color="white" />
+              <Icon name="save" size={20} color="#FFF" />
               <Text style={styles.editSaveText}>Save</Text>
             </TouchableOpacity>
           </View>
@@ -501,7 +501,7 @@ export default function CategoryManagementScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Icon name="arrow-back" size={24} color="#1a1a2e" />
+          <Icon name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Categories</Text>
         <TouchableOpacity 
@@ -511,18 +511,18 @@ export default function CategoryManagementScreen({ navigation }) {
           }}
           style={styles.sortButton}
         >
-          <Icon name="sort" size={24} color="#1a1a2e" />
+          <Icon name="sort" size={24} color="#FFF" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.inputContainer}>
         <View style={[styles.inputWrapper, errorMessage && styles.inputWrapperError]}>
-          <Icon name="category" size={20} color="#999" style={styles.inputIcon} />
+          <Icon name="category" size={20} color="#90a5a0" style={styles.inputIcon} />
           <TextInput
             ref={inputRef}
             style={[styles.input, errorMessage && styles.inputError]}
             placeholder="Enter new category name"
-            placeholderTextColor="#999"
+            placeholderTextColor="#90a5a0"
             value={newCategoryName}
             onChangeText={(text) => {
               setNewCategoryName(text);
@@ -537,7 +537,7 @@ export default function CategoryManagementScreen({ navigation }) {
               onPress={handleClearInput}
               style={styles.clearInputButton}
             >
-              <Icon name="close" size={18} color="#999" />
+              <Icon name="close" size={18} color="#90a5a0" />
             </TouchableOpacity>
           )}
         </View>
@@ -552,7 +552,7 @@ export default function CategoryManagementScreen({ navigation }) {
           {isAddingCategory ? (
             <View style={styles.addingSpinner} />
           ) : (
-            <Icon name="add" size={24} color="white" />
+            <Icon name="add" size={24} color="#FFF" />
           )}
         </TouchableOpacity>
       </View>
@@ -583,7 +583,7 @@ export default function CategoryManagementScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="category" size={60} color="#ddd" />
+            <Icon name="category" size={60} color="#90a5a0" />
             <Text style={styles.emptyTitle}>No Categories</Text>
             <Text style={styles.emptySubtitle}>
               Start by adding your first category above
@@ -601,7 +601,7 @@ export default function CategoryManagementScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   centerContent: {
     justifyContent: 'center',
@@ -616,7 +616,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 3,
-    borderColor: '#ff6b00',
+    borderColor: '#178556',
     borderTopColor: 'transparent',
     marginBottom: 12,
   },
@@ -625,12 +625,12 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: '#FFF',
     borderTopColor: 'transparent',
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: '#90a5a0',
   },
   header: {
     flexDirection: 'row',
@@ -638,9 +638,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: 'white',
+    backgroundColor: '#178556',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#152d2a',
   },
   backButton: {
     padding: 4,
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#FFF',
   },
   sortButton: {
     padding: 4,
@@ -656,20 +656,20 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#152d2a',
   },
   inputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFF',
     borderRadius: 10,
     paddingHorizontal: 12,
     marginRight: 10,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#152d2a',
   },
   inputWrapperError: {
     borderColor: '#f44336',
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#333',
+    color: '#152d2a',
   },
   inputError: {
     color: '#f44336',
@@ -691,20 +691,22 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   addButton: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
     width: 48,
     height: 48,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ff6b00',
+    shadowColor: '#178556',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   addButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#90a5a0',
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -726,29 +728,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#90a5a0',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#152d2a',
   },
   categoryCountText: {
     fontSize: 12,
-    color: '#999',
+    color: '#152d2a',
     fontWeight: '500',
   },
   categoryCountHint: {
     fontSize: 11,
-    color: '#bbb',
+    color: '#152d2a',
   },
   list: {
     padding: 12,
     paddingBottom: 20,
   },
   categoryCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#178556',
     borderLeftWidth: 4,
     overflow: 'hidden',
   },
@@ -775,7 +777,7 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   productCountBadge: {
     flexDirection: 'row',
@@ -784,7 +786,7 @@ const styles = StyleSheet.create({
   },
   productCountText: {
     fontSize: 11,
-    color: '#888',
+    color: '#152d2a',
     marginLeft: 4,
   },
   categoryActions: {
@@ -803,12 +805,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#666',
+    color: '#FFF',
     marginTop: 12,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#999',
+    color: '#90a5a0',
     marginTop: 4,
     textAlign: 'center',
   },
@@ -821,12 +823,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 24,
     padding: 24,
     width: '90%',
     maxWidth: 400,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   modalIconContainer: {
     width: 64,
@@ -840,12 +844,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 8,
   },
   modalText: {
     fontSize: 14,
-    color: '#666',
+    color: '#152d2a',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -877,12 +881,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCancelButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   modalCancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#90a5a0',
   },
   modalDeleteButton: {
     backgroundColor: '#f44336',
@@ -890,23 +894,25 @@ const styles = StyleSheet.create({
   modalDeleteText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    color: '#FFF',
   },
   modalDisabledButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#90a5a0',
   },
   modalDisabledText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#999',
+    color: '#152d2a',
   },
   // Edit Modal
   editModalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 24,
     padding: 24,
     width: '90%',
     maxWidth: 400,
+    borderWidth: 1,
+    borderColor: '#178556',
   },
   editModalHeader: {
     flexDirection: 'row',
@@ -917,7 +923,7 @@ const styles = StyleSheet.create({
   editModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   modalCloseButton: {
     padding: 4,
@@ -927,13 +933,13 @@ const styles = StyleSheet.create({
   },
   editInput: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#152d2a',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#333',
-    backgroundColor: '#fafafa',
+    color: '#152d2a',
+    backgroundColor: '#FFF',
   },
   editInputError: {
     borderColor: '#f44336',
@@ -941,7 +947,7 @@ const styles = StyleSheet.create({
   },
   charCount: {
     fontSize: 11,
-    color: '#999',
+    color: '#152d2a',
     textAlign: 'right',
     marginTop: 4,
   },
@@ -951,7 +957,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   editCategoryInfo: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFF',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
@@ -963,7 +969,7 @@ const styles = StyleSheet.create({
   },
   editInfoText: {
     fontSize: 13,
-    color: '#666',
+    color: '#152d2a',
     marginLeft: 8,
   },
   editModalButtons: {
@@ -980,19 +986,19 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   editCancelButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   editCancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#90a5a0',
   },
   editSaveButton: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
   },
   editSaveText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    color: '#FFF',
   },
 });

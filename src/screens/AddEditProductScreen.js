@@ -170,13 +170,13 @@ export default function AddEditProductScreen({ route, navigation }) {
               onPress={() => setShowCategoryModal(false)}
               style={styles.modalCloseButton}
             >
-              <Icon name="close" size={24} color="#666" />
+              <Icon name="close" size={24} color="#90a5a0" />
             </TouchableOpacity>
           </View>
 
           {categoryLoading ? (
             <View style={styles.modalLoadingContainer}>
-              <ActivityIndicator size="large" color="#ff6b00" />
+              <ActivityIndicator size="large" color="#178556" />
               <Text style={styles.modalLoadingText}>Loading categories...</Text>
             </View>
           ) : (
@@ -199,13 +199,13 @@ export default function AddEditProductScreen({ route, navigation }) {
                       {item.name}
                     </Text>
                     {category === item.name && (
-                      <Icon name="check-circle" size={20} color="#ff6b00" />
+                      <Icon name="check-circle" size={20} color="#178556" />
                     )}
                   </TouchableOpacity>
                 )}
                 ListEmptyComponent={
                   <View style={styles.modalEmptyContainer}>
-                    <Icon name="category" size={40} color="#ddd" />
+                    <Icon name="category" size={40} color="#90a5a0" />
                     <Text style={styles.modalEmptyText}>No categories found</Text>
                     <TouchableOpacity
                       style={styles.modalAddCategoryButton}
@@ -226,7 +226,7 @@ export default function AddEditProductScreen({ route, navigation }) {
                   navigation.navigate('CategoryManagement');
                 }}
               >
-                <Icon name="settings" size={20} color="#ff6b00" />
+                <Icon name="settings" size={20} color="#178556" />
                 <Text style={styles.manageCategoriesText}>Manage Categories</Text>
               </TouchableOpacity>
             </>
@@ -247,7 +247,7 @@ export default function AddEditProductScreen({ route, navigation }) {
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Icon name="arrow-back" size={24} color="#1a1a2e" />
+            <Icon name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {isEditing ? 'Edit Product' : 'Add New Product'}
@@ -265,18 +265,18 @@ export default function AddEditProductScreen({ route, navigation }) {
             <View style={styles.imageSection}>
               <View style={styles.imagePreviewContainer}>
                 <View style={styles.imagePlaceholder}>
-                  <Icon name="image" size={50} color="#ccc" />
+                  <Icon name="image" size={50} color="#90a5a0" />
                 </View>
                 <Text style={styles.imageHint}>Product Image</Text>
               </View>
               <View style={styles.imageUrlContainer}>
-                <Icon name="link" size={20} color="#999" style={styles.imageUrlIcon} />
+                <Icon name="link" size={20} color="#90a5a0" style={styles.imageUrlIcon} />
                 <TextInput
                   style={styles.imageUrlInput}
                   value={imageUrl}
                   onChangeText={setImageUrl}
                   placeholder="Enter image URL"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#90a5a0"
                 />
               </View>
             </View>
@@ -300,7 +300,7 @@ export default function AddEditProductScreen({ route, navigation }) {
                     validateField('name', text);
                   }}
                   placeholder="Enter product name"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#90a5a0"
                 />
                 {errors.name && (
                   <Text style={styles.errorText}>{errors.name}</Text>
@@ -317,7 +317,7 @@ export default function AddEditProductScreen({ route, navigation }) {
                     value={sku}
                     onChangeText={setSku}
                     placeholder="SKU"
-                    placeholderTextColor="#999"
+                    placeholderTextColor="#90a5a0"
                   />
                 </View>
                 <View style={[styles.formGroup, styles.rowItem]}>
@@ -333,7 +333,7 @@ export default function AddEditProductScreen({ route, navigation }) {
                       ]}>
                         {getCategoryDisplay()}
                       </Text>
-                      <Icon name="arrow-drop-down" size={24} color="#999" />
+                      <Icon name="arrow-drop-down" size={24} color="#90a5a0" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -363,7 +363,7 @@ export default function AddEditProductScreen({ route, navigation }) {
                       }}
                       placeholder="0.00"
                       keyboardType="decimal-pad"
-                      placeholderTextColor="#999"
+                      placeholderTextColor="#90a5a0"
                     />
                   </View>
                   {errors.price && (
@@ -384,7 +384,7 @@ export default function AddEditProductScreen({ route, navigation }) {
                     }}
                     placeholder="0"
                     keyboardType="number-pad"
-                    placeholderTextColor="#999"
+                    placeholderTextColor="#90a5a0"
                   />
                   {errors.quantity && (
                     <Text style={styles.errorText}>{errors.quantity}</Text>
@@ -404,7 +404,7 @@ export default function AddEditProductScreen({ route, navigation }) {
                   value={description}
                   onChangeText={setDescription}
                   placeholder="Enter product description (optional)"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#90a5a0"
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
@@ -423,7 +423,7 @@ export default function AddEditProductScreen({ route, navigation }) {
             >
               {loading ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator color="white" />
+                  <ActivityIndicator color="#FFF" />
                   <Text style={styles.submitButtonText}>
                     {isEditing ? 'Updating...' : 'Adding...'}
                   </Text>
@@ -433,7 +433,7 @@ export default function AddEditProductScreen({ route, navigation }) {
                   <Icon 
                     name={isEditing ? 'update' : 'add-circle'} 
                     size={24} 
-                    color="white" 
+                    color="#FFF" 
                   />
                   <Text style={styles.submitButtonText}>
                     {isEditing ? 'Update Product' : 'Add Product'}
@@ -485,7 +485,7 @@ export default function AddEditProductScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   keyboardView: {
     flex: 1,
@@ -496,9 +496,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: 'white',
+    backgroundColor: '#152d2a',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#90a5a0',
   },
   backButton: {
     padding: 4,
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#FFF',
   },
   headerRight: {
     width: 32,
@@ -521,11 +521,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   imageSection: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#178556',
   },
   imagePreviewContainer: {
     alignItems: 'center',
@@ -535,22 +535,22 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
     justifyContent: 'center',
     alignItems: 'center',
   },
   imageHint: {
     fontSize: 12,
-    color: '#999',
+    color: '#152d2a',
     marginTop: 6,
   },
   imageUrlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#152d2a',
     paddingHorizontal: 12,
   },
   imageUrlIcon: {
@@ -560,24 +560,24 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#333',
+    color: '#152d2a',
   },
   divider: {
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#90a5a0',
     marginVertical: 16,
   },
   section: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#178556',
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
     marginBottom: 16,
   },
   formGroup: {
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#152d2a',
   },
   required: {
     color: '#f44336',
@@ -600,13 +600,13 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#152d2a',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#333',
-    backgroundColor: '#fafafa',
+    color: '#152d2a',
+    backgroundColor: '#FFF',
   },
   inputError: {
     borderColor: '#f44336',
@@ -621,14 +621,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#152d2a',
     borderRadius: 10,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#FFF',
     paddingHorizontal: 14,
   },
   currencySymbol: {
     fontSize: 16,
-    color: '#666',
+    color: '#152d2a',
     fontWeight: '600',
     marginRight: 4,
   },
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#333',
+    color: '#152d2a',
   },
   formRow: {
     flexDirection: 'row',
@@ -652,19 +652,19 @@ const styles = StyleSheet.create({
   },
   charCount: {
     fontSize: 11,
-    color: '#999',
+    color: '#152d2a',
     textAlign: 'right',
     marginTop: 4,
   },
   submitButton: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
     paddingVertical: 16,
     borderRadius: 14,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
-    shadowColor: '#ff6b00',
+    shadowColor: '#178556',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -672,6 +672,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   submitButtonDisabled: {
     opacity: 0.7,
@@ -679,7 +681,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   submitButtonText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
     marginLeft: 8,
@@ -709,9 +711,9 @@ const styles = StyleSheet.create({
   categorySelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fafafa',
+    backgroundColor: '#FFF',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#152d2a',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -720,10 +722,10 @@ const styles = StyleSheet.create({
   },
   categorySelectorText: {
     fontSize: 14,
-    color: '#333',
+    color: '#152d2a',
   },
   categorySelectorPlaceholder: {
-    color: '#999',
+    color: '#90a5a0',
   },
   // Modal Styles
   modalOverlay: {
@@ -732,7 +734,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 20,
@@ -745,13 +747,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#152d2a',
     marginBottom: 12,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#152d2a',
   },
   modalCloseButton: {
     padding: 4,
@@ -764,7 +766,7 @@ const styles = StyleSheet.create({
   },
   modalLoadingText: {
     fontSize: 14,
-    color: '#666',
+    color: '#152d2a',
     marginTop: 12,
   },
   categoryItem: {
@@ -774,17 +776,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    borderBottomColor: '#152d2a',
   },
   categoryItemSelected: {
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#178556',
+    borderRadius: 8,
   },
   categoryItemText: {
     fontSize: 15,
-    color: '#333',
+    color: '#152d2a',
   },
   categoryItemTextSelected: {
-    color: '#ff6b00',
+    color: '#FFF',
     fontWeight: '600',
   },
   modalEmptyContainer: {
@@ -793,18 +796,18 @@ const styles = StyleSheet.create({
   },
   modalEmptyText: {
     fontSize: 14,
-    color: '#999',
+    color: '#152d2a',
     marginTop: 8,
   },
   modalAddCategoryButton: {
     marginTop: 12,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#fff3e0',
+    backgroundColor: '#178556',
     borderRadius: 8,
   },
   modalAddCategoryText: {
-    color: '#ff6b00',
+    color: '#FFF',
     fontWeight: '600',
     fontSize: 13,
   },
@@ -815,10 +818,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: '#152d2a',
   },
   manageCategoriesText: {
-    color: '#ff6b00',
+    color: '#152d2a',
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,

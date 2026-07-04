@@ -79,6 +79,7 @@ export default function LoginScreen() {
             <TextInput
               style={styles.input}
               placeholder="Enter your email"
+              placeholderTextColor="#90a5a0"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -91,6 +92,7 @@ export default function LoginScreen() {
             <TextInput
               style={styles.input}
               placeholder="Enter your password"
+              placeholderTextColor="#90a5a0"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -110,6 +112,47 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Demo Accounts Section */}
+          <View style={styles.demoContainer}>
+            <Text style={styles.demoTitle}>Demo Accounts</Text>
+            <Text style={styles.demoSubtitle}>Tap to auto-fill credentials</Text>
+
+            <View style={styles.demoButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.demoButton,
+                  styles.adminButton,
+                  selectedRole === 'admin' && styles.selectedButton
+                ]}
+                onPress={() => setDemoAccount('admin')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.demoIcon}>👤</Text>
+                <Text style={styles.demoButtonText}>Admin</Text>
+                <Text style={styles.demoButtonSubtext}>Full Access</Text>
+                <View style={styles.demoPasswordTag}>
+                  <Text style={styles.demoPasswordText}>admin123</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.demoButton,
+                  styles.staffButton,
+                  selectedRole === 'staff' && styles.selectedButton
+                ]}
+                onPress={() => setDemoAccount('staff')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.demoIcon}>👥</Text>
+                <Text style={styles.demoButtonText}>Staff</Text>
+                <Text style={styles.demoButtonSubtext}>Limited Access</Text>
+                <View style={styles.demoPasswordTag}>
+                  <Text style={styles.demoPasswordText}>staff123</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
 
           {/* Footer */}
           <View style={styles.footer}>
@@ -126,7 +169,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#152d2a',
   },
   scrollContent: {
     flexGrow: 1,
@@ -146,10 +189,12 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
+    borderWidth: 3,
+    borderColor: '#90a5a0',
   },
   logoText: {
     fontSize: 45,
@@ -157,52 +202,55 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#ff6b00',
+    color: '#FFF',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#90a5a0',
     marginTop: 5,
     textAlign: 'center',
   },
   form: {
-    backgroundColor: 'white',
+    backgroundColor: '#90a5a0',
     padding: 20,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#152d2a',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#152d2a',
     padding: 14,
     borderRadius: 8,
     marginBottom: 16,
     fontSize: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#FFF',
+    color: '#152d2a',
   },
   button: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#152d2a',
   },
   buttonDisabled: {
     opacity: 0.7,
   },
   buttonText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -213,11 +261,11 @@ const styles = StyleSheet.create({
   demoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFF',
   },
   demoSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: '#90a5a0',
     marginBottom: 12,
   },
   demoButtons: {
@@ -235,21 +283,22 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selectedButton: {
-    borderColor: '#ff6b00',
+    borderColor: '#FFF',
     borderWidth: 2,
   },
   adminButton: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#178556',
   },
   staffButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#90a5a0',
+    borderColor: '#152d2a',
   },
   demoIcon: {
     fontSize: 24,
     color: 'white',
   },
   demoButtonText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 5,
@@ -267,7 +316,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   demoPasswordText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -277,7 +326,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: '#666',
+    color: '#90a5a0',
     textAlign: 'center',
   },
 });
