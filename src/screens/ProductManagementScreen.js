@@ -281,8 +281,8 @@ const ProductManagementScreen = () => {
   const getStockStatus = (quantity) => {
     if (quantity <= 0) return { label: 'Out of Stock', color: '#ff4444', icon: 'close-circle' };
     if (quantity < 10) return { label: 'Low Stock', color: '#ff8800', icon: 'alert-circle' };
-    if (quantity < 50) return { label: 'In Stock', color: '#4caf50', icon: 'checkmark-circle' };
-    return { label: 'Well Stocked', color: '#4caf50', icon: 'checkmark-done-circle' };
+    if (quantity < 50) return { label: 'In Stock', color: '#0d5335', icon: 'checkmark-circle' };
+    return { label: 'Well Stocked', color: '#0d5335', icon: 'checkmark-done-circle' };
   };
 
   const formatCurrency = (amount) => {
@@ -297,7 +297,7 @@ const ProductManagementScreen = () => {
       <View style={styles.productCard}>
         <View style={styles.productHeader}>
           <View style={styles.productTitleContainer}>
-            <Icon name="cube-outline" size={18} color="#75482f" />
+            <Icon name="cube-outline" size={18} color="#0b1e1c" />
             <Text style={styles.productName}>{item.name}</Text>
           </View>
           <View style={[styles.stockBadge, { backgroundColor: stockStatus.color + '20' }]}>
@@ -318,7 +318,7 @@ const ProductManagementScreen = () => {
             <Text style={styles.priceLabel}>Selling Price</Text>
             <Text style={styles.productPrice}>{formatCurrency(item.sellPrice)}</Text>
             <View style={styles.costContainer}>
-              <Icon name="cart-outline" size={10} color="#75482f" />
+              <Icon name="cart-outline" size={10} color="#0b1e1c" />
               <Text style={styles.costText}>Cost: {formatCurrency(item.buyPrice)}</Text>
             </View>
           </View>
@@ -338,7 +338,7 @@ const ProductManagementScreen = () => {
             style={[styles.actionButton, styles.editButton]}
             onPress={() => handleEdit(item)}
           >
-            <Icon name="create-outline" size={16} color="#0e0b05" />
+            <Icon name="create-outline" size={16} color="#fff" />
             <Text style={styles.buttonText}>Edit</Text>
           </TouchableOpacity>
           
@@ -372,7 +372,7 @@ const ProductManagementScreen = () => {
     return (
       <View style={styles.centerContainer}>
         <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
-        <ActivityIndicator size="large" color="#fec82b" />
+        <ActivityIndicator size="large" color="#0d5335" />
         <Text style={styles.loadingText}>Loading products...</Text>
       </View>
     );
@@ -386,22 +386,22 @@ const ProductManagementScreen = () => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll}>
         <View style={styles.statsScrollContent}>
           <View style={styles.statCard}>
-            <Icon name="cube-outline" size={20} color="#fec82b" />
+            <Icon name="cube-outline" size={20} color="#0d5335" />
             <Text style={styles.statValue}>{stats.totalProducts}</Text>
             <Text style={styles.statLabel}>Products</Text>
           </View>
           <View style={styles.statCard}>
-            <Icon name="cash-outline" size={20} color="#fec82b" />
+            <Icon name="cash-outline" size={20} color="#0d5335" />
             <Text style={styles.statValue}>{formatCurrency(stats.totalInventoryValue)}</Text>
             <Text style={styles.statLabel}>Inventory</Text>
           </View>
           <View style={styles.statCard}>
-            <Icon name="card-outline" size={20} color="#fec82b" />
+            <Icon name="card-outline" size={20} color="#0d5335" />
             <Text style={styles.statValue}>{formatCurrency(stats.totalPotentialRevenue)}</Text>
             <Text style={styles.statLabel}>Revenue</Text>
           </View>
           <View style={styles.statCard}>
-            <Icon name="trending-up" size={20} color="#fec82b" />
+            <Icon name="trending-up" size={20} color="#0d5335" />
             <Text style={styles.statValue}>{formatCurrency(stats.totalPotentialProfit)}</Text>
             <Text style={styles.statLabel}>Profit</Text>
           </View>
@@ -426,23 +426,23 @@ const ProductManagementScreen = () => {
           setModalVisible(true);
         }}
       >
-        <Icon name="add" size={32} color="#0e0b05" />
+        <Icon name="add" size={32} color="#fff" />
       </TouchableOpacity>
 
       {/* Search and Filters */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Icon name="search" size={18} color="#75482f" />
+          <Icon name="search" size={18} color="#0b1e1c" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search products..."
-            placeholderTextColor="#999"
+            placeholderTextColor="#0b1e1c"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery !== '' && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Icon name="close-circle" size={18} color="#75482f" />
+              <Icon name="close-circle" size={18} color="#0b1e1c" />
             </TouchableOpacity>
           )}
         </View>
@@ -451,7 +451,7 @@ const ProductManagementScreen = () => {
           style={styles.filterToggle}
           onPress={() => setShowFilters(!showFilters)}
         >
-          <Icon name={showFilters ? "chevron-up" : "options-outline"} size={18} color="#fec82b" />
+          <Icon name={showFilters ? "chevron-up" : "options-outline"} size={18} color="#0d5335" />
           <Text style={styles.filterToggleText}>Filters & Sort</Text>
         </TouchableOpacity>
       </View>
@@ -459,7 +459,7 @@ const ProductManagementScreen = () => {
       {showFilters && (
         <View style={styles.filtersPanel}>
           <View style={styles.filterSection}>
-            <Icon name="grid-outline" size={14} color="#75482f" />
+            <Icon name="grid-outline" size={14} color="#0b1e1c" />
             <Text style={styles.filterTitle}>Categories</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
@@ -481,7 +481,7 @@ const ProductManagementScreen = () => {
           </ScrollView>
 
           <View style={styles.filterSection}>
-            <Icon name="funnel-outline" size={14} color="#75482f" />
+            <Icon name="funnel-outline" size={14} color="#0b1e1c" />
             <Text style={styles.filterTitle}>Sort By</Text>
           </View>
           <View style={styles.sortButtons}>
@@ -501,7 +501,7 @@ const ProductManagementScreen = () => {
                 ]}
                 onPress={() => setSelectedSort(sort.key)}
               >
-                <Icon name={sort.icon} size={12} color={selectedSort === sort.key ? "#0e0b05" : "#75482f"} />
+                <Icon name={sort.icon} size={12} color={selectedSort === sort.key ? "#fff" : "#0b1e1c"} />
                 <Text style={[
                   styles.sortButtonText,
                   selectedSort === sort.key && styles.sortButtonTextActive
@@ -523,7 +523,7 @@ const ProductManagementScreen = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="cube-outline" size={60} color="#ccc" />
+            <Icon name="cube-outline" size={60} color="#0b1e1c" />
             <Text style={styles.emptyText}>No products found</Text>
             <Text style={styles.emptySubtext}>
               {searchQuery ? 'Try a different search term' : 'Tap + to add your first product'}
@@ -542,19 +542,19 @@ const ProductManagementScreen = () => {
         <ScrollView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <View style={styles.modalHeaderContent}>
-              <Icon name={editingProduct ? "create-outline" : "add-circle-outline"} size={24} color="#0e0b05" />
+              <Icon name={editingProduct ? "create-outline" : "add-circle-outline"} size={24} color="#fff" />
               <Text style={styles.modalTitle}>
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
               </Text>
             </View>
             <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Icon name="close" size={24} color="#0e0b05" />
+              <Icon name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.modalForm}>
             <View style={styles.inputContainer}>
-              <Icon name="cube-outline" size={16} color="#75482f" style={styles.inputIcon} />
+              <Icon name="cube-outline" size={16} color="#0b1e1c" style={styles.inputIcon} />
               <Text style={styles.label}>Product Name *</Text>
             </View>
             <TextInput
@@ -562,11 +562,11 @@ const ProductManagementScreen = () => {
               value={formData.name}
               onChangeText={(text) => handleInputChange('name', text)}
               placeholder="Enter product name"
-              placeholderTextColor="#999"
+              placeholderTextColor="#0b1e1c"
             />
 
             <View style={styles.inputContainer}>
-              <Icon name="pricetag-outline" size={16} color="#75482f" style={styles.inputIcon} />
+              <Icon name="pricetag-outline" size={16} color="#0b1e1c" style={styles.inputIcon} />
               <Text style={styles.label}>SKU (Stock Keeping Unit)</Text>
             </View>
             <TextInput
@@ -574,13 +574,13 @@ const ProductManagementScreen = () => {
               value={formData.sku}
               onChangeText={(text) => handleInputChange('sku', text)}
               placeholder="Enter unique SKU (optional)"
-              placeholderTextColor="#999"
+              placeholderTextColor="#0b1e1c"
             />
 
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <View style={styles.inputContainer}>
-                  <Icon name="cart-outline" size={14} color="#75482f" style={styles.inputIcon} />
+                  <Icon name="cart-outline" size={14} color="#0b1e1c" style={styles.inputIcon} />
                   <Text style={styles.label}>Cost Price *</Text>
                 </View>
                 <TextInput
@@ -589,12 +589,12 @@ const ProductManagementScreen = () => {
                   onChangeText={(text) => handleInputChange('buyPrice', text)}
                   placeholder="0.00"
                   keyboardType="decimal-pad"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#0b1e1c"
                 />
               </View>
               <View style={styles.halfWidth}>
                 <View style={styles.inputContainer}>
-                  <Icon name="cash-outline" size={14} color="#75482f" style={styles.inputIcon} />
+                  <Icon name="cash-outline" size={14} color="#0b1e1c" style={styles.inputIcon} />
                   <Text style={styles.label}>Selling Price *</Text>
                 </View>
                 <TextInput
@@ -603,7 +603,7 @@ const ProductManagementScreen = () => {
                   onChangeText={(text) => handleInputChange('sellPrice', text)}
                   placeholder="0.00"
                   keyboardType="decimal-pad"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#0b1e1c"
                 />
               </View>
             </View>
@@ -611,22 +611,22 @@ const ProductManagementScreen = () => {
             {formData.buyPrice && formData.sellPrice && (
               <View style={styles.statsBox}>
                 <View style={styles.statRow}>
-                  <Icon name="trending-up" size={14} color="#fec82b" />
+                  <Icon name="trending-up" size={14} color="#0d5335" />
                   <Text style={styles.statsText}>Profit: ${calculateProfit()}</Text>
                 </View>
                 <View style={styles.statRow}>
-                  <Icon name="pie-chart" size={14} color="#fec82b" />
+                  <Icon name="pie-chart" size={14} color="#0d5335" />
                   <Text style={styles.statsText}>Margin: {calculateMargin()}</Text>
                 </View>
                 <View style={styles.statRow}>
-                  <Icon name="stats-chart" size={14} color="#fec82b" />
+                  <Icon name="stats-chart" size={14} color="#0d5335" />
                   <Text style={styles.statsText}>ROI: {calculateROI()}</Text>
                 </View>
               </View>
             )}
 
             <View style={styles.inputContainer}>
-              <Icon name="folder-outline" size={16} color="#75482f" style={styles.inputIcon} />
+              <Icon name="folder-outline" size={16} color="#0b1e1c" style={styles.inputIcon} />
               <Text style={styles.label}>Category *</Text>
             </View>
             <View style={styles.categoryContainer}>
@@ -654,14 +654,14 @@ const ProductManagementScreen = () => {
                   value={customCategory}
                   onChangeText={setCustomCategory}
                   placeholder="Enter custom category"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#0b1e1c"
                   autoFocus
                 />
                 <TouchableOpacity
                   style={styles.customCategorySubmit}
                   onPress={handleCustomCategorySubmit}
                 >
-                  <Icon name="add" size={16} color="#0e0b05" />
+                  <Icon name="add" size={16} color="#fff" />
                   <Text style={styles.customCategorySubmitText}>Add</Text>
                 </TouchableOpacity>
               </View>
@@ -670,7 +670,7 @@ const ProductManagementScreen = () => {
             {formData.category && !categories.includes(formData.category) && (
               <View style={styles.customCategoryBadge}>
                 <View style={styles.customCategoryBadgeContent}>
-                  <Icon name="folder-open-outline" size={14} color="#75482f" />
+                  <Icon name="folder-open-outline" size={14} color="#0b1e1c" />
                   <Text style={styles.customCategoryBadgeText}>
                     Custom: {formData.category}
                   </Text>
@@ -682,7 +682,7 @@ const ProductManagementScreen = () => {
             )}
 
             <View style={styles.inputContainer}>
-              <Icon name="layers-outline" size={16} color="#75482f" style={styles.inputIcon} />
+              <Icon name="layers-outline" size={16} color="#0b1e1c" style={styles.inputIcon} />
               <Text style={styles.label}>Initial Quantity</Text>
             </View>
             <TextInput
@@ -691,7 +691,7 @@ const ProductManagementScreen = () => {
               onChangeText={(text) => handleInputChange('quantity', text)}
               placeholder="0"
               keyboardType="numeric"
-              placeholderTextColor="#999"
+              placeholderTextColor="#0b1e1c"
             />
 
             <TouchableOpacity
@@ -700,10 +700,10 @@ const ProductManagementScreen = () => {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#0e0b05" />
+                <ActivityIndicator color="#fff" />
               ) : (
                 <>
-                  <Icon name="checkmark-circle-outline" size={20} color="#0e0b05" />
+                  <Icon name="checkmark-circle-outline" size={20} color="#fff" />
                   <Text style={styles.saveButtonText}>
                     {editingProduct ? 'Update Product' : 'Add Product'}
                   </Text>
@@ -731,7 +731,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 14,
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   statsScroll: {
     backgroundColor: '#fff',
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 10,
-    color: '#75482f',
+    color: '#0b1e1c',
     fontWeight: '500',
   },
   fab: {
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
@@ -814,7 +814,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   filterToggleText: {
-    color: '#fec82b',
+    color: '#0d5335',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -834,7 +834,7 @@ const styles = StyleSheet.create({
   filterTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   categoryScroll: {
     flexDirection: 'row',
@@ -848,15 +848,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   categoryChipActive: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   categoryChipText: {
-    color: '#75482f',
+    color: '#0b1e1c',
     fontSize: 13,
     fontWeight: '500',
   },
   categoryChipTextActive: {
-    color: '#0e0b05',
+    color: '#fff',
   },
   sortButtons: {
     flexDirection: 'row',
@@ -876,15 +876,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sortButtonActive: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   sortButtonText: {
-    color: '#75482f',
+    color: '#0b1e1c',
     fontSize: 12,
     fontWeight: '500',
   },
   sortButtonTextActive: {
-    color: '#0e0b05',
+    color: '#fff',
   },
   listContainer: {
     paddingBottom: 80,
@@ -950,13 +950,13 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 11,
-    color: '#75482f',
+    color: '#0b1e1c',
     marginBottom: 2,
   },
   productPrice: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fec82b',
+    color: '#0d5335',
   },
   costContainer: {
     flexDirection: 'row',
@@ -966,20 +966,20 @@ const styles = StyleSheet.create({
   },
   costText: {
     fontSize: 11,
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   rightDetails: {
     alignItems: 'flex-end',
   },
   quantityLabel: {
     fontSize: 11,
-    color: '#75482f',
+    color: '#0b1e1c',
     marginBottom: 2,
   },
   productQuantity: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0e0b05',
+    color: '#0d5335',
   },
   profitContainer: {
     flexDirection: 'row',
@@ -1006,13 +1006,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   editButton: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   deleteButton: {
     backgroundColor: '#ff4444',
   },
   buttonText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontWeight: '600',
     fontSize: 13,
   },
@@ -1028,7 +1028,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
@@ -1040,7 +1040,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0e0b05',
+    color: '#fff',
   },
   modalForm: {
     padding: 16,
@@ -1057,7 +1057,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   input: {
     backgroundColor: '#f8f8f8',
@@ -1090,14 +1090,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryButtonActive: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   categoryButtonText: {
-    color: '#75482f',
+    color: '#0b1e1c',
     fontSize: 12,
   },
   categoryButtonTextActive: {
-    color: '#0e0b05',
+    color: '#fff',
     fontWeight: '500',
   },
   customCategoryContainer: {
@@ -1110,7 +1110,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   customCategorySubmit: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     paddingHorizontal: 16,
     paddingVertical: 11,
     borderRadius: 8,
@@ -1119,7 +1119,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   customCategorySubmitText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontWeight: '600',
     fontSize: 12,
   },
@@ -1139,12 +1139,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   customCategoryBadgeText: {
-    color: '#75482f',
+    color: '#0b1e1c',
     fontWeight: '500',
     fontSize: 12,
   },
   statsBox: {
-    backgroundColor: '#fec82b10',
+    backgroundColor: '#0d533510',
     padding: 12,
     borderRadius: 8,
     marginVertical: 8,
@@ -1157,11 +1157,11 @@ const styles = StyleSheet.create({
   },
   statsText: {
     fontSize: 13,
-    color: '#0e0b05',
+    color: '#0d5335',
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -1172,7 +1172,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveButtonText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -1184,7 +1184,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#75482f',
+    color: '#0b1e1c',
     marginTop: 12,
   },
   emptySubtext: {

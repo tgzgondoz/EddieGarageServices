@@ -119,7 +119,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
           value={formData.name}
           onChangeText={(text) => handleInputChange('name', text)}
           placeholder="Enter product name"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
         />
 
         <Text style={styles.label}>SKU</Text>
@@ -128,7 +128,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
           value={formData.sku}
           onChangeText={(text) => handleInputChange('sku', text)}
           placeholder="Enter SKU"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
         />
 
         <View style={styles.row}>
@@ -140,7 +140,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
               onChangeText={(text) => handleInputChange('sellPrice', text)}
               placeholder="0.00"
               keyboardType="decimal-pad"
-              placeholderTextColor="#75482f"
+              placeholderTextColor="#0b1e1c"
             />
           </View>
           <View style={styles.halfWidth}>
@@ -151,7 +151,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
               onChangeText={(text) => handleInputChange('buyPrice', text)}
               placeholder="0.00"
               keyboardType="decimal-pad"
-              placeholderTextColor="#75482f"
+              placeholderTextColor="#0b1e1c"
             />
           </View>
         </View>
@@ -159,12 +159,12 @@ const AddEditProductScreen = ({ route, navigation }) => {
         {formData.sellPrice && formData.buyPrice && (
           <View style={styles.statsBox}>
             <View style={styles.statsRow}>
-              <Icon name="trending-up" size={16} color="#fec82b" />
+              <Icon name="trending-up" size={16} color="#0d5335" />
               <Text style={styles.statsText}> Profit: ${calculateProfit()}</Text>
             </View>
             <View style={styles.statsDivider} />
             <View style={styles.statsRow}>
-              <Icon name="pie-chart" size={16} color="#fec82b" />
+              <Icon name="pie-chart" size={16} color="#0d5335" />
               <Text style={styles.statsText}> Margin: {calculateMargin()}</Text>
             </View>
           </View>
@@ -196,7 +196,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
           onChangeText={(text) => handleInputChange('quantity', text)}
           placeholder="0"
           keyboardType="numeric"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
         />
 
         <Text style={styles.label}>Supplier</Text>
@@ -205,7 +205,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
           value={formData.supplier}
           onChangeText={(text) => handleInputChange('supplier', text)}
           placeholder="Enter supplier name"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
         />
 
         <Text style={styles.label}>Description</Text>
@@ -214,7 +214,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
           value={formData.description}
           onChangeText={(text) => handleInputChange('description', text)}
           placeholder="Enter product description"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
           multiline
           numberOfLines={4}
         />
@@ -289,17 +289,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryButtonActive: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   categoryButtonText: {
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   categoryButtonTextActive: {
-    color: '#0e0b05',
+    color: '#fff',
     fontWeight: '600',
   },
   statsBox: {
-    backgroundColor: '#fec82b10',
+    backgroundColor: '#0d533510',
     padding: 12,
     borderRadius: 8,
     marginVertical: 8,
@@ -314,16 +314,16 @@ const styles = StyleSheet.create({
   statsDivider: {
     width: 1,
     height: 30,
-    backgroundColor: '#fec82b30',
+    backgroundColor: '#0d533530',
   },
   statsText: {
     fontSize: 14,
-    color: '#fec82b',
+    color: '#0d5335',
     fontWeight: '600',
     marginLeft: 4,
   },
   saveButton: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveButtonText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 8,

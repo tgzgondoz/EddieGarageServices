@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import ProductService from '../services/ProductService';
 
 const categories = [
@@ -107,7 +108,7 @@ const AddProductScreen = ({ navigation }) => {
           value={product.name}
           onChangeText={(text) => handleInputChange('name', text)}
           placeholder="Enter product name"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
         />
 
         <Text style={styles.label}>SKU</Text>
@@ -116,7 +117,7 @@ const AddProductScreen = ({ navigation }) => {
           value={product.sku}
           onChangeText={(text) => handleInputChange('sku', text)}
           placeholder="Enter SKU (optional)"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
         />
 
         <View style={styles.row}>
@@ -128,7 +129,7 @@ const AddProductScreen = ({ navigation }) => {
               onChangeText={(text) => handleInputChange('price', text)}
               placeholder="0.00"
               keyboardType="decimal-pad"
-              placeholderTextColor="#75482f"
+              placeholderTextColor="#0b1e1c"
             />
           </View>
           
@@ -140,17 +141,17 @@ const AddProductScreen = ({ navigation }) => {
               onChangeText={(text) => handleInputChange('cost', text)}
               placeholder="0.00"
               keyboardType="decimal-pad"
-              placeholderTextColor="#75482f"
+              placeholderTextColor="#0b1e1c"
             />
           </View>
         </View>
 
         {product.price && product.cost && (
           <View style={styles.statsContainer}>
-            <Icon name="trending-up" size={16} color="#fec82b" />
+            <Icon name="trending-up" size={16} color="#0d5335" />
             <Text style={styles.statsText}> Profit: ${calculateProfit()}</Text>
             <View style={styles.statsDivider} />
-            <Icon name="pie-chart" size={16} color="#fec82b" />
+            <Icon name="pie-chart" size={16} color="#0d5335" />
             <Text style={styles.statsText}> Margin: {calculateMargin()}</Text>
           </View>
         )}
@@ -181,7 +182,7 @@ const AddProductScreen = ({ navigation }) => {
           onChangeText={(text) => handleInputChange('quantity', text)}
           placeholder="0"
           keyboardType="numeric"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
         />
 
         <Text style={styles.label}>Supplier</Text>
@@ -190,7 +191,7 @@ const AddProductScreen = ({ navigation }) => {
           value={product.supplier}
           onChangeText={(text) => handleInputChange('supplier', text)}
           placeholder="Enter supplier name (optional)"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
         />
 
         <Text style={styles.label}>Description</Text>
@@ -199,7 +200,7 @@ const AddProductScreen = ({ navigation }) => {
           value={product.description}
           onChangeText={(text) => handleInputChange('description', text)}
           placeholder="Enter product description (optional)"
-          placeholderTextColor="#75482f"
+          placeholderTextColor="#0b1e1c"
           multiline
           numberOfLines={4}
         />
@@ -210,10 +211,10 @@ const AddProductScreen = ({ navigation }) => {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#0e0b05" />
+            <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Icon name="add-circle" size={20} color="#0e0b05" />
+              <Icon name="add-circle" size={20} color="#fff" />
               <Text style={styles.submitButtonText}>Add Product</Text>
             </>
           )}
@@ -272,17 +273,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryButtonActive: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   categoryButtonText: {
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   categoryButtonTextActive: {
-    color: '#0e0b05',
+    color: '#fff',
     fontWeight: '600',
   },
   statsContainer: {
-    backgroundColor: '#fec82b10',
+    backgroundColor: '#0d533510',
     padding: 12,
     borderRadius: 8,
     marginVertical: 8,
@@ -292,7 +293,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     fontSize: 14,
-    color: '#fec82b',
+    color: '#0d5335',
     fontWeight: '600',
     marginVertical: 2,
     marginRight: 12,
@@ -300,11 +301,11 @@ const styles = StyleSheet.create({
   statsDivider: {
     width: 1,
     height: 20,
-    backgroundColor: '#fec82b30',
+    backgroundColor: '#0d533530',
     marginHorizontal: 8,
   },
   submitButton: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   submitButtonText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 8,

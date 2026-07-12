@@ -80,7 +80,7 @@ const LoginScreen = ({ onLogin }) => {
             />
           ) : (
             <View style={[styles.logo, styles.fallbackLogo]}>
-              <Icon name="storefront" size={60} color="#fec82b" />
+              <Icon name="storefront" size={60} color="#0d5335" />
             </View>
           )}
           <Text style={styles.title}>TuckShop</Text>
@@ -89,7 +89,7 @@ const LoginScreen = ({ onLogin }) => {
 
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
-            <Icon name="mail" size={20} color="#75482f" style={styles.inputIcon} />
+            <Icon name="mail" size={20} color="#0b1e1c" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Email"
@@ -102,7 +102,7 @@ const LoginScreen = ({ onLogin }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Icon name="lock-closed" size={20} color="#75482f" style={styles.inputIcon} />
+            <Icon name="lock-closed" size={20} color="#0b1e1c" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Password"
@@ -112,7 +112,7 @@ const LoginScreen = ({ onLogin }) => {
               secureTextEntry={!showPassword}
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              <Icon name={showPassword ? "eye" : "eye-off"} size={20} color="#75482f" />
+              <Icon name={showPassword ? "eye" : "eye-off"} size={20} color="#0b1e1c" />
             </TouchableOpacity>
           </View>
 
@@ -133,7 +133,7 @@ const LoginScreen = ({ onLogin }) => {
             
             <TouchableOpacity style={styles.demoButton} onPress={demoAdmin}>
               <View style={styles.demoRow}>
-                <Icon name="person" size={14} color="#75482f" />
+                <Icon name="person" size={14} color="#0b1e1c" />
                 <Text style={styles.demoText}>Admin: admin@eddietuckshop.com</Text>
               </View>
               <Text style={styles.demoPassword}>Pass: Eddie@Admin2026#Secure</Text>
@@ -141,7 +141,7 @@ const LoginScreen = ({ onLogin }) => {
             
             <TouchableOpacity style={styles.demoButton} onPress={demoCashier}>
               <View style={styles.demoRow}>
-                <Icon name="person-outline" size={14} color="#75482f" />
+                <Icon name="person-outline" size={14} color="#0b1e1c" />
                 <Text style={styles.demoText}>Staff: staff@eddietuckshop.com</Text>
               </View>
               <Text style={styles.demoPassword}>Pass: Eddie@Staff2026#Strong</Text>
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#75482f',
+    color: '#0b1e1c',
     marginTop: 8,
   },
   formContainer: {
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#75482f',
+    borderColor: '#0b1e1c',
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 12,
@@ -222,14 +222,14 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   loginButton: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 8,
   },
   loginButtonText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   demoTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#75482f',
+    color: '#0b1e1c',
     marginBottom: 12,
   },
   demoButton: {
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
   demoPassword: {
     fontSize: 11,
-    color: '#75482f',
+    color: '#0b1e1c',
     marginLeft: 20,
   },
 });

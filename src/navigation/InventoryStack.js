@@ -12,13 +12,13 @@ const InventoryStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#fec82b',
+          backgroundColor: '#0d5335',
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 1,
           borderBottomColor: '#e0e0e0',
         },
-        headerTintColor: '#0e0b05',
+        headerTintColor: '#fff',
         headerTitleStyle: {
           fontWeight: 'bold',
           fontSize: 18,
@@ -26,7 +26,7 @@ const InventoryStack = () => {
         headerTitleAlign: 'center',
         headerBackTitleVisible: false,
         headerBackImage: () => (
-          <Icon name="chevron-back" size={24} color="#0e0b05" style={{ marginLeft: 8 }} />
+          <Icon name="chevron-back" size={24} color="#fff" style={{ marginLeft: 8 }} />
         ),
       }}
     >

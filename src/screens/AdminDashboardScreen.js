@@ -214,7 +214,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#fec82b" />
+        <ActivityIndicator size="large" color="#0d5335" />
       </View>
     );
   }
@@ -244,7 +244,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
         <View style={styles.listHeader}>
           <Text style={styles.listTitle}>User Management</Text>
           <TouchableOpacity style={styles.addUserBtn} onPress={() => setModalVisible(true)}>
-            <Icon name="add" size={24} color="#fec82b" />
+            <Icon name="add" size={24} color="#0d5335" />
             <Text style={styles.addUserText}>Add User</Text>
           </TouchableOpacity>
         </View>
@@ -256,7 +256,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Icon name="people" size={64} color="#75482f" />
+              <Icon name="people" size={64} color="#0b1e1c" />
               <Text style={styles.emptyText}>No users found</Text>
             </View>
           }
@@ -273,7 +273,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Add New User</Text>
                 <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Icon name="close" size={24} color="#75482f" />
+                  <Icon name="close" size={24} color="#0b1e1c" />
                 </TouchableOpacity>
               </View>
               
@@ -284,7 +284,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
                   value={newUser.fullName}
                   onChangeText={(text) => setNewUser({ ...newUser, fullName: text })}
                   placeholder="Enter full name"
-                  placeholderTextColor="#75482f"
+                  placeholderTextColor="#0b1e1c"
                 />
 
                 <Text style={styles.label}>Email *</Text>
@@ -293,7 +293,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
                   value={newUser.email}
                   onChangeText={(text) => setNewUser({ ...newUser, email: text })}
                   placeholder="Enter email"
-                  placeholderTextColor="#75482f"
+                  placeholderTextColor="#0b1e1c"
                   autoCapitalize="none"
                   keyboardType="email-address"
                 />
@@ -304,7 +304,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
                   value={newUser.password}
                   onChangeText={(text) => setNewUser({ ...newUser, password: text })}
                   placeholder="Enter password"
-                  placeholderTextColor="#75482f"
+                  placeholderTextColor="#0b1e1c"
                   secureTextEntry
                 />
 
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fec82b',
+    color: '#0d5335',
     marginBottom: 4,
   },
   adminStat: {
@@ -386,11 +386,11 @@ const styles = StyleSheet.create({
     color: '#4caf50',
   },
   activeStat: {
-    color: '#fec82b',
+    color: '#0d5335',
   },
   statLabel: {
     fontSize: 12,
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   listHeader: {
     flexDirection: 'row',
@@ -407,13 +407,13 @@ const styles = StyleSheet.create({
   addUserBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fec82b20',
+    backgroundColor: '#0d533520',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
   addUserText: {
-    color: '#fec82b',
+    color: '#0d5335',
     marginLeft: 4,
     fontWeight: '600',
   },
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     borderLeftWidth: 4,
-    borderLeftColor: '#fec82b',
+    borderLeftColor: '#0d5335',
   },
   userInfo: {
     flexDirection: 'row',
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   },
   userEmail: {
     fontSize: 13,
-    color: '#75482f',
+    color: '#0b1e1c',
     marginTop: 2,
   },
   userMeta: {
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4caf5020',
   },
   inactiveBadge: {
-    backgroundColor: '#75482f20',
+    backgroundColor: '#0b1e1c20',
   },
   statusText: {
     fontSize: 10,
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     color: '#4caf50',
   },
   inactiveStatusText: {
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   userActions: {
     flexDirection: 'row',
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   promoteBtn: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   demoteBtn: {
     backgroundColor: '#ff8800',
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff4444',
   },
   actionBtnText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 11,
     marginLeft: 4,
     fontWeight: '500',
@@ -591,17 +591,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   roleOptionActive: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   roleOptionText: {
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   roleOptionTextActive: {
-    color: '#0e0b05',
+    color: '#fff',
     fontWeight: '600',
   },
   submitBtn: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   submitBtnText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -619,7 +619,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#75482f',
+    color: '#0b1e1c',
     marginTop: 12,
   },
 });

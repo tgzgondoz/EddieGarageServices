@@ -201,18 +201,18 @@ const CategoryManagementScreen = () => {
     <View style={styles.categoryCard}>
       <View style={styles.categoryInfo}>
         <View style={styles.categoryIconContainer}>
-          <Icon name="folder-open-outline" size={24} color="#fec82b" />
+          <Icon name="folder-open-outline" size={24} color="#0d5335" />
         </View>
         <View style={styles.categoryDetails}>
           <Text style={styles.categoryName}>{item.name}</Text>
           {item.description ? (
             <View style={styles.descriptionContainer}>
-              <Icon name="document-text-outline" size={12} color="#75482f" />
+              <Icon name="document-text-outline" size={12} color="#0b1e1c" />
               <Text style={styles.categoryDescription}>{item.description}</Text>
             </View>
           ) : null}
           <View style={styles.productCountContainer}>
-            <Icon name="cube-outline" size={12} color="#75482f" />
+            <Icon name="cube-outline" size={12} color="#0b1e1c" />
             <Text style={styles.productCount}>
               {productCount[item.name] || 0} product(s)
             </Text>
@@ -225,8 +225,8 @@ const CategoryManagementScreen = () => {
           style={[styles.actionBtn, styles.editBtn]}
           onPress={() => handleEditCategory(item)}
         >
-          <Icon name="create-outline" size={14} color="#0e0b05" />
-          <Text style={styles.actionBtnText}>Edit</Text>
+          <Icon name="create-outline" size={14} color="#fff" />
+          <Text style={[styles.actionBtnText, styles.editBtnText]}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionBtn, styles.deleteBtn]}
@@ -243,7 +243,7 @@ const CategoryManagementScreen = () => {
     return (
       <View style={styles.centerContainer}>
         <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
-        <ActivityIndicator size="large" color="#fec82b" />
+        <ActivityIndicator size="large" color="#0d5335" />
         <Text style={styles.loadingText}>Loading categories...</Text>
       </View>
     );
@@ -261,25 +261,25 @@ const CategoryManagementScreen = () => {
           setModalVisible(true);
         }}
       >
-        <Icon name="add" size={32} color="#0e0b05" />
+        <Icon name="add" size={32} color="#fff" />
       </TouchableOpacity>
 
       {/* Stats Cards */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Icon name="albums-outline" size={24} color="#fec82b" />
+          <Icon name="albums-outline" size={24} color="#0d5335" />
           <Text style={styles.statValue}>{categories.length}</Text>
           <Text style={styles.statLabel}>Total Categories</Text>
         </View>
         <View style={styles.statCard}>
-          <Icon name="checkmark-circle-outline" size={24} color="#fec82b" />
+          <Icon name="checkmark-circle-outline" size={24} color="#0d5335" />
           <Text style={styles.statValue}>
             {Object.keys(productCount).length}
           </Text>
           <Text style={styles.statLabel}>Active Categories</Text>
         </View>
         <View style={styles.statCard}>
-          <Icon name="cube-outline" size={24} color="#fec82b" />
+          <Icon name="cube-outline" size={24} color="#0d5335" />
           <Text style={styles.statValue}>
             {Object.values(productCount).reduce((a, b) => a + b, 0)}
           </Text>
@@ -296,7 +296,7 @@ const CategoryManagementScreen = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="folder-open-outline" size={64} color="#ccc" />
+            <Icon name="folder-open-outline" size={64} color="#0b1e1c" />
             <Text style={styles.emptyText}>No categories found</Text>
             <Text style={styles.emptySubtext}>Tap + to add your first category</Text>
           </View>
@@ -318,20 +318,20 @@ const CategoryManagementScreen = () => {
                 <Icon 
                   name={editingCategory ? "create-outline" : "add-circle-outline"} 
                   size={24} 
-                  color="#0e0b05" 
+                  color="#fff" 
                 />
                 <Text style={styles.modalTitle}>
                   {editingCategory ? 'Edit Category' : 'Add New Category'}
                 </Text>
               </View>
               <TouchableOpacity onPress={resetForm}>
-                <Icon name="close" size={24} color="#0e0b05" />
+                <Icon name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalForm}>
               <View style={styles.inputContainer}>
-                <Icon name="pricetag-outline" size={16} color="#75482f" />
+                <Icon name="pricetag-outline" size={16} color="#0b1e1c" />
                 <Text style={styles.label}>Category Name *</Text>
               </View>
               <TextInput
@@ -339,11 +339,11 @@ const CategoryManagementScreen = () => {
                 value={categoryName}
                 onChangeText={setCategoryName}
                 placeholder="Enter category name"
-                placeholderTextColor="#999"
+                placeholderTextColor="#0b1e1c"
               />
 
               <View style={styles.inputContainer}>
-                <Icon name="document-text-outline" size={16} color="#75482f" />
+                <Icon name="document-text-outline" size={16} color="#0b1e1c" />
                 <Text style={styles.label}>Description (Optional)</Text>
               </View>
               <TextInput
@@ -351,7 +351,7 @@ const CategoryManagementScreen = () => {
                 value={categoryDescription}
                 onChangeText={setCategoryDescription}
                 placeholder="Enter category description"
-                placeholderTextColor="#999"
+                placeholderTextColor="#0b1e1c"
                 multiline
                 numberOfLines={3}
               />
@@ -362,10 +362,10 @@ const CategoryManagementScreen = () => {
                 disabled={loading}
               >
                 {loading ? (
-                  <ActivityIndicator color="#0e0b05" />
+                  <ActivityIndicator color="#fff" />
                 ) : (
                   <>
-                    <Icon name="checkmark-circle-outline" size={20} color="#0e0b05" />
+                    <Icon name="checkmark-circle-outline" size={20} color="#fff" />
                     <Text style={styles.saveButtonText}>
                       {editingCategory ? 'Update Category' : 'Add Category'}
                     </Text>
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 14,
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   fab: {
     position: 'absolute',
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    color: '#75482f',
+    color: '#0b1e1c',
     fontWeight: '500',
   },
   listContainer: {
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   },
   categoryDescription: {
     fontSize: 12,
-    color: '#75482f',
+    color: '#0b1e1c',
     flex: 1,
   },
   productCountContainer: {
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
   },
   productCount: {
     fontSize: 11,
-    color: '#fec82b',
+    color: '#0d5335',
     fontWeight: '500',
   },
   categoryActions: {
@@ -507,15 +507,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   editBtn: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   deleteBtn: {
     backgroundColor: '#ff4444',
   },
   actionBtnText: {
-    color: '#0e0b05',
     fontWeight: '600',
     fontSize: 12,
+  },
+  editBtnText: {
+    color: '#fff',
   },
   deleteBtnText: {
     color: '#fff',
@@ -537,7 +539,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
@@ -549,7 +551,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0e0b05',
+    color: '#fff',
   },
   modalForm: {
     padding: 16,
@@ -564,7 +566,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   input: {
     backgroundColor: '#f8f8f8',
@@ -580,7 +582,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   saveButton: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -591,7 +593,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveButtonText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -602,7 +604,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#75482f',
+    color: '#0b1e1c',
     marginTop: 16,
   },
   emptySubtext: {

@@ -11,7 +11,7 @@ const RestrictedScreen = ({ navigation, screenName }) => {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Icon name="lock-closed" size={80} color="#fec82b" />
+        <Icon name="lock-closed" size={80} color="#0d5335" />
       </View>
       <Text style={styles.title}>Access Restricted</Text>
       <Text style={styles.message}>
@@ -21,7 +21,7 @@ const RestrictedScreen = ({ navigation, screenName }) => {
         style={styles.button}
         onPress={() => navigation.navigate('POS')}
       >
-        <Icon name="cart-outline" size={18} color="#0e0b05" />
+        <Icon name="cart-outline" size={18} color="#fff" />
         <Text style={styles.buttonText}>Go to POS</Text>
       </TouchableOpacity>
     </View>
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: '#fec82b20',
+    backgroundColor: '#0d533520',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -54,14 +54,14 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: '#75482f',
+    color: '#0b1e1c',
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 24,
     paddingHorizontal: 20,
   },
   button: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 8,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

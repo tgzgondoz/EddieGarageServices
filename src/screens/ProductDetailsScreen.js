@@ -59,7 +59,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Icon name="cube" size={24} color="#fec82b" />
+          <Icon name="cube" size={24} color="#0d5335" />
           <Text style={styles.productName}>{currentProduct.name}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
@@ -69,7 +69,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 
       <View style={styles.infoCard}>
         <View style={styles.sectionHeader}>
-          <Icon name="information-circle" size={20} color="#fec82b" />
+          <Icon name="information-circle" size={20} color="#0d5335" />
           <Text style={styles.sectionTitle}> Product Information</Text>
         </View>
         <View style={styles.infoRow}>
@@ -92,7 +92,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 
       <View style={styles.infoCard}>
         <View style={styles.sectionHeader}>
-          <Icon name="cash" size={20} color="#fec82b" />
+          <Icon name="cash" size={20} color="#0d5335" />
           <Text style={styles.sectionTitle}> Pricing Information</Text>
         </View>
         <View style={styles.infoRow}>
@@ -115,7 +115,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 
       <View style={styles.infoCard}>
         <View style={styles.sectionHeader}>
-          <Icon name="cube-outline" size={20} color="#fec82b" />
+          <Icon name="cube-outline" size={20} color="#0d5335" />
           <Text style={styles.sectionTitle}> Inventory Information</Text>
         </View>
         <View style={styles.infoRow}>
@@ -136,14 +136,14 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         style={styles.restockButton}
         onPress={() => setRestockModal(true)}
       >
-        <Icon name="add-circle" size={20} color="#0e0b05" />
+        <Icon name="add-circle" size={20} color="#fff" />
         <Text style={styles.buttonText}> Restock Product</Text>
       </TouchableOpacity>
 
       {transactions.length > 0 && (
         <View style={styles.infoCard}>
           <View style={styles.sectionHeader}>
-            <Icon name="time" size={20} color="#fec82b" />
+            <Icon name="time" size={20} color="#0d5335" />
             <Text style={styles.sectionTitle}> Recent Transactions</Text>
           </View>
           {transactions.slice(0, 5).map((transaction, index) => (
@@ -178,7 +178,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Icon name="add-circle" size={24} color="#fec82b" />
+              <Icon name="add-circle" size={24} color="#0d5335" />
               <Text style={styles.modalTitle}>Restock Product</Text>
             </View>
             <Text style={styles.modalSubtitle}>{currentProduct.name}</Text>
@@ -189,7 +189,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
               keyboardType="numeric"
               value={restockQuantity}
               onChangeText={setRestockQuantity}
-              placeholderTextColor="#75482f"
+              placeholderTextColor="#0b1e1c"
               autoFocus={true}
             />
             
@@ -209,7 +209,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                 style={[styles.modalButton, styles.confirmButton]}
                 onPress={handleRestock}
               >
-                <Icon name="checkmark" size={16} color="#0e0b05" />
+                <Icon name="checkmark" size={16} color="#fff" />
                 <Text style={[styles.modalButtonText, styles.confirmButtonText]}>Restock</Text>
               </TouchableOpacity>
             </View>
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     borderLeftWidth: 4,
-    borderLeftColor: '#fec82b',
+    borderLeftColor: '#0d5335',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   value: {
     fontSize: 14,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   price: {
-    color: '#fec82b',
+    color: '#0d5335',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -307,10 +307,10 @@ const styles = StyleSheet.create({
   quantity: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fec82b',
+    color: '#0d5335',
   },
   restockButton: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
     margin: 16,
     padding: 16,
     borderRadius: 12,
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonText: {
-    color: '#0e0b05',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   },
   transactionDate: {
     fontSize: 12,
-    color: '#75482f',
+    color: '#0b1e1c',
   },
   modalContainer: {
     flex: 1,
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#75482f',
+    color: '#0b1e1c',
     marginBottom: 20,
   },
   modalInput: {
@@ -408,10 +408,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff4444',
   },
   confirmButton: {
-    backgroundColor: '#fec82b',
+    backgroundColor: '#0d5335',
   },
   confirmButtonText: {
-    color: '#0e0b05',
+    color: '#fff',
   },
   modalButtonText: {
     color: '#fff',
