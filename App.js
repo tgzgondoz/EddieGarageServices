@@ -89,7 +89,7 @@ const MainApp = () => {
     return (
       <SafeAreaProvider>
         <SafeAreaView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fec82b" />
+          <ActivityIndicator size="large" color="#0d5335" />
           <Text style={styles.loadingText}>Loading Eddie Tuckshop 2026...</Text>
         </SafeAreaView>
       </SafeAreaProvider>
