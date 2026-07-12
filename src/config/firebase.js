@@ -1,15 +1,16 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set, push, onValue, remove, update } from 'firebase/database';
 
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBXvt1f_fM0tNNbWdTzWXiMZJguc6fIne0",
-  authDomain: "divinevisionstruckpos.firebaseapp.com",
-  databaseURL: "https://divinevisionstruckpos-default-rtdb.firebaseio.com",
-  projectId: "divinevisionstruckpos",
-  storageBucket: "divinevisionstruckpos.firebasestorage.app",
-  messagingSenderId: "719228480436",
-  appId: "1:719228480436:web:c591a27c4e2a85d200e0e1",
-  measurementId: "G-XNXL8QEYFH"
+  apiKey: "AIzaSyAaM4MsPxBOCcSdiU_4xYotxB1dHAas2pY",
+  authDomain: "eddiesgaragepos.firebaseapp.com",
+  projectId: "eddiesgaragepos",
+  storageBucket: "eddiesgaragepos.firebasestorage.app",
+  messagingSenderId: "1089907198908",
+  appId: "1:1089907198908:web:22259f21c4fc52c6b439b9",
+  measurementId: "G-S04E1M17FV",
+  databaseURL: "https://eddiesgaragepos-default-rtdb.firebaseio.com"
 };
 
 let app = null;
