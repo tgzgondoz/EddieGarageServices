@@ -55,13 +55,13 @@ const LoginScreen = ({ onLogin }) => {
   };
 
   const demoAdmin = () => {
-    setEmail('admin@devinepos.com');
-    setPassword('Devine@Admin2026#Secure');
+    setEmail('admin@eddietuckshop.com');
+    setPassword('Eddie@Admin2026#Secure');
   };
 
   const demoCashier = () => {
-    setEmail('cashier@devinepos.com');
-    setPassword('Devine@Cashier2026#Strong');
+    setEmail('staff@eddietuckshop.com');
+    setPassword('Eddie@Staff2026#Strong');
   };
 
   return (
@@ -127,6 +127,26 @@ const LoginScreen = ({ onLogin }) => {
               <Text style={styles.loginButtonText}>Login</Text>
             )}
           </TouchableOpacity>
+
+          <View style={styles.demoContainer}>
+            <Text style={styles.demoTitle}>Demo Credentials</Text>
+            
+            <TouchableOpacity style={styles.demoButton} onPress={demoAdmin}>
+              <View style={styles.demoRow}>
+                <Icon name="person" size={14} color="#75482f" />
+                <Text style={styles.demoText}>Admin: admin@eddietuckshop.com</Text>
+              </View>
+              <Text style={styles.demoPassword}>Pass: Eddie@Admin2026#Secure</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.demoButton} onPress={demoCashier}>
+              <View style={styles.demoRow}>
+                <Icon name="person-outline" size={14} color="#75482f" />
+                <Text style={styles.demoText}>Staff: staff@eddietuckshop.com</Text>
+              </View>
+              <Text style={styles.demoPassword}>Pass: Eddie@Staff2026#Strong</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

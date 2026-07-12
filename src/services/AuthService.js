@@ -3,7 +3,78 @@ import { getDatabaseInstance, ref, set, push, onValue, update, remove } from '..
 // Simple in-memory session storage
 let currentSessionUser = null;
 
+// Default credentials for Eddie Tuckshop
+const DEFAULT_ADMIN = {
+  email: 'admin@eddietuckshop.com',
+  password: 'Eddie@Admin2026#Secure',
+  fullName: 'Eddie Admin',
+  role: 'admin'
+};
+
+const DEFAULT_STAFF = {
+  email: 'staff@eddietuckshop.com',
+  password: 'Eddie@Staff2026#Strong',
+  fullName: 'Eddie Staff',
+  role: 'cashier'
+};
+
 class AuthService {
+  static async initializeDefaultUsers() {
+    try {
+      const db = getDatabaseInstance();
+      const usersRef = ref(db, 'users');
+      
+      // Check if users already exist
+      let users = [];
+      await new Promise((resolve) => {
+        onValue(usersRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            users = Object.values(data);
+          }
+          resolve();
+        }, { onlyOnce: true });
+      });
+      
+      // Check if admin exists
+      const adminExists = users.some(user => user.email === DEFAULT_ADMIN.email);
+      if (!adminExists) {
+        console.log('Creating default admin user...');
+        const adminRef = push(usersRef);
+        const adminData = {
+          id: adminRef.key,
+          ...DEFAULT_ADMIN,
+          createdAt: new Date().toISOString(),
+          lastLogin: null,
+          isActive: true
+        };
+        await set(adminRef, adminData);
+        console.log('Default admin created successfully');
+      }
+      
+      // Check if staff exists
+      const staffExists = users.some(user => user.email === DEFAULT_STAFF.email);
+      if (!staffExists) {
+        console.log('Creating default staff user...');
+        const staffRef = push(usersRef);
+        const staffData = {
+          id: staffRef.key,
+          ...DEFAULT_STAFF,
+          createdAt: new Date().toISOString(),
+          lastLogin: null,
+          isActive: true
+        };
+        await set(staffRef, staffData);
+        console.log('Default staff created successfully');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error initializing default users:', error);
+      throw error;
+    }
+  }
+  
   static async registerUser(email, password, fullName, role) {
     try {
       const db = getDatabaseInstance();
@@ -50,6 +121,9 @@ class AuthService {
   
   static async loginUser(email, password) {
     try {
+      // Ensure default users exist
+      await this.initializeDefaultUsers();
+      
       const db = getDatabaseInstance();
       const usersRef = ref(db, 'users');
       let user = null;
@@ -148,6 +222,40 @@ class AuthService {
   static logout() {
     currentSessionUser = null;
     return true;
+  }
+  
+  // Helper method to reset default users (useful for testing)
+  static async resetDefaultUsers() {
+    try {
+      const db = getDatabaseInstance();
+      const usersRef = ref(db, 'users');
+      
+      // Get all users
+      let users = [];
+      await new Promise((resolve) => {
+        onValue(usersRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            users = Object.values(data);
+          }
+          resolve();
+        }, { onlyOnce: true });
+      });
+      
+      // Delete all existing users
+      for (const user of users) {
+        const userRef = ref(db, `users/${user.id}`);
+        await remove(userRef);
+      }
+      
+      // Recreate default users
+      await this.initializeDefaultUsers();
+      
+      return true;
+    } catch (error) {
+      console.error('Error resetting default users:', error);
+      throw error;
+    }
   }
 }
 

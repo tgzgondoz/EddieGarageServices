@@ -34,7 +34,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     if (userData && userData.id) {
-      setUser(userData);
+      // Ensure the user data has the correct role mapping
+      const userWithRoles = {
+        ...userData,
+        // Map roles if needed (e.g., if backend returns different role names)
+        role: userData.role || 'staff'
+      };
+      setUser(userWithRoles);
     } else {
       console.error('Invalid user data:', userData);
     }
@@ -46,11 +52,31 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = () => {
-    return user?.role === 'admin';
+    return user?.role === 'admin' || user?.role === 'administrator';
   };
 
   const isCashier = () => {
-    return user?.role === 'cashier';
+    return user?.role === 'cashier' || user?.role === 'staff';
+  };
+
+  const isManager = () => {
+    return user?.role === 'manager';
+  };
+
+  const getUserDisplayName = () => {
+    if (!user) return '';
+    return user.fullName || user.email || '';
+  };
+
+  const getUserRole = () => {
+    if (!user) return '';
+    return user.role || '';
+  };
+
+  const hasPermission = (requiredRoles) => {
+    if (!user) return false;
+    if (!requiredRoles || requiredRoles.length === 0) return true;
+    return requiredRoles.includes(user.role);
   };
 
   return (
@@ -60,6 +86,10 @@ export const AuthProvider = ({ children }) => {
       logout,
       isAdmin,
       isCashier,
+      isManager,
+      getUserDisplayName,
+      getUserRole,
+      hasPermission,
       loading
     }}>
       {children}
