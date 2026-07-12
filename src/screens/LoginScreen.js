@@ -5,320 +5,249 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-  ActivityIndicator,
   ScrollView,
   Image
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import Icon from 'react-native-vector-icons/Ionicons';
+import AuthService from '../services/AuthService';
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState('admin@eddiegarage.com');
-  const [password, setPassword] = useState('admin123');
+const LoginScreen = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('admin');
-  const { login } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter email');
       return;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+    if (!password.trim()) {
+      Alert.alert('Error', 'Please enter password');
       return;
     }
 
     setLoading(true);
-    const result = await login(email, password);
-    setLoading(false);
-
-    if (!result.success) {
-      Alert.alert('Login Failed', result.error);
+    try {
+      const result = await AuthService.loginUser(email, password);
+      if (result.success && result.user) {
+        const userData = {
+          id: result.user.id,
+          email: result.user.email,
+          fullName: result.user.fullName,
+          role: result.user.role,
+          isActive: result.user.isActive
+        };
+        onLogin(userData);
+      } else {
+        Alert.alert('Login Failed', 'Invalid credentials');
+      }
+    } catch (error) {
+      Alert.alert('Login Failed', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const setDemoAccount = (type) => {
-    setSelectedRole(type);
-    if (type === 'admin') {
-      setEmail('admin@eddiegarage.com');
-      setPassword('admin123');
-    } else {
-      setEmail('staff@eddiegarage.com');
-      setPassword('staff123');
-    }
+  const demoAdmin = () => {
+    setEmail('admin@devinepos.com');
+    setPassword('Devine@Admin2026#Secure');
+  };
+
+  const demoCashier = () => {
+    setEmail('cashier@devinepos.com');
+    setPassword('Devine@Cashier2026#Strong');
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          {/* Logo Section */}
-          <View style={styles.logoContainer}>
-            <View style={styles.logoWrapper}>
-              <Image 
-                source={require('../../assets/logo.png')} 
-                style={styles.logo}
-                resizeMode="contain"
-              />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.logoContainer}>
+          {!imageError ? (
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <View style={[styles.logo, styles.fallbackLogo]}>
+              <Icon name="storefront" size={60} color="#fec82b" />
             </View>
-            <Text style={styles.title}>Eddie Garage Services</Text>
-            <Text style={styles.subtitle}>Point of Sale System</Text>
+          )}
+          <Text style={styles.title}>TuckShop</Text>
+          <Text style={styles.subtitle}>Point of Sale System</Text>
+        </View>
+
+        <View style={styles.formContainer}>
+          <View style={styles.inputContainer}>
+            <Icon name="mail" size={20} color="#75482f" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#999"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
           </View>
 
-          {/* Login Form */}
-          <View style={styles.form}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email Address</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your email"
-                placeholderTextColor="#8ba8a8"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoCorrect={false}
-                editable={!loading}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your password"
-                placeholderTextColor="#8ba8a8"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={!loading}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.buttonText}>Sign In</Text>
-              )}
+          <View style={styles.inputContainer}>
+            <Icon name="lock-closed" size={20} color="#75482f" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#999"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+              <Icon name={showPassword ? "eye" : "eye-off"} size={20} color="#75482f" />
             </TouchableOpacity>
           </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Powered by oneGondo 078 324 2506
-            </Text>
-          </View>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#0e0b05" />
+            ) : (
+              <Text style={styles.loginButtonText}>Login</Text>
+            )}
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f1e1c',
+    backgroundColor: '#f5f5f5',
   },
-  scrollContent: {
+  scrollContainer: {
     flexGrow: 1,
-  },
-  content: {
-    flex: 1,
     justifyContent: 'center',
-    padding: 24,
-    paddingTop: 40,
-    paddingBottom: 40,
+    padding: 20,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
   },
-  logoWrapper: {
+  logo: {
     width: 120,
     height: 120,
-    backgroundColor: '#178556',
+    marginBottom: 16,
+  },
+  fallbackLogo: {
+    backgroundColor: '#f0f0f0',
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-    padding: 20,
-  },
-  logo: {
-    width: 80,
-    height: 80,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    letterSpacing: 0.5,
+    color: '#0e0b05',
+    marginTop: 0,
   },
   subtitle: {
-    fontSize: 15,
-    color: '#7fa8a8',
-    marginTop: 4,
-    textAlign: 'center',
-    letterSpacing: 0.3,
-  },
-  form: {
-    backgroundColor: '#ffffff',
-    padding: 24,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a3a36',
-    marginBottom: 6,
-    letterSpacing: 0.3,
-  },
-  input: {
-    borderWidth: 1.5,
-    borderColor: '#d0e0e0',
-    padding: 14,
-    borderRadius: 10,
-    fontSize: 15,
-    backgroundColor: '#f8fafa',
-    color: '#1a3a36',
-  },
-  button: {
-    backgroundColor: '#178556',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
+    fontSize: 16,
+    color: '#75482f',
     marginTop: 8,
-    shadowColor: '#178556',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  demoContainer: {
-    marginTop: 28,
-    alignItems: 'center',
-  },
-  demoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
-  },
-  demoSubtitle: {
-    fontSize: 12,
-    color: '#7fa8a8',
-    marginBottom: 14,
-    marginTop: 2,
-  },
-  demoButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    gap: 12,
-  },
-  demoButton: {
-    flex: 1,
-    padding: 16,
+  formContainer: {
+    backgroundColor: '#fff',
     borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-    shadowColor: '#000',
+    padding: 20,
+    elevation: 3,
+    shadowColor: '#0e0b05',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
   },
-  selectedButton: {
-    borderColor: '#FFFFFF',
-    borderWidth: 2,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  adminButton: {
-    backgroundColor: '#178556',
-  },
-  staffButton: {
-    backgroundColor: '#4a7a7a',
-  },
-  demoIcon: {
-    fontSize: 28,
-    color: 'white',
-  },
-  demoButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  demoButtonSubtext: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 10,
-    marginTop: 2,
-  },
-  demoPasswordTag: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 14,
-    marginTop: 6,
-  },
-  demoPasswordText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  footer: {
-    marginTop: 24,
+  inputContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#75482f',
+    borderRadius: 8,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
   },
-  footerText: {
+  inputIcon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#0e0b05',
+  },
+  eyeIcon: {
+    padding: 8,
+  },
+  loginButton: {
+    backgroundColor: '#fec82b',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  loginButtonText: {
+    color: '#0e0b05',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  demoContainer: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  demoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#75482f',
+    marginBottom: 12,
+  },
+  demoButton: {
+    paddingVertical: 8,
+    marginBottom: 8,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+  },
+  demoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  demoText: {
     fontSize: 12,
-    color: '#5a7a7a',
-    textAlign: 'center',
-    letterSpacing: 0.3,
+    color: '#0e0b05',
+    fontWeight: '500',
+  },
+  demoPassword: {
+    fontSize: 11,
+    color: '#75482f',
+    marginLeft: 20,
   },
 });
+
+export default LoginScreen;

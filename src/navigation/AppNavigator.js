@@ -1,474 +1,152 @@
-// AppNavigator.js
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { TouchableOpacity, View, Text, Image } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../context/AuthContext';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 
-import LoginScreen from '../screens/LoginScreen';
+// Import screens
 import POSScreen from '../screens/POSScreen';
-import InventoryScreen from '../screens/InventoryScreen';
-import AddEditProductScreen from '../screens/AddEditProductScreen';
-import ProductDetailsScreen from '../screens/ProductDetailsScreen';
-import ProductListScreen from '../screens/ProductListScreen';
-import AdminDashboardScreen from '../screens/AdminDashboardScreen';
+import ProductManagementScreen from '../screens/ProductManagementScreen';
 import SalesHistoryScreen from '../screens/SalesHistoryScreen';
-import RestrictedScreen from '../screens/RestrictedScreen';
+import InventoryScreen from '../screens/InventoryScreen';
+import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import CategoryManagementScreen from '../screens/CategoryManagementScreen';
-import StaffDashboardScreen from '../screens/StaffDashboardScreen';
-import UserProfileScreen from '../screens/UserProfileScreen';
-import ProfitAnalyticsScreen from '../screens/ProfitAnalyticsScreen';
-import ProductProfitScreen from '../screens/ProductProfitScreen';
+import RestrictedScreen from '../screens/RestrictedScreen';
 
-const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Logout button component
-function LogoutButton({ navigation }) {
-  const { logout } = useAuth();
+const AppNavigator = ({ onLogout }) => {
+  const { user, isAdmin, isCashier } = useAuth();
+  
+  if (!user) {
+    return null;
+  }
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
-  return (
-    <TouchableOpacity onPress={handleLogout} style={{ marginRight: 15 }}>
-      <Icon name="logout" size={24} color="#FFFFFF" />
-    </TouchableOpacity>
-  );
-}
-
-// Profile Stack Navigator
-function ProfileStack() {
-  return (
-    <Stack.Navigator 
-      screenOptions={{ 
-        headerShown: false,
-        cardStyle: { backgroundColor: '#152d2a' }
-      }}
-    >
-      <Stack.Screen 
-        name="Profile" 
-        component={UserProfileScreen} 
-      />
-    </Stack.Navigator>
-  );
-}
-
-// Inventory Stack Navigator
-function InventoryStack() {
-  return (
-    <Stack.Navigator 
-      screenOptions={{ 
-        headerShown: false,
-        cardStyle: { backgroundColor: '#152d2a' }
-      }}
-    >
-      <Stack.Screen 
-        name="InventoryList" 
-        component={InventoryScreen} 
-      />
-      <Stack.Screen 
-        name="AddEditProduct" 
-        component={AddEditProductScreen} 
-      />
-      <Stack.Screen 
-        name="ProductDetails" 
-        component={ProductDetailsScreen} 
-      />
-      <Stack.Screen 
-        name="CategoryManagement" 
-        component={CategoryManagementScreen} 
-      />
-    </Stack.Navigator>
-  );
-}
-
-// Product Stack Navigator
-function ProductStack() {
-  return (
-    <Stack.Navigator 
-      screenOptions={{ 
-        headerShown: false,
-        cardStyle: { backgroundColor: '#152d2a' }
-      }}
-    >
-      <Stack.Screen 
-        name="ProductList" 
-        component={ProductListScreen} 
-      />
-      <Stack.Screen 
-        name="ProductDetails" 
-        component={ProductDetailsScreen} 
-      />
-      <Stack.Screen 
-        name="AddEditProduct" 
-        component={AddEditProductScreen} 
-      />
-      <Stack.Screen 
-        name="CategoryManagement" 
-        component={CategoryManagementScreen} 
-      />
-      <Stack.Screen 
-        name="ProductProfit" 
-        component={ProductProfitScreen} 
-      />
-    </Stack.Navigator>
-  );
-}
-
-// POS Stack Navigator (for standalone POS with header)
-function POSStack() {
-  return (
-    <Stack.Navigator 
-      screenOptions={{ 
-        headerShown: false,
-        cardStyle: { backgroundColor: '#152d2a' }
-      }}
-    >
-      <Stack.Screen 
-        name="POSMain" 
-        component={POSScreen} 
-      />
-    </Stack.Navigator>
-  );
-}
-
-// Sales Stack Navigator
-function SalesStack() {
-  return (
-    <Stack.Navigator 
-      screenOptions={{ 
-        headerShown: false,
-        cardStyle: { backgroundColor: '#152d2a' }
-      }}
-    >
-      <Stack.Screen 
-        name="SalesHistory" 
-        component={SalesHistoryScreen} 
-      />
-    </Stack.Navigator>
-  );
-}
-
-// Profit Analytics Stack Navigator
-function ProfitStack() {
-  return (
-    <Stack.Navigator 
-      screenOptions={{ 
-        headerShown: false,
-        cardStyle: { backgroundColor: '#152d2a' }
-      }}
-    >
-      <Stack.Screen 
-        name="ProfitAnalytics" 
-        component={ProfitAnalyticsScreen} 
-      />
-      <Stack.Screen 
-        name="ProductProfit" 
-        component={ProductProfitScreen} 
-      />
-    </Stack.Navigator>
-  );
-}
-
-// ADMIN TABS - Full access for Admin
-function AdminTabs() {
-  console.log('🎯 Rendering Admin Tabs');
   return (
     <Tab.Navigator
-      screenOptions={({ route, navigation }) => ({
+      screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-          switch(route.name) {
-            case 'Dashboard': iconName = 'dashboard'; break;
-            case 'POS': iconName = 'point-of-sale'; break;
-            case 'Inventory': iconName = 'inventory'; break;
-            case 'Products': iconName = 'shopping-cart'; break;
-            case 'Sales': iconName = 'history'; break;
-            case 'Categories': iconName = 'category'; break;
-            case 'Profit': iconName = 'trending-up'; break;
-            case 'Profile': iconName = 'person'; break;
-            default: iconName = 'home';
+          if (route.name === 'POS') {
+            iconName = focused ? 'cart' : 'cart-outline';
+          } else if (route.name === 'Products') {
+            iconName = focused ? 'cube' : 'cube-outline';
+          } else if (route.name === 'Sales') {
+            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+          } else if (route.name === 'Inventory') {
+            iconName = focused ? 'list' : 'list-outline';
+          } else if (route.name === 'Admin') {
+            iconName = focused ? 'shield' : 'shield-outline';
+          } else if (route.name === 'Categories') {
+            iconName = focused ? 'folder' : 'folder-outline';
           }
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#178556',
-        tabBarInactiveTintColor: '#90a5a0',
+        tabBarActiveTintColor: '#fec82b',
+        tabBarInactiveTintColor: '#75482f',
         tabBarStyle: {
-          backgroundColor: '#152d2a',
-          borderTopColor: '#178556',
-          borderTopWidth: 1,
-          paddingBottom: 5,
-          paddingTop: 5,
           height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '500',
         },
-        headerShown: false,
+        headerStyle: {
+          
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+        },
+        headerTintColor: '#0e0b05',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+          fontSize: 18,
+        },
+        headerTitleAlign: 'center',
+        headerLeft: () => (
+          <View style={{ marginLeft: 16, flexDirection: 'row', alignItems: 'center' }}>
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={{ width: 32, height: 32, borderRadius: 16 }}
+              resizeMode="contain"
+            />
+            <Text style={{ marginLeft: 8, fontSize: 14, fontWeight: '600', color: '#75482f' }}>
+              POS
+            </Text>
+          </View>
+        ),
+        headerRight: () => (
+          <TouchableOpacity 
+            onPress={onLogout} 
+            style={{ marginRight: 16 }}
+          >
+            <Icon name="log-out" size={22} color="#0e0b05" />
+          </TouchableOpacity>
+        ),
       })}
     >
-      <Tab.Screen 
-        name="Dashboard" 
-        component={AdminDashboardScreen} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
-        }}
-      />
+      {/* POS - Both roles can access */}
       <Tab.Screen 
         name="POS" 
-        component={POSStack} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
+        component={POSScreen}
+        options={{ 
+          title: 'Point of Sale',
+          headerShown: true,
+          tabBarLabel: 'POS',
         }}
       />
-      <Tab.Screen 
-        name="Inventory" 
-        component={InventoryStack} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
-        }}
-      />
+      
+      {/* Products - Only Admin, Cashier sees restricted message */}
       <Tab.Screen 
         name="Products" 
-        component={ProductStack} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
+        component={isAdmin() ? ProductManagementScreen : RestrictedScreen}
+        options={{ 
+          title: 'Product Management',
+          headerShown: true,
+          tabBarLabel: 'Products',
         }}
+        initialParams={{ screenName: 'Product Management' }}
       />
+      
+      {/* Categories - Only Admin */}
       <Tab.Screen 
         name="Categories" 
-        component={CategoryManagementScreen} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
+        component={isAdmin() ? CategoryManagementScreen : RestrictedScreen}
+        options={{ 
+          title: 'Category Management',
+          headerShown: true,
+          tabBarLabel: 'Categories',
         }}
+        initialParams={{ screenName: 'Category Management' }}
       />
+      
+      {/* Sales - Both roles can access */}
       <Tab.Screen 
         name="Sales" 
-        component={SalesStack} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
+        component={SalesHistoryScreen}
+        options={{ 
+          title: 'Sales History',
+          headerShown: true,
+          tabBarLabel: 'Sales',
         }}
       />
+      
+      {/* Inventory - Only Admin, Cashier sees restricted message */}
       <Tab.Screen 
-        name="Profit" 
-        component={ProfitStack} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
+        name="Inventory" 
+        component={isAdmin() ? InventoryScreen : RestrictedScreen}
+        options={{ 
+          title: 'Inventory Dashboard',
+          headerShown: true,
+          tabBarLabel: 'Inventory',
         }}
+        initialParams={{ screenName: 'Inventory Dashboard' }}
       />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileStack} 
-        options={{
-          tabBarIcon: ({ focused, color, size }) => (
-            <Icon name="person" size={size} color={color} />
-          ),
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
-        }}
-      />
+      
     </Tab.Navigator>
   );
-}
+};
 
-// STAFF TABS - Limited access for Staff
-function StaffTabs() {
-  console.log('🎯 Rendering Staff Tabs');
-  return (
-    <Tab.Navigator
-      screenOptions={({ route, navigation }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          switch(route.name) {
-            case 'Dashboard': iconName = 'dashboard'; break;
-            case 'POS': iconName = 'point-of-sale'; break;
-            case 'Sales': iconName = 'history'; break;
-            case 'Profile': iconName = 'person'; break;
-            default: iconName = 'home';
-          }
-          return <Icon name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#178556',
-        tabBarInactiveTintColor: '#90a5a0',
-        tabBarStyle: {
-          backgroundColor: '#152d2a',
-          borderTopColor: '#178556',
-          borderTopWidth: 1,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
-        },
-        headerShown: false,
-      })}
-    >
-      <Tab.Screen 
-        name="Dashboard" 
-        component={StaffDashboardScreen} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="POS" 
-        component={POSStack} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="Sales" 
-        component={SalesStack} 
-        options={{
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileStack} 
-        options={{
-          tabBarIcon: ({ focused, color, size }) => (
-            <Icon name="person" size={size} color={color} />
-          ),
-          headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-              <LogoutButton navigation={navigation} />
-            </View>
-          ),
-        }}
-      />
-    </Tab.Navigator>
-  );
-}
-
-// Main App Navigator
-export default function AppNavigator() {
-  const { currentUser, userRole, loading } = useAuth();
-
-  console.log('🔍 AppNavigator - Current State:');
-  console.log('  - loading:', loading);
-  console.log('  - currentUser:', currentUser?.email);
-  console.log('  - userRole:', userRole);
-  console.log('  - isAdmin:', userRole === 'admin');
-  console.log('  - isStaff:', userRole === 'staff');
-
-  if (loading) {
-    console.log('⏳ Showing loading screen');
-    return (
-      <View style={{ 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        backgroundColor: '#152d2a' 
-      }}>
-        <View style={{ alignItems: 'center' }}>
-          <View style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderWidth: 3,
-            borderColor: '#178556',
-            borderTopColor: 'transparent',
-            marginBottom: 12,
-          }} />
-          <Text style={{ color: '#90a5a0', fontSize: 16 }}>Loading...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (!currentUser) {
-    console.log('🔐 No user - showing Login');
-    return (
-      <Stack.Navigator 
-        screenOptions={{ 
-          headerShown: false,
-          cardStyle: { backgroundColor: '#152d2a' }
-        }}
-      >
-        <Stack.Screen 
-          name="Login" 
-          component={LoginScreen} 
-        />
-      </Stack.Navigator>
-    );
-  }
-
-  if (userRole === 'restricted') {
-    console.log('🚫 User is restricted');
-    return (
-      <Stack.Navigator 
-        screenOptions={{ 
-          headerShown: false,
-          cardStyle: { backgroundColor: '#152d2a' }
-        }}
-      >
-        <Stack.Screen 
-          name="Restricted" 
-          component={RestrictedScreen} 
-        />
-      </Stack.Navigator>
-    );
-  }
-
-  // ADMIN gets full access with AdminDashboard
-  if (userRole === 'admin') {
-    console.log('✅ ADMIN user - Showing Admin Dashboard');
-    return <AdminTabs />;
-  } 
-  // STAFF gets limited access with StaffDashboard
-  else {
-    console.log('👤 STAFF user - Showing Staff Dashboard');
-    return <StaffTabs />;
-  }
-}
+export default AppNavigator;

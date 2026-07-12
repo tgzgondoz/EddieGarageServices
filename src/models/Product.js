@@ -1,41 +1,44 @@
-export class Product {
-  constructor(id, name, description, price, quantity, category, imageUrl, sku) {
+class Product {
+  constructor(id, name, price, cost, category, quantity, description, sku, supplier) {
     this.id = id;
-    this.name = name;
-    this.description = description;
-    this.price = price;
-    this.quantity = quantity;
-    this.category = category;
-    this.imageUrl = imageUrl;
-    this.sku = sku;
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.name = name || '';
+    this.price = parseFloat(price) || 0;
+    this.cost = parseFloat(cost) || 0;
+    this.category = category || '';
+    this.quantity = parseInt(quantity) || 0;
+    this.description = description || '';
+    this.sku = sku || '';
+    this.supplier = supplier || '';
+    this.createdAt = new Date().toISOString();
+    this.updatedAt = new Date().toISOString();
   }
 
-  static fromFirestore(doc) {
-    const data = doc.data();
-    return new Product(
-      doc.id,
-      data.name,
-      data.description,
-      data.price,
-      data.quantity,
-      data.category,
-      data.imageUrl,
-      data.sku
-    );
+  static calculateProfit(product) {
+    if (!product) return 0;
+    return (product.price || 0) - (product.cost || 0);
   }
 
-  toFirestore() {
-    return {
-      name: this.name,
-      description: this.description,
-      price: this.price,
-      quantity: this.quantity,
-      category: this.category,
-      imageUrl: this.imageUrl,
-      sku: this.sku,
-      updatedAt: new Date()
-    };
+  static calculateProfitMargin(product) {
+    if (!product || !product.price || product.price === 0) return 0;
+    return ((product.price - product.cost) / product.price) * 100;
+  }
+
+  static getInventoryStatus(quantity) {
+    const qty = parseInt(quantity) || 0;
+    if (qty <= 0) return 'Out of Stock';
+    if (qty < 10) return 'Low Stock';
+    if (qty < 50) return 'Normal Stock';
+    return 'High Stock';
+  }
+
+  static getStatusColor(status) {
+    switch(status) {
+      case 'Out of Stock': return '#ff4444';
+      case 'Low Stock': return '#ff8800';
+      case 'Normal Stock': return '#ffcc00';
+      default: return '#4caf50';
+    }
   }
 }
+
+export default Product;

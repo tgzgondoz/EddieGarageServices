@@ -1,1004 +1,615 @@
-// screens/CategoryManagementScreen.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  TextInput,
   Alert,
   Modal,
-  SafeAreaView,
-  Animated,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
+  TextInput,
+  ActivityIndicator,
+  RefreshControl,
+  StatusBar
 } from 'react-native';
-import { database } from '../config/firebase';
-import { ref, onValue, off, push, set, remove, update } from 'firebase/database';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { getDatabaseInstance, ref, onValue, push, set, remove, update } from '../config/firebase';
 
-export default function CategoryManagementScreen({ navigation }) {
+const CategoryManagementScreen = () => {
   const [categories, setCategories] = useState([]);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [editingName, setEditingName] = useState('');
-  const [showEditModal, setShowEditModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [totalProducts, setTotalProducts] = useState(0);
-  
-  // Refs
-  const inputRef = useRef(null);
-  const editInputRef = useRef(null);
-
-  // Animation values
-  const fadeAnim = useState(new Animated.Value(0))[0];
-  const slideAnim = useState(new Animated.Value(-30))[0];
-  const errorAnim = useState(new Animated.Value(0))[0];
+  const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryDescription, setCategoryDescription] = useState('');
+  const [productCount, setProductCount] = useState({});
 
   useEffect(() => {
-    const categoriesRef = ref(database, 'categories');
-    const productsRef = ref(database, 'products');
-    
-    // Fetch categories
-    const unsubscribeCategories = onValue(categoriesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const categoriesData = Object.keys(data).map(key => ({
-          id: key,
-          ...data[key]
-        }));
-        // Sort categories alphabetically
-        categoriesData.sort((a, b) => a.name.localeCompare(b.name));
-        setCategories(categoriesData);
-      } else {
-        setCategories([]);
-      }
-      setLoading(false);
-    }, (error) => {
-      console.error('Error fetching categories:', error);
-      Alert.alert('Error', 'Failed to fetch categories');
-      setLoading(false);
-    });
-
-    // Fetch products to count categories
-    const unsubscribeProducts = onValue(productsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const products = Object.keys(data).map(key => ({
-          id: key,
-          ...data[key]
-        }));
-        setTotalProducts(products.length);
-        
-        // Update product counts for each category
-        const categoryCounts = {};
-        products.forEach(product => {
-          let categoryName = '';
-          if (product.category) {
-            if (typeof product.category === 'object') {
-              categoryName = product.category.name || product.category.value || String(product.category);
-            } else {
-              categoryName = String(product.category);
-            }
-          }
-          if (categoryName && categoryName.trim() !== '') {
-            categoryName = categoryName.trim();
-            categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
-          }
-        });
-
-        // Update categories with product counts
-        setCategories(prevCategories => {
-          return prevCategories.map(cat => ({
-            ...cat,
-            productCount: categoryCounts[cat.name] || 0
-          }));
-        });
-      } else {
-        setTotalProducts(0);
-        // Reset product counts
-        setCategories(prevCategories => {
-          return prevCategories.map(cat => ({
-            ...cat,
-            productCount: 0
-          }));
-        });
-      }
-    });
-
-    return () => {
-      off(categoriesRef);
-      off(productsRef);
-    };
+    loadCategories();
+    loadProductCategories();
   }, []);
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  // Animate error message
-  useEffect(() => {
-    if (errorMessage) {
-      Animated.sequence([
-        Animated.timing(errorAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.delay(3000),
-        Animated.timing(errorAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => setErrorMessage(''));
-    }
-  }, [errorMessage]);
-
-  const validateCategoryName = (name) => {
-    const trimmed = name.trim();
-    if (!trimmed) {
-      setErrorMessage('Please enter a category name');
-      return null;
-    }
-    if (trimmed.length < 2) {
-      setErrorMessage('Category name must be at least 2 characters');
-      return null;
-    }
-    if (trimmed.length > 30) {
-      setErrorMessage('Category name must be less than 30 characters');
-      return null;
-    }
-    return trimmed;
+  const loadCategories = () => {
+    const db = getDatabaseInstance();
+    const categoriesRef = ref(db, 'categories');
+    onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      const categoriesList = data ? Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      })) : [];
+      setCategories(categoriesList);
+      setLoading(false);
+      setRefreshing(false);
+    });
   };
 
-  const isDuplicateCategory = (name, excludeId = null) => {
-    const trimmed = name.trim().toLowerCase();
-    return categories.some(cat => 
-      cat.id !== excludeId && 
-      cat.name.toLowerCase() === trimmed
-    );
-  };
-
-  const addCategory = async () => {
-    // Validate name
-    const name = validateCategoryName(newCategoryName);
-    if (!name) {
-      inputRef.current?.focus();
-      return;
-    }
-
-    // Check for duplicate
-    if (isDuplicateCategory(name)) {
-      setErrorMessage(`Category "${name}" already exists`);
-      inputRef.current?.focus();
-      return;
-    }
-
-    setIsAddingCategory(true);
-    try {
-      const categoriesRef = ref(database, 'categories');
-      const newCategoryRef = push(categoriesRef);
-      await set(newCategoryRef, {
-        name: name,
-        createdAt: new Date().toISOString(),
-        productCount: 0
+  const loadProductCategories = () => {
+    const db = getDatabaseInstance();
+    const productsRef = ref(db, 'products');
+    onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      const products = data ? Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      })) : [];
+      
+      const counts = {};
+      products.forEach(product => {
+        if (product.category) {
+          counts[product.category] = (counts[product.category] || 0) + 1;
+        }
       });
+      setProductCount(counts);
+    });
+  };
+
+  const handleAddCategory = async () => {
+    if (!categoryName.trim()) {
+      Alert.alert('Error', 'Please enter a category name');
+      return;
+    }
+
+    if (categories.some(cat => cat.name.toLowerCase() === categoryName.trim().toLowerCase())) {
+      Alert.alert('Error', 'Category already exists');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const db = getDatabaseInstance();
+      const categoriesRef = ref(db, 'categories');
+      const newCategoryRef = push(categoriesRef);
       
-      setNewCategoryName('');
-      setErrorMessage('');
-      inputRef.current?.focus();
+      const categoryData = {
+        name: categoryName.trim(),
+        description: categoryDescription.trim(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        id: newCategoryRef.key
+      };
       
-      Alert.alert('Success', `Category "${name}" added successfully`);
+      await set(newCategoryRef, categoryData);
+      Alert.alert('Success', 'Category added successfully');
+      resetForm();
+      loadCategories();
     } catch (error) {
       console.error('Error adding category:', error);
-      Alert.alert('Error', 'Failed to add category. Please try again.');
+      Alert.alert('Error', 'Failed to add category');
     } finally {
-      setIsAddingCategory(false);
+      setLoading(false);
     }
   };
 
-  const deleteCategory = async (category) => {
-    // Check if category has products
-    if (category.productCount > 0) {
-      Alert.alert(
-        'Category In Use',
-        `"${category.name}" has ${category.productCount} product(s) associated with it. Please reassign or delete those products first.`,
-        [{ text: 'OK' }]
-      );
+  const handleUpdateCategory = async () => {
+    if (!categoryName.trim()) {
+      Alert.alert('Error', 'Please enter a category name');
       return;
     }
 
+    if (categories.some(cat => cat.id !== editingCategory.id && 
+        cat.name.toLowerCase() === categoryName.trim().toLowerCase())) {
+      Alert.alert('Error', 'Category already exists');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const categoryRef = ref(database, `categories/${category.id}`);
-      await remove(categoryRef);
-      Alert.alert('Success', `Category "${category.name}" deleted successfully`);
-    } catch (error) {
-      console.error('Error deleting category:', error);
-      Alert.alert('Error', 'Failed to delete category');
-    }
-  };
-
-  const openEditModal = (category) => {
-    setEditingCategory(category);
-    setEditingName(category.name);
-    setErrorMessage('');
-    setShowEditModal(true);
-    setTimeout(() => editInputRef.current?.focus(), 300);
-  };
-
-  const updateCategory = async () => {
-    const name = validateCategoryName(editingName);
-    if (!name) {
-      editInputRef.current?.focus();
-      return;
-    }
-
-    if (isDuplicateCategory(name, editingCategory.id)) {
-      setErrorMessage(`Category "${name}" already exists`);
-      editInputRef.current?.focus();
-      return;
-    }
-
-    try {
-      const categoryRef = ref(database, `categories/${editingCategory.id}`);
-      await update(categoryRef, {
-        name: name,
-        updatedAt: new Date().toISOString()
-      });
+      const db = getDatabaseInstance();
+      const categoryRef = ref(db, `categories/${editingCategory.id}`);
       
-      setShowEditModal(false);
-      setEditingCategory(null);
-      setEditingName('');
-      setErrorMessage('');
-      Alert.alert('Success', `Category updated to "${name}" successfully`);
+      const categoryData = {
+        name: categoryName.trim(),
+        description: categoryDescription.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await update(categoryRef, categoryData);
+      Alert.alert('Success', 'Category updated successfully');
+      resetForm();
+      loadCategories();
     } catch (error) {
       console.error('Error updating category:', error);
       Alert.alert('Error', 'Failed to update category');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getCategoryColor = (index) => {
-    const colors = ['#178556', '#2196F3', '#4CAF50', '#9C27B0', '#FF9800', '#E91E63', '#00BCD4'];
-    return colors[index % colors.length];
+  const handleDeleteCategory = (category) => {
+    const productCountInCategory = productCount[category.name] || 0;
+    
+    Alert.alert(
+      'Delete Category',
+      `Are you sure you want to delete "${category.name}"?\n\n${productCountInCategory} product(s) are using this category. Deleting will remove the category assignment from these products.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const db = getDatabaseInstance();
+              const categoryRef = ref(db, `categories/${category.id}`);
+              await remove(categoryRef);
+              
+              const productsRef = ref(db, 'products');
+              onValue(productsRef, async (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                  for (const [productId, product] of Object.entries(data)) {
+                    if (product.category === category.name) {
+                      const productRef = ref(db, `products/${productId}`);
+                      await update(productRef, { category: 'Other' });
+                    }
+                  }
+                }
+              }, { onlyOnce: true });
+              
+              Alert.alert('Success', 'Category deleted successfully');
+              loadCategories();
+              loadProductCategories();
+            } catch (error) {
+              console.error('Error deleting category:', error);
+              Alert.alert('Error', 'Failed to delete category');
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
-  const renderCategory = ({ item, index }) => (
-    <Animated.View 
-      style={[
-        styles.categoryCard,
-        { 
-          opacity: fadeAnim, 
-          borderLeftColor: getCategoryColor(index),
-          transform: [{ translateX: slideAnim }],
-        }
-      ]}
-    >
-      <TouchableOpacity
-        style={styles.categoryContent}
-        onPress={() => openEditModal(item)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.categoryInfo}>
-          <View style={[styles.categoryColorDot, { backgroundColor: getCategoryColor(index) }]} />
-          <View style={styles.categoryNameContainer}>
-            <Text style={styles.categoryName} numberOfLines={1}>{item.name}</Text>
-            <View style={styles.productCountBadge}>
-              <Icon name="inventory-2" size={12} color="#152d2a" />
-              <Text style={styles.productCountText}>
-                {item.productCount || 0} {item.productCount === 1 ? 'product' : 'products'}
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.categoryActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => openEditModal(item)}
-          >
-            <Icon name="edit" size={20} color="#152d2a" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => {
-              setCategoryToDelete(item);
-              setShowDeleteModal(true);
-            }}
-          >
-            <Icon name="delete" size={20} color="#f44336" />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
+  const handleEditCategory = (category) => {
+    setEditingCategory(category);
+    setCategoryName(category.name);
+    setCategoryDescription(category.description || '');
+    setModalVisible(true);
+  };
 
-  // Delete Confirmation Modal
-  const DeleteModal = () => (
-    <Modal
-      visible={showDeleteModal}
-      transparent={true}
-      animationType="fade"
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalIconContainer}>
-            <Icon name="warning" size={50} color="#f44336" />
-          </View>
-          <Text style={styles.modalTitle}>Delete Category</Text>
-          <Text style={styles.modalText}>
-            Are you sure you want to delete "{categoryToDelete?.name}"?
-          </Text>
-          {categoryToDelete?.productCount > 0 && (
-            <View style={styles.modalWarningContainer}>
-              <Icon name="error-outline" size={20} color="#f44336" />
-              <Text style={styles.modalWarningText}>
-                This category has {categoryToDelete.productCount} product(s) associated with it.
-              </Text>
+  const resetForm = () => {
+    setEditingCategory(null);
+    setCategoryName('');
+    setCategoryDescription('');
+    setModalVisible(false);
+  };
+
+  const renderCategoryItem = ({ item }) => (
+    <View style={styles.categoryCard}>
+      <View style={styles.categoryInfo}>
+        <View style={styles.categoryIconContainer}>
+          <Icon name="folder-open-outline" size={24} color="#fec82b" />
+        </View>
+        <View style={styles.categoryDetails}>
+          <Text style={styles.categoryName}>{item.name}</Text>
+          {item.description ? (
+            <View style={styles.descriptionContainer}>
+              <Icon name="document-text-outline" size={12} color="#75482f" />
+              <Text style={styles.categoryDescription}>{item.description}</Text>
             </View>
-          )}
-          <View style={styles.modalButtons}>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.modalCancelButton]}
-              onPress={() => setShowDeleteModal(false)}
-            >
-              <Text style={styles.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.modalButton, 
-                categoryToDelete?.productCount > 0 ? styles.modalDisabledButton : styles.modalDeleteButton
-              ]}
-              onPress={() => {
-                setShowDeleteModal(false);
-                deleteCategory(categoryToDelete);
-              }}
-              disabled={categoryToDelete?.productCount > 0}
-            >
-              <Text style={categoryToDelete?.productCount > 0 ? styles.modalDisabledText : styles.modalDeleteText}>
-                Delete
-              </Text>
-            </TouchableOpacity>
+          ) : null}
+          <View style={styles.productCountContainer}>
+            <Icon name="cube-outline" size={12} color="#75482f" />
+            <Text style={styles.productCount}>
+              {productCount[item.name] || 0} product(s)
+            </Text>
           </View>
         </View>
       </View>
-    </Modal>
+      
+      <View style={styles.categoryActions}>
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.editBtn]}
+          onPress={() => handleEditCategory(item)}
+        >
+          <Icon name="create-outline" size={14} color="#0e0b05" />
+          <Text style={styles.actionBtnText}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.deleteBtn]}
+          onPress={() => handleDeleteCategory(item)}
+        >
+          <Icon name="trash-bin-outline" size={14} color="#fff" />
+          <Text style={[styles.actionBtnText, styles.deleteBtnText]}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
-
-  // Edit Modal
-  const EditModal = () => (
-    <Modal
-      visible={showEditModal}
-      transparent={true}
-      animationType="slide"
-    >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.modalOverlay}
-      >
-        <View style={styles.editModalContent}>
-          <View style={styles.editModalHeader}>
-            <Text style={styles.editModalTitle}>Edit Category</Text>
-            <TouchableOpacity
-              onPress={() => {
-                setShowEditModal(false);
-                setEditingCategory(null);
-                setEditingName('');
-                setErrorMessage('');
-              }}
-              style={styles.modalCloseButton}
-            >
-              <Icon name="close" size={24} color="#152d2a" />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.editInputWrapper}>
-            <TextInput
-              ref={editInputRef}
-              style={[styles.editInput, errorMessage && styles.editInputError]}
-              value={editingName}
-              onChangeText={(text) => {
-                setEditingName(text);
-                if (errorMessage) setErrorMessage('');
-              }}
-              placeholder="Enter category name"
-              placeholderTextColor="#152d2a"
-              autoFocus
-              onSubmitEditing={updateCategory}
-              maxLength={30}
-            />
-            {errorMessage ? (
-              <Animated.Text style={[styles.errorText, { opacity: errorAnim }]}>
-                {errorMessage}
-              </Animated.Text>
-            ) : (
-              <Text style={styles.charCount}>{editingName.length}/30</Text>
-            )}
-          </View>
-
-          {editingCategory && (
-            <View style={styles.editCategoryInfo}>
-              <View style={styles.editInfoRow}>
-                <Icon name="inventory-2" size={16} color="#152d2a" />
-                <Text style={styles.editInfoText}>
-                  {editingCategory.productCount || 0} products in this category
-                </Text>
-              </View>
-              {editingCategory.createdAt && (
-                <View style={styles.editInfoRow}>
-                  <Icon name="calendar-today" size={16} color="#152d2a" />
-                  <Text style={styles.editInfoText}>
-                    Created: {new Date(editingCategory.createdAt).toLocaleDateString()}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-
-          <View style={styles.editModalButtons}>
-            <TouchableOpacity
-              style={[styles.editModalButton, styles.editCancelButton]}
-              onPress={() => {
-                setShowEditModal(false);
-                setEditingCategory(null);
-                setEditingName('');
-                setErrorMessage('');
-              }}
-            >
-              <Text style={styles.editCancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.editModalButton, styles.editSaveButton]}
-              onPress={updateCategory}
-            >
-              <Icon name="save" size={20} color="#FFFFFF" />
-              <Text style={styles.editSaveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-
-  const handleClearInput = () => {
-    setNewCategoryName('');
-    setErrorMessage('');
-    inputRef.current?.focus();
-  };
 
   if (loading && categories.length === 0) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <View style={styles.loadingContainer}>
-          <View style={styles.loadingSpinner} />
-          <Text style={styles.loadingText}>Loading categories...</Text>
-        </View>
+      <View style={styles.centerContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+        <ActivityIndicator size="large" color="#fec82b" />
+        <Text style={styles.loadingText}>Loading categories...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Icon name="arrow-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Categories</Text>
-        <TouchableOpacity 
-          onPress={() => {
-            const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
-            setCategories(sorted);
-          }}
-          style={styles.sortButton}
-        >
-          <Icon name="sort" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      
+      {/* FAB Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => {
+          resetForm();
+          setModalVisible(true);
+        }}
+      >
+        <Icon name="add" size={32} color="#0e0b05" />
+      </TouchableOpacity>
 
-      <View style={styles.inputContainer}>
-        <View style={[styles.inputWrapper, errorMessage && styles.inputWrapperError]}>
-          <Icon name="category" size={20} color="#152d2a" style={styles.inputIcon} />
-          <TextInput
-            ref={inputRef}
-            style={[styles.input, errorMessage && styles.inputError]}
-            placeholder="Enter new category name"
-            placeholderTextColor="#152d2a"
-            value={newCategoryName}
-            onChangeText={(text) => {
-              setNewCategoryName(text);
-              if (errorMessage) setErrorMessage('');
-            }}
-            onSubmitEditing={addCategory}
-            maxLength={30}
-            editable={!isAddingCategory}
-          />
-          {newCategoryName.length > 0 && (
-            <TouchableOpacity 
-              onPress={handleClearInput}
-              style={styles.clearInputButton}
-            >
-              <Icon name="close" size={18} color="#152d2a" />
-            </TouchableOpacity>
-          )}
+      {/* Stats Cards */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <Icon name="albums-outline" size={24} color="#fec82b" />
+          <Text style={styles.statValue}>{categories.length}</Text>
+          <Text style={styles.statLabel}>Total Categories</Text>
         </View>
-        <TouchableOpacity 
-          style={[
-            styles.addButton, 
-            (!newCategoryName.trim() || isAddingCategory) && styles.addButtonDisabled
-          ]}
-          onPress={addCategory}
-          disabled={!newCategoryName.trim() || isAddingCategory}
-        >
-          {isAddingCategory ? (
-            <View style={styles.addingSpinner} />
-          ) : (
-            <Icon name="add" size={24} color="#FFFFFF" />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {errorMessage ? (
-        <Animated.View style={[styles.errorContainer, { opacity: errorAnim }]}>
-          <Icon name="error-outline" size={18} color="#f44336" />
-          <Text style={styles.errorContainerText}>{errorMessage}</Text>
-        </Animated.View>
-      ) : (
-        <View style={styles.categoryCount}>
-          <Text style={styles.categoryCountText}>
-            {categories.length} {categories.length === 1 ? 'category' : 'categories'} · {totalProducts} total products
+        <View style={styles.statCard}>
+          <Icon name="checkmark-circle-outline" size={24} color="#fec82b" />
+          <Text style={styles.statValue}>
+            {Object.keys(productCount).length}
           </Text>
-          {categories.length > 0 && (
-            <Text style={styles.categoryCountHint}>
-              Tap a category to edit
-            </Text>
-          )}
+          <Text style={styles.statLabel}>Active Categories</Text>
         </View>
-      )}
+        <View style={styles.statCard}>
+          <Icon name="cube-outline" size={24} color="#fec82b" />
+          <Text style={styles.statValue}>
+            {Object.values(productCount).reduce((a, b) => a + b, 0)}
+          </Text>
+          <Text style={styles.statLabel}>Total Products</Text>
+        </View>
+      </View>
 
       <FlatList
         data={categories}
-        renderItem={renderCategory}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
+        renderItem={renderCategoryItem}
+        keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={loadCategories} />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="category" size={60} color="#90a5a0" />
-            <Text style={styles.emptyTitle}>No Categories</Text>
-            <Text style={styles.emptySubtitle}>
-              Start by adding your first category above
-            </Text>
+            <Icon name="folder-open-outline" size={64} color="#ccc" />
+            <Text style={styles.emptyText}>No categories found</Text>
+            <Text style={styles.emptySubtext}>Tap + to add your first category</Text>
           </View>
         }
+        contentContainerStyle={styles.listContainer}
       />
 
-      <EditModal />
-      <DeleteModal />
-    </SafeAreaView>
+      {/* Add/Edit Category Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={resetForm}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalHeaderContent}>
+                <Icon 
+                  name={editingCategory ? "create-outline" : "add-circle-outline"} 
+                  size={24} 
+                  color="#0e0b05" 
+                />
+                <Text style={styles.modalTitle}>
+                  {editingCategory ? 'Edit Category' : 'Add New Category'}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={resetForm}>
+                <Icon name="close" size={24} color="#0e0b05" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalForm}>
+              <View style={styles.inputContainer}>
+                <Icon name="pricetag-outline" size={16} color="#75482f" />
+                <Text style={styles.label}>Category Name *</Text>
+              </View>
+              <TextInput
+                style={styles.input}
+                value={categoryName}
+                onChangeText={setCategoryName}
+                placeholder="Enter category name"
+                placeholderTextColor="#999"
+              />
+
+              <View style={styles.inputContainer}>
+                <Icon name="document-text-outline" size={16} color="#75482f" />
+                <Text style={styles.label}>Description (Optional)</Text>
+              </View>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={categoryDescription}
+                onChangeText={setCategoryDescription}
+                placeholder="Enter category description"
+                placeholderTextColor="#999"
+                multiline
+                numberOfLines={3}
+              />
+
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={editingCategory ? handleUpdateCategory : handleAddCategory}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#0e0b05" />
+                ) : (
+                  <>
+                    <Icon name="checkmark-circle-outline" size={20} color="#0e0b05" />
+                    <Text style={styles.saveButtonText}>
+                      {editingCategory ? 'Update Category' : 'Add Category'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#152d2a',
+    backgroundColor: '#f5f5f5',
   },
-  centerContent: {
+  centerContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    flex: 1,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-  },
-  loadingSpinner: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: '#178556',
-    borderTopColor: 'transparent',
-    marginBottom: 12,
-  },
-  addingSpinner: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    borderTopColor: 'transparent',
+    backgroundColor: '#f5f5f5',
   },
   loadingText: {
-    fontSize: 16,
-    color: '#90a5a0',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: '#178556',
-    borderBottomWidth: 1,
-    borderBottomColor: '#152d2a',
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  sortButton: {
-    padding: 4,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#90a5a0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#152d2a',
-  },
-  inputWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#152d2a',
-  },
-  inputWrapperError: {
-    borderColor: '#f44336',
-    borderWidth: 2,
-  },
-  inputIcon: {
-    marginRight: 8,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 10,
+    marginTop: 16,
     fontSize: 14,
-    color: '#152d2a',
+    color: '#75482f',
   },
-  inputError: {
-    color: '#f44336',
-  },
-  clearInputButton: {
-    padding: 4,
-  },
-  addButton: {
-    backgroundColor: '#178556',
-    width: 48,
-    height: 48,
-    borderRadius: 10,
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#fec82b',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#178556',
+    elevation: 5,
+    shadowColor: '#0e0b05',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#152d2a',
+    zIndex: 100,
   },
-  addButtonDisabled: {
-    backgroundColor: '#90a5a0',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  errorContainer: {
+  statsContainer: {
     flexDirection: 'row',
+    margin: 16,
+    borderRadius: 12,
+    padding: 16,
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    marginTop: 16,
+  },
+  statCard: {
+    flex: 1,
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#FFEBEE',
   },
-  errorContainerText: {
-    fontSize: 13,
-    color: '#f44336',
-    marginLeft: 6,
+  statValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#0e0b05',
+    marginTop: 8,
+    marginBottom: 4,
   },
-  categoryCount: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#90a5a0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#152d2a',
-  },
-  categoryCountText: {
-    fontSize: 12,
-    color: '#152d2a',
+  statLabel: {
+    fontSize: 11,
+    color: '#75482f',
     fontWeight: '500',
   },
-  categoryCountHint: {
-    fontSize: 11,
-    color: '#152d2a',
-  },
-  list: {
-    padding: 12,
-    paddingBottom: 20,
+  listContainer: {
+    padding: 16,
+    paddingTop: 0,
   },
   categoryCard: {
-    backgroundColor: '#90a5a0',
+    backgroundColor: '#fff',
     borderRadius: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#178556',
-    borderLeftWidth: 4,
-    overflow: 'hidden',
-  },
-  categoryContent: {
+    padding: 16,
+    marginBottom: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 14,
+    elevation: 2,
+    shadowColor: '#0e0b05',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   categoryInfo: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
-  categoryColorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  categoryIconContainer: {
     marginRight: 12,
   },
-  categoryNameContainer: {
+  categoryDetails: {
     flex: 1,
   },
   categoryName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#152d2a',
-  },
-  productCountBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  productCountText: {
-    fontSize: 11,
-    color: '#152d2a',
-    marginLeft: 4,
-  },
-  categoryActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionButton: {
-    padding: 6,
-    marginLeft: 4,
-  },
-  emptyContainer: {
-    padding: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginTop: 12,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#90a5a0',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#90a5a0',
-    borderRadius: 24,
-    padding: 24,
-    width: '90%',
-    maxWidth: 400,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#178556',
-  },
-  modalIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#FFEBEE',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#152d2a',
-    marginBottom: 8,
-  },
-  modalText: {
-    fontSize: 14,
-    color: '#152d2a',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  modalWarningContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFEBEE',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 16,
-    width: '100%',
-  },
-  modalWarningText: {
-    fontSize: 13,
-    color: '#f44336',
-    marginLeft: 8,
-    flex: 1,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 10,
-    width: '100%',
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  modalCancelButton: {
-    backgroundColor: '#152d2a',
-  },
-  modalCancelText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#90a5a0',
+    fontWeight: 'bold',
+    color: '#0e0b05',
+    marginBottom: 4,
   },
-  modalDeleteButton: {
-    backgroundColor: '#f44336',
-  },
-  modalDeleteText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  modalDisabledButton: {
-    backgroundColor: '#90a5a0',
-  },
-  modalDisabledText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#152d2a',
-  },
-  // Edit Modal
-  editModalContent: {
-    backgroundColor: '#90a5a0',
-    borderRadius: 24,
-    padding: 24,
-    width: '90%',
-    maxWidth: 400,
-    borderWidth: 1,
-    borderColor: '#178556',
-  },
-  editModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  editModalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#152d2a',
-  },
-  modalCloseButton: {
-    padding: 4,
-  },
-  editInputWrapper: {
-    marginBottom: 16,
-  },
-  editInput: {
-    borderWidth: 1,
-    borderColor: '#152d2a',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#152d2a',
-    backgroundColor: '#FFFFFF',
-  },
-  editInputError: {
-    borderColor: '#f44336',
-    borderWidth: 2,
-  },
-  charCount: {
-    fontSize: 11,
-    color: '#152d2a',
-    textAlign: 'right',
-    marginTop: 4,
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#f44336',
-    marginTop: 4,
-  },
-  editCategoryInfo: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  editInfoRow: {
+  descriptionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 4,
-  },
-  editInfoText: {
-    fontSize: 13,
-    color: '#152d2a',
-    marginLeft: 8,
-  },
-  editModalButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  editModalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
     gap: 6,
   },
-  editCancelButton: {
-    backgroundColor: '#152d2a',
+  categoryDescription: {
+    fontSize: 12,
+    color: '#75482f',
+    flex: 1,
   },
-  editCancelText: {
+  productCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  productCount: {
+    fontSize: 11,
+    color: '#fec82b',
+    fontWeight: '500',
+  },
+  categoryActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  editBtn: {
+    backgroundColor: '#fec82b',
+  },
+  deleteBtn: {
+    backgroundColor: '#ff4444',
+  },
+  actionBtnText: {
+    color: '#0e0b05',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  deleteBtnText: {
+    color: '#fff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: '90%',
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fec82b',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  modalHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0e0b05',
+  },
+  modalForm: {
+    padding: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 12,
+    gap: 6,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#75482f',
+  },
+  input: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    color: '#0e0b05',
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  saveButton: {
+    backgroundColor: '#fec82b',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  saveButtonText: {
+    color: '#0e0b05',
     fontSize: 16,
     fontWeight: '600',
-    color: '#90a5a0',
   },
-  editSaveButton: {
-    backgroundColor: '#178556',
+  emptyContainer: {
+    paddingTop: 100,
+    alignItems: 'center',
   },
-  editSaveText: {
+  emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#75482f',
+    marginTop: 16,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: '#999',
+    marginTop: 8,
   },
 });
+
+export default CategoryManagementScreen;

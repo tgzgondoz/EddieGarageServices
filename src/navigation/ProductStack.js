@@ -1,29 +1,52 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import ProductListScreen from '../screens/ProductListScreen';
-import ProductDetailsScreen from '../screens/ProductDetailsScreen';
-import AddEditProductScreen from '../screens/AddEditProductScreen'; // Changed from AddProductScreen to AddEditProductScreen
+import { TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import ProductManagementScreen from '../screens/ProductManagementScreen';
+import AddEditProductScreen from '../screens/AddEditProductScreen';
 
 const Stack = createStackNavigator();
 
-export default function ProductStack() {
+const ProductStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#fec82b',
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: '#e0e0e0',
+        },
+        headerTintColor: '#0e0b05',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+          fontSize: 18,
+        },
+        headerTitleAlign: 'center',
+        headerBackTitleVisible: false,
+        headerBackImage: () => (
+          <Icon name="chevron-back" size={24} color="#0e0b05" style={{ marginLeft: 8 }} />
+        ),
+      }}
+    >
       <Stack.Screen 
         name="ProductList" 
-        component={ProductListScreen} 
-        options={{ title: 'Products' }}
+        component={ProductManagementScreen}
+        options={{ 
+          title: 'Products',
+          headerLeft: () => null,
+        }}
       />
       <Stack.Screen 
-        name="ProductDetails" 
-        component={ProductDetailsScreen} 
-        options={{ title: 'Product Details' }}
-      />
-      <Stack.Screen 
-        name="AddEditProduct"  // Changed from AddProduct to AddEditProduct
-        component={AddEditProductScreen} 
-        options={{ title: 'Add/Edit Product' }}
+        name="AddEditProduct" 
+        component={AddEditProductScreen}
+        options={{ 
+          title: 'Product Form',
+        }}
       />
     </Stack.Navigator>
   );
-}
+};
+
+export default ProductStack;

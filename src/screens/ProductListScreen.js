@@ -2,607 +2,453 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
   TextInput,
-  Image,
-  ScrollView,
-  Dimensions,
-  SafeAreaView,
-  Animated,
+  RefreshControl,
+  ScrollView
 } from 'react-native';
-import { database } from '../config/firebase';
-import { ref, onValue, off } from 'firebase/database';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
+import ProductService from '../services/ProductService';
 
-const { width } = Dimensions.get('window');
-
-export default function ProductListScreen({ navigation }) {
+const ProductListScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [categories, setCategories] = useState(['All']);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-
-  // Animation values
-  const fadeAnim = useState(new Animated.Value(0))[0];
+  const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
-    const productsRef = ref(database, 'products');
-    
-    const unsubscribe = onValue(productsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const productsData = Object.keys(data).map(key => ({
-          id: key,
-          ...data[key]
-        }));
-        setProducts(productsData);
-        
-        // Extract unique categories
-        const cats = new Set(['All']);
-        productsData.forEach(product => {
-          if (product.category && product.category.trim() !== '') {
-            if (typeof product.category === 'object') {
-              const categoryName = product.category.name || product.category.value || String(product.category);
-              if (categoryName && categoryName.trim() !== '') {
-                cats.add(categoryName.trim());
-              }
-            } else {
-              const categoryName = String(product.category).trim();
-              if (categoryName !== '') {
-                cats.add(categoryName);
-              }
-            }
-          }
-        });
-        setCategories(Array.from(cats));
-      } else {
-        setProducts([]);
-        setCategories(['All']);
-      }
+    loadProducts();
+  }, []);
+
+  const loadProducts = () => {
+    ProductService.getProducts((productsList) => {
+      setProducts(productsList);
+      filterProducts(productsList, searchQuery, selectedCategory);
       setLoading(false);
-    }, (error) => {
-      console.error('Error fetching products:', error);
-      setLoading(false);
+      setRefreshing(false);
     });
-
-    return () => off(productsRef);
-  }, []);
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  }, []);
-
-  const getProductCategory = (product) => {
-    if (!product.category) return '';
-    if (typeof product.category === 'object') {
-      return product.category.name || product.category.value || String(product.category);
-    }
-    return String(product.category);
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-    const productCategory = getProductCategory(product);
-    const matchesCategory = selectedCategory === 'All' || productCategory === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filterProducts = (productsList, query, category) => {
+    let filtered = [...productsList];
+    
+    if (query) {
+      filtered = filtered.filter(p => 
+        p.name?.toLowerCase().includes(query.toLowerCase()) ||
+        p.sku?.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    
+    if (category !== 'All') {
+      filtered = filtered.filter(p => p.category === category);
+    }
+    
+    setFilteredProducts(filtered);
+  };
 
-  const renderGridItem = ({ item }) => (
-    <Animated.View style={[styles.gridCard, { opacity: fadeAnim }]}>
-      <TouchableOpacity
-        style={styles.gridTouchable}
-        onPress={() => navigation.navigate('ProductDetails', { product: item })}
-      >
-        <View style={styles.gridImageContainer}>
-          {item.image ? (
-            <Image source={{ uri: item.image }} style={styles.gridImage} />
-          ) : (
-            <View style={styles.gridImagePlaceholder}>
-              <Icon name="inventory-2" size={40} color="#90a5a0" />
-            </View>
-          )}
-          {(item.quantity || 0) <= 5 && (item.quantity || 0) > 0 && (
-            <View style={styles.lowStockBadge}>
-              <Text style={styles.lowStockBadgeText}>Low Stock</Text>
-            </View>
-          )}
-          {(item.quantity || 0) === 0 && (
-            <View style={styles.outOfStockBadge}>
-              <Text style={styles.outOfStockBadgeText}>Out of Stock</Text>
-            </View>
-          )}
-        </View>
-        <View style={styles.gridInfo}>
-          <Text style={styles.gridName} numberOfLines={1}>{item.name || 'Unnamed'}</Text>
-          <Text style={styles.gridPrice}>${item.price?.toFixed(2) || '0.00'}</Text>
-          <View style={styles.gridStockRow}>
-            <Icon name="inventory" size={14} color="#152d2a" />
-            <Text style={styles.gridStock}>{item.quantity || 0} in stock</Text>
-          </View>
-          {item.category && (
-            <View style={styles.gridCategoryBadge}>
-              <Text style={styles.gridCategoryText}>{getProductCategory(item)}</Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+    filterProducts(products, text, selectedCategory);
+  };
 
-  const renderListItem = ({ item }) => (
-    <Animated.View style={[styles.listCard, { opacity: fadeAnim }]}>
-      <TouchableOpacity
-        style={styles.listTouchable}
-        onPress={() => navigation.navigate('ProductDetails', { product: item })}
-      >
-        <View style={styles.listImageContainer}>
-          {item.image ? (
-            <Image source={{ uri: item.image }} style={styles.listImage} />
-          ) : (
-            <View style={styles.listImagePlaceholder}>
-              <Icon name="inventory-2" size={30} color="#90a5a0" />
-            </View>
-          )}
-        </View>
-        <View style={styles.listInfo}>
-          <View style={styles.listHeader}>
-            <Text style={styles.listName} numberOfLines={1}>{item.name || 'Unnamed'}</Text>
-            <Text style={styles.listPrice}>${item.price?.toFixed(2) || '0.00'}</Text>
-          </View>
-          <View style={styles.listDetails}>
-            <View style={styles.listStockRow}>
-              <Icon name="inventory" size={14} color="#152d2a" />
-              <Text style={[
-                styles.listStock,
-                (item.quantity || 0) <= 5 && styles.lowStockText
-              ]}>
-                {item.quantity || 0} in stock
-              </Text>
-            </View>
-            {item.category && (
-              <View style={styles.listCategoryBadge}>
-                <Text style={styles.listCategoryText}>{getProductCategory(item)}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-        <Icon name="chevron-right" size={20} color="#152d2a" />
-      </TouchableOpacity>
-    </Animated.View>
-  );
+  const handleCategoryFilter = (category) => {
+    setSelectedCategory(category);
+    filterProducts(products, searchQuery, category);
+  };
 
-  const renderProduct = viewMode === 'grid' ? renderGridItem : renderListItem;
+  const handleDeleteProduct = (productId, productName) => {
+    Alert.alert(
+      'Delete Product',
+      `Are you sure you want to delete ${productName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await ProductService.deleteProduct(productId);
+              Alert.alert('Success', 'Product deleted successfully');
+              loadProducts();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete product');
+            }
+          }
+        }
+      ]
+    );
+  };
 
-  if (loading && products.length === 0) {
+  const handleRestock = (product) => {
+    Alert.alert(
+      'Restock Product',
+      `Enter quantity to add to ${product.name}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Restock',
+          onPress: async (quantity) => {
+            if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
+              try {
+                await ProductService.updateInventory(product.id, parseInt(quantity), 'restock');
+                Alert.alert('Success', 'Inventory updated successfully');
+                loadProducts();
+              } catch (error) {
+                Alert.alert('Error', 'Failed to update inventory');
+              }
+            } else {
+              Alert.alert('Error', 'Please enter a valid quantity');
+            }
+          }
+        }
+      ],
+      'plain-text'
+    );
+  };
+
+  const renderProduct = ({ item }) => {
+    const status = ProductService.getInventoryStatus(item.quantity);
+    const statusColor = ProductService.getStatusColor(status);
+    const profit = ProductService.calculateProfit(item);
+    
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <View style={styles.loadingContainer}>
-          <View style={styles.loadingSpinner} />
-          <Text style={styles.loadingText}>Loading products...</Text>
+      <TouchableOpacity
+        style={styles.productCard}
+        onPress={() => navigation.navigate('ProductDetails', { product: item })}
+        activeOpacity={0.7}
+      >
+        <View style={styles.productHeader}>
+          <View style={styles.productTitleContainer}>
+            <Icon name="cube" size={18} color="#fec82b" />
+            <Text style={styles.productName}>{item.name}</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+            <Text style={[styles.status, { color: statusColor }]}>
+              {status}
+            </Text>
+          </View>
         </View>
+        
+        <Text style={styles.productSku}>SKU: {item.sku || 'N/A'}</Text>
+        
+        <View style={styles.productDetails}>
+          <View>
+            <Text style={styles.priceLabel}>Selling Price</Text>
+            <Text style={styles.price}>${item.sellPrice?.toFixed(2)}</Text>
+            <Text style={styles.costText}>Cost: ${item.buyPrice?.toFixed(2)}</Text>
+          </View>
+          
+          <View style={styles.rightDetails}>
+            <Text style={styles.quantityLabel}>Quantity</Text>
+            <Text style={styles.quantity}>{item.quantity || 0}</Text>
+            <Text style={styles.profitText}>
+              Profit: ${profit.toFixed(2)}
+            </Text>
+          </View>
+        </View>
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.restockButton]}
+            onPress={() => handleRestock(item)}
+          >
+            <Icon name="add-circle" size={16} color="#0e0b05" />
+            <Text style={styles.restockButtonText}>Restock</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDeleteProduct(item.id, item.name)}
+          >
+            <Icon name="trash-bin" size={16} color="#fff" />
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const categories = ['All', ...new Set(products.map(p => p.category).filter(Boolean))];
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#fec82b" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#90a5a0" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search products..."
-            placeholderTextColor="#90a5a0"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-              <Icon name="close" size={18} color="#90a5a0" />
-            </TouchableOpacity>
-          )}
-        </View>
-        <TouchableOpacity 
-          style={styles.viewToggle}
-          onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-        >
-          <Icon 
-            name={viewMode === 'grid' ? 'view-list' : 'grid-view'} 
-            size={24} 
-            color="#178556" 
-          />
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <Icon name="search" size={18} color="#75482f" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search products..."
+          placeholderTextColor="#75482f"
+          value={searchQuery}
+          onChangeText={handleSearch}
+        />
+        {searchQuery !== '' && (
+          <TouchableOpacity onPress={() => handleSearch('')}>
+            <Icon name="close-circle" size={18} color="#75482f" />
+          </TouchableOpacity>
+        )}
       </View>
-
-      <View style={styles.categoryContainer}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryScrollContent}
-        >
-          {categories.map(category => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category && styles.categoryButtonActive
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === category && styles.categoryTextActive
-              ]}>
-                {category}
-              </Text>
-              {selectedCategory === category && (
-                <View style={styles.categoryActiveIndicator} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <View style={styles.resultCount}>
-          <Text style={styles.resultCountText}>{filteredProducts.length} items</Text>
-        </View>
-      </View>
-
+      
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+        {categories.map(category => (
+          <TouchableOpacity
+            key={category}
+            style={[
+              styles.categoryChip,
+              selectedCategory === category && styles.categoryChipActive
+            ]}
+            onPress={() => handleCategoryFilter(category)}
+          >
+            <Text style={[
+              styles.categoryChipText,
+              selectedCategory === category && styles.categoryChipTextActive
+            ]}>{category}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      
       <FlatList
         data={filteredProducts}
         renderItem={renderProduct}
-        keyExtractor={item => item.id}
-        key={viewMode} // Force re-render when view mode changes
-        numColumns={viewMode === 'grid' ? 2 : 1}
-        columnWrapperStyle={viewMode === 'grid' ? styles.gridRow : null}
-        contentContainerStyle={[
-          styles.list,
-          viewMode === 'grid' ? styles.gridList : styles.listList
-        ]}
-        showsVerticalScrollIndicator={false}
+        keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={loadProducts} />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="search-off" size={60} color="#90a5a0" />
-            <Text style={styles.emptyTitle}>No products found</Text>
-            <Text style={styles.emptySubtitle}>
-              {searchQuery ? 'Try adjusting your search' : 'No products available'}
-            </Text>
+            <Icon name="cube-outline" size={64} color="#75482f" />
+            <Text style={styles.emptyText}>No products found</Text>
+            <Text style={styles.emptySubtext}>Tap + to add your first product</Text>
           </View>
         }
+        contentContainerStyle={styles.listContainer}
       />
-    </SafeAreaView>
+      
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('AddProduct')}
+      >
+        <Icon name="add" size={32} color="#0e0b05" />
+      </TouchableOpacity>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#152d2a',
+    backgroundColor: '#f5f5f5',
   },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
+  centerContainer: {
     flex: 1,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-  },
-  loadingSpinner: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: '#178556',
-    borderTopColor: 'transparent',
-    marginBottom: 12,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#90a5a0',
-  },
-  header: {
-    flexDirection: 'row',
-    padding: 12,
-    backgroundColor: '#90a5a0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#178556',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   searchContainer: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#152d2a',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#178556',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
   searchIcon: {
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#0e0b05',
   },
-  clearButton: {
-    padding: 4,
+  categoryScroll: {
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
-  viewToggle: {
-    padding: 8,
-    backgroundColor: '#152d2a',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#178556',
-  },
-  categoryContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#90a5a0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#178556',
-  },
-  categoryScrollContent: {
-    paddingRight: 8,
-    flex: 1,
-  },
-  categoryButton: {
+  categoryChip: {
     paddingHorizontal: 16,
     paddingVertical: 6,
-    marginRight: 8,
     borderRadius: 20,
-    backgroundColor: '#152d2a',
-    position: 'relative',
+    backgroundColor: '#f0f0f0',
+    marginHorizontal: 4,
   },
-  categoryButtonActive: {
-    backgroundColor: '#178556',
+  categoryChipActive: {
+    backgroundColor: '#fec82b',
   },
-  categoryText: {
-    color: '#90a5a0',
-    fontSize: 13,
-    fontWeight: '500',
+  categoryChipText: {
+    color: '#75482f',
   },
-  categoryTextActive: {
-    color: '#FFFFFF',
+  categoryChipTextActive: {
+    color: '#0e0b05',
     fontWeight: '600',
   },
-  categoryActiveIndicator: {
-    position: 'absolute',
-    bottom: -2,
-    left: '50%',
-    marginLeft: -4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#178556',
+  listContainer: {
+    paddingBottom: 16,
   },
-  resultCount: {
-    marginLeft: 'auto',
-    paddingLeft: 8,
-  },
-  resultCountText: {
-    fontSize: 12,
-    color: '#152d2a',
-    fontWeight: '500',
-  },
-  list: {
-    padding: 12,
-  },
-  gridList: {
-    paddingBottom: 20,
-  },
-  listList: {
-    paddingBottom: 20,
-  },
-  gridRow: {
-    justifyContent: 'space-between',
-  },
-  // Grid View Styles
-  gridCard: {
-    flex: 1,
-    margin: 4,
-    backgroundColor: '#90a5a0',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#178556',
-    overflow: 'hidden',
-    maxWidth: (width - 40) / 2,
-  },
-  gridTouchable: {
-    flex: 1,
-  },
-  gridImageContainer: {
-    width: '100%',
-    height: 140,
-    backgroundColor: '#152d2a',
-    position: 'relative',
-  },
-  gridImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  gridImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#152d2a',
-  },
-  lowStockBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#FF9800',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  lowStockBadgeText: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  outOfStockBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#f44336',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  outOfStockBadgeText: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  gridInfo: {
-    padding: 10,
-  },
-  gridName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#152d2a',
-    marginBottom: 2,
-  },
-  gridPrice: {
-    fontSize: 16,
-    color: '#152d2a',
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  gridStockRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  gridStock: {
-    fontSize: 11,
-    color: '#152d2a',
-    marginLeft: 4,
-  },
-  gridCategoryBadge: {
-    backgroundColor: '#152d2a',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  gridCategoryText: {
-    fontSize: 10,
-    color: '#90a5a0',
-  },
-  // List View Styles
-  listCard: {
-    backgroundColor: '#90a5a0',
-    borderRadius: 12,
+  productCard: {
+    backgroundColor: '#fff',
+    margin: 16,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#178556',
+    padding: 16,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: '#0e0b05',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: '#fec82b',
   },
-  listTouchable: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-  },
-  listImageContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 8,
-    backgroundColor: '#152d2a',
-    overflow: 'hidden',
-  },
-  listImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  listImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#152d2a',
-  },
-  listInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  listHeader: {
+  productHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  listName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#152d2a',
-    flex: 1,
-    marginRight: 8,
-  },
-  listPrice: {
-    fontSize: 15,
-    color: '#152d2a',
-    fontWeight: '700',
-  },
-  listDetails: {
+  productTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  listStockRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  listStock: {
-    fontSize: 12,
-    color: '#152d2a',
-    marginLeft: 4,
-  },
-  lowStockText: {
-    color: '#f44336',
-    fontWeight: '600',
-  },
-  listCategoryBadge: {
-    backgroundColor: '#152d2a',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  listCategoryText: {
-    fontSize: 11,
-    color: '#90a5a0',
-  },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
     flex: 1,
   },
-  emptyTitle: {
+  productName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#90a5a0',
-    marginTop: 12,
+    fontWeight: 'bold',
+    color: '#0e0b05',
+    marginLeft: 8,
+    flex: 1,
   },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#90a5a0',
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  status: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  productSku: {
+    fontSize: 12,
+    color: '#75482f',
+    marginBottom: 12,
+    marginLeft: 26,
+  },
+  productDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    marginLeft: 26,
+  },
+  priceLabel: {
+    fontSize: 11,
+    color: '#75482f',
+    marginBottom: 2,
+  },
+  price: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fec82b',
+  },
+  costText: {
+    fontSize: 11,
+    color: '#75482f',
     marginTop: 4,
   },
+  rightDetails: {
+    alignItems: 'flex-end',
+  },
+  quantityLabel: {
+    fontSize: 11,
+    color: '#75482f',
+    marginBottom: 2,
+  },
+  quantity: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fec82b',
+  },
+  profitText: {
+    fontSize: 11,
+    color: '#4caf50',
+    marginTop: 4,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginLeft: 26,
+  },
+  actionButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  restockButton: {
+    backgroundColor: '#fec82b',
+  },
+  restockButtonText: {
+    color: '#0e0b05',
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  deleteButton: {
+    backgroundColor: '#ff4444',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#fec82b',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#0e0b05',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#75482f',
+    marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#ccc',
+    marginTop: 8,
+  },
 });
+
+export default ProductListScreen;
