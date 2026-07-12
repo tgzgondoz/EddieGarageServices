@@ -75,7 +75,7 @@ const LoginScreen = ({ onLogin }) => {
             <Image 
               source={require('../../assets/logo.png')} 
               style={styles.logo}
-              resizeMode="contain"
+              resizeMode="cover"
               onError={() => setImageError(true)}
             />
           ) : (
@@ -127,26 +127,6 @@ const LoginScreen = ({ onLogin }) => {
               <Text style={styles.loginButtonText}>Login</Text>
             )}
           </TouchableOpacity>
-
-          <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>Demo Credentials</Text>
-            
-            <TouchableOpacity style={styles.demoButton} onPress={demoAdmin}>
-              <View style={styles.demoRow}>
-                <Icon name="person" size={14} color="#0b1e1c" />
-                <Text style={styles.demoText}>Admin: admin@eddietuckshop.com</Text>
-              </View>
-              <Text style={styles.demoPassword}>Pass: Eddie@Admin2026#Secure</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.demoButton} onPress={demoCashier}>
-              <View style={styles.demoRow}>
-                <Icon name="person-outline" size={14} color="#0b1e1c" />
-                <Text style={styles.demoText}>Staff: staff@eddietuckshop.com</Text>
-              </View>
-              <Text style={styles.demoPassword}>Pass: Eddie@Staff2026#Strong</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -170,6 +150,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 120,
     height: 120,
+    borderRadius: 60, // This makes the image circular
     marginBottom: 16,
   },
   fallbackLogo: {
