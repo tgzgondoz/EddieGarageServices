@@ -27,7 +27,6 @@ const RestrictedScreen = ({ navigation, screenName }) => {
         {/* Title and Message */}
         <View style={styles.content}>
           <Text style={styles.title}>Access Restricted</Text>
-          <Text style={styles.subtitle}>🔒 Administrator Only</Text>
           <View style={styles.divider} />
           <Text style={styles.message}>
             The <Text style={styles.highlight}>{screenName}</Text> section is only 

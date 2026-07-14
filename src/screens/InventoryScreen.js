@@ -204,81 +204,88 @@ const InventoryScreen = ({ navigation }) => {
 
   const needsAttention = products.filter(p => p.quantity < 20).length;
 
+  // Render the fixed header content
+  const renderFixedHeader = () => (
+    <View style={styles.fixedHeaderContainer}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerSubtitle}>
+            {stats.totalProducts} products in stock
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.headerAction} onPress={loadProducts}>
+          <Icon name="refresh-outline" size={22} color="#0D5335" />
+        </TouchableOpacity>
+      </View>
+      
+      {/* Stats Cards */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        style={styles.statsScroll}
+        contentContainerStyle={styles.statsScrollContent}
+      >
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.primaryIcon]}>
+            <Icon name="cube-outline" size={18} color="#0D5335" />
+          </View>
+          <Text style={styles.statValue}>{stats.totalProducts}</Text>
+          <Text style={styles.statLabel}>Products</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.primaryIcon]}>
+            <Icon name="cash-outline" size={18} color="#0D5335" />
+          </View>
+          <Text style={styles.statValue}>{formatCurrency(stats.totalValue)}</Text>
+          <Text style={styles.statLabel}>Inventory Value</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.successIcon]}>
+            <Icon name="trending-up" size={18} color="#10B981" />
+          </View>
+          <Text style={[styles.statValue, styles.successText]}>
+            {formatCurrency(stats.totalProfit)}
+          </Text>
+          <Text style={styles.statLabel}>Potential Profit</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.warningIcon]}>
+            <Icon name="alert-circle-outline" size={18} color="#F59E0B" />
+          </View>
+          <Text style={[styles.statValue, styles.warningText]}>{stats.lowStockItems}</Text>
+          <Text style={styles.statLabel}>Low Stock</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.dangerIcon]}>
+            <Icon name="close-circle-outline" size={18} color="#EF4444" />
+          </View>
+          <Text style={[styles.statValue, styles.dangerText]}>{stats.outOfStock}</Text>
+          <Text style={styles.statLabel}>Out of Stock</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.successIcon]}>
+            <Icon name="checkmark-done-circle-outline" size={18} color="#10B981" />
+          </View>
+          <Text style={[styles.statValue, styles.successText]}>{stats.highStockItems}</Text>
+          <Text style={styles.statLabel}>Well Stocked</Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
       
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>Inventory</Text>
-            <Text style={styles.headerSubtitle}>
-              {stats.totalProducts} products in stock
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.headerAction} onPress={loadProducts}>
-            <Icon name="refresh-outline" size={22} color="#0D5335" />
-          </TouchableOpacity>
-        </View>
-        
-        {/* Stats Cards */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          style={styles.statsScroll}
-          contentContainerStyle={styles.statsScrollContent}
-        >
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.primaryIcon]}>
-              <Icon name="cube-outline" size={18} color="#0D5335" />
-            </View>
-            <Text style={styles.statValue}>{stats.totalProducts}</Text>
-            <Text style={styles.statLabel}>Products</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.primaryIcon]}>
-              <Icon name="cash-outline" size={18} color="#0D5335" />
-            </View>
-            <Text style={styles.statValue}>{formatCurrency(stats.totalValue)}</Text>
-            <Text style={styles.statLabel}>Inventory Value</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.successIcon]}>
-              <Icon name="trending-up" size={18} color="#10B981" />
-            </View>
-            <Text style={[styles.statValue, styles.successText]}>
-              {formatCurrency(stats.totalProfit)}
-            </Text>
-            <Text style={styles.statLabel}>Potential Profit</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.warningIcon]}>
-              <Icon name="alert-circle-outline" size={18} color="#F59E0B" />
-            </View>
-            <Text style={[styles.statValue, styles.warningText]}>{stats.lowStockItems}</Text>
-            <Text style={styles.statLabel}>Low Stock</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.dangerIcon]}>
-              <Icon name="close-circle-outline" size={18} color="#EF4444" />
-            </View>
-            <Text style={[styles.statValue, styles.dangerText]}>{stats.outOfStock}</Text>
-            <Text style={styles.statLabel}>Out of Stock</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.successIcon]}>
-              <Icon name="checkmark-done-circle-outline" size={18} color="#10B981" />
-            </View>
-            <Text style={[styles.statValue, styles.successText]}>{stats.highStockItems}</Text>
-            <Text style={styles.statLabel}>Well Stocked</Text>
-          </View>
-        </ScrollView>
+        {/* Fixed Header Container */}
+        {renderFixedHeader()}
 
         {/* Inventory List */}
         <FlatList
@@ -325,6 +332,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
+  fixedHeaderContainer: {
     backgroundColor: '#F3F4F6',
   },
   centerContainer: {
@@ -426,6 +436,8 @@ const styles = StyleSheet.create({
     color: '#EF4444',
   },
   listContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 20,
   },
   listHeader: {
@@ -437,7 +449,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
     marginTop: 12,
-    marginHorizontal: 16,
     borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
@@ -467,7 +478,6 @@ const styles = StyleSheet.create({
   },
   inventoryItem: {
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
     marginVertical: 6,
     padding: 16,
     borderRadius: 12,
