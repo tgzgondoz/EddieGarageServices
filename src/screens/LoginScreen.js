@@ -128,36 +128,7 @@ const LoginScreen = ({ onLogin }) => {
             )}
           </TouchableOpacity>
 
-          {/* Demo Credentials Section */}
-          <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>Quick Demo Login</Text>
-            
-            {/* Admin Demo Button */}
-            <TouchableOpacity 
-              style={[styles.demoButton, styles.adminButton]} 
-              onPress={demoAdmin}
-            >
-              <View style={styles.demoRow}>
-                <Icon name="shield-checkmark" size={16} color="#0d5335" />
-                <Text style={styles.demoText}>Admin Login</Text>
-              </View>
-              <Text style={styles.demoCredentials}>admin@eddietuckshop.com</Text>
-              <Text style={styles.demoCredentials}>Eddie@Admin2026#Secure</Text>
-            </TouchableOpacity>
-
-            {/* Cashier/Staff Demo Button */}
-            <TouchableOpacity 
-              style={[styles.demoButton, styles.cashierButton]} 
-              onPress={demoCashier}
-            >
-              <View style={styles.demoRow}>
-                <Icon name="person" size={16} color="#2c6b9e" />
-                <Text style={styles.demoText}>Cashier Login</Text>
-              </View>
-              <Text style={styles.demoCredentials}>staff@eddietuckshop.com</Text>
-              <Text style={styles.demoCredentials}>Eddie@Staff2026#Strong</Text>
-            </TouchableOpacity>
-          </View>
+        
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
