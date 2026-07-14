@@ -122,11 +122,42 @@ const LoginScreen = ({ onLogin }) => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#0e0b05" />
+              <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.loginButtonText}>Login</Text>
             )}
           </TouchableOpacity>
+
+          {/* Demo Credentials Section */}
+          <View style={styles.demoContainer}>
+            <Text style={styles.demoTitle}>Quick Demo Login</Text>
+            
+            {/* Admin Demo Button */}
+            <TouchableOpacity 
+              style={[styles.demoButton, styles.adminButton]} 
+              onPress={demoAdmin}
+            >
+              <View style={styles.demoRow}>
+                <Icon name="shield-checkmark" size={16} color="#0d5335" />
+                <Text style={styles.demoText}>Admin Login</Text>
+              </View>
+              <Text style={styles.demoCredentials}>admin@eddietuckshop.com</Text>
+              <Text style={styles.demoCredentials}>Eddie@Admin2026#Secure</Text>
+            </TouchableOpacity>
+
+            {/* Cashier/Staff Demo Button */}
+            <TouchableOpacity 
+              style={[styles.demoButton, styles.cashierButton]} 
+              onPress={demoCashier}
+            >
+              <View style={styles.demoRow}>
+                <Icon name="person" size={16} color="#2c6b9e" />
+                <Text style={styles.demoText}>Cashier Login</Text>
+              </View>
+              <Text style={styles.demoCredentials}>staff@eddietuckshop.com</Text>
+              <Text style={styles.demoCredentials}>Eddie@Staff2026#Strong</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -150,7 +181,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 120,
     height: 120,
-    borderRadius: 60, // This makes the image circular
+    borderRadius: 60,
     marginBottom: 16,
   },
   fallbackLogo: {
@@ -225,29 +256,39 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#0b1e1c',
     marginBottom: 12,
+    textAlign: 'center',
   },
   demoButton: {
-    paddingVertical: 8,
-    marginBottom: 8,
-    backgroundColor: '#f8f8f8',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 10,
     borderRadius: 8,
-    paddingHorizontal: 12,
+    borderWidth: 1,
+  },
+  adminButton: {
+    backgroundColor: '#f0f9f4',
+    borderColor: '#0d5335',
+  },
+  cashierButton: {
+    backgroundColor: '#f0f7ff',
+    borderColor: '#2c6b9e',
   },
   demoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
     marginBottom: 4,
   },
   demoText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#0e0b05',
-    fontWeight: '500',
+    fontWeight: '600',
+    marginLeft: 6,
   },
-  demoPassword: {
-    fontSize: 11,
-    color: '#0b1e1c',
-    marginLeft: 20,
+  demoCredentials: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 22,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });
 

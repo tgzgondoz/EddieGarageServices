@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import InventoryScreen from '../screens/InventoryScreen';
 import ProductDetailsScreen from '../screens/ProductDetailsScreen';
@@ -12,22 +12,27 @@ const InventoryStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#0d5335',
+          backgroundColor: '#FFFFFF',
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 1,
-          borderBottomColor: '#e0e0e0',
+          borderBottomColor: '#E5E7EB',
         },
-        headerTintColor: '#fff',
+        headerTintColor: '#111827',
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '700',
           fontSize: 18,
         },
         headerTitleAlign: 'center',
         headerBackTitleVisible: false,
         headerBackImage: () => (
-          <Icon name="chevron-back" size={24} color="#fff" style={{ marginLeft: 8 }} />
+          <View style={styles.backButton}>
+            <Icon name="chevron-back" size={24} color="#111827" />
+          </View>
         ),
+        headerLeftContainerStyle: {
+          paddingLeft: 8,
+        },
       }}
     >
       <Stack.Screen 
@@ -48,5 +53,17 @@ const InventoryStack = () => {
     </Stack.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+});
 
 export default InventoryStack;
