@@ -130,7 +130,7 @@ const AppNavigator = ({ onLogout }) => {
                   <Icon 
                     name={isActive ? tab.icon : `${tab.icon}-outline`} 
                     size={20} 
-                    color={isActive ? '#0D5335' : '#6B7280'} 
+                    color={isActive ? '#000f3f' : '#6B7280'} 
                   />
                   <Text style={[
                     styles.tabLabel,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     width: Platform.OS === 'web' ? 40 : 36,
     height: Platform.OS === 'web' ? 40 : 36,
     borderRadius: Platform.OS === 'web' ? 20 : 18,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: Platform.OS === 'web' ? 20 : 18,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   logoutButton: {
     width: Platform.OS === 'web' ? 44 : 40,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   tabLabelActive: {
-    color: '#0D5335',
+    color: '#000f3f',
     fontWeight: '600',
   },
   tabIndicator: {
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     left: '20%',
     right: '20%',
     height: 3,
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     borderRadius: 3,
   },
   screenContainer: {
