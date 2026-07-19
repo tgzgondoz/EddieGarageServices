@@ -164,6 +164,12 @@ const LoginScreen = ({ onLogin }) => {
               )}
             </TouchableOpacity>
 
+            {/* Powered by OneGondo */}
+            <View style={styles.poweredByContainer}>
+              <Text style={styles.poweredByText}>
+                Powered by OneGondo +263 783 242 506
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -296,6 +302,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+  },
+  poweredByContainer: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    alignItems: 'center',
+  },
+  poweredByText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
   demoContainer: {
     marginTop: 20,
