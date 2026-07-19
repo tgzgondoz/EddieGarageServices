@@ -246,14 +246,14 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
           </Text>
         </View>
         <TouchableOpacity style={styles.headerAction} onPress={loadUsers}>
-          <Icon name="refresh-outline" size={20} color="#0D5335" />
+          <Icon name="refresh-outline" size={20} color="#000f3f" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.totalIcon]}>
-            <Icon name="people-outline" size={18} color="#0D5335" />
+            <Icon name="people-outline" size={18} color="#000f3f" />
           </View>
           <Text style={styles.statValue}>{stats.totalUsers}</Text>
           <Text style={styles.statLabel}>Total Users</Text>
@@ -277,7 +277,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.activeIcon]}>
-            <Icon name="checkmark-circle-outline" size={18} color="#0D5335" />
+            <Icon name="checkmark-circle-outline" size={18} color="#000f3f" />
           </View>
           <Text style={[styles.statValue, styles.activeStat]}>{stats.activeUsers}</Text>
           <Text style={styles.statLabel}>Active</Text>
@@ -290,7 +290,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
     return (
       <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-        <ActivityIndicator size="large" color="#0D5335" />
+        <ActivityIndicator size="large" color="#000f3f" />
         <Text style={styles.loadingText}>Loading users...</Text>
       </View>
     );
@@ -304,7 +304,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
 
       <View style={styles.listHeader}>
         <View style={styles.listHeaderLeft}>
-          <Icon name="people-outline" size={18} color="#0D5335" />
+          <Icon name="people-outline" size={18} color="#000f3f" />
           <Text style={styles.listTitle}>User Management</Text>
         </View>
         <TouchableOpacity style={styles.addUserBtn} onPress={() => setModalVisible(true)}>
@@ -342,7 +342,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
         <View style={[styles.modalContainer, { paddingTop: insets.top }]}>
           <View style={styles.modalHeader}>
             <View style={styles.modalHeaderLeft}>
-              <Icon name="person-add-outline" size={22} color="#0D5335" />
+              <Icon name="person-add-outline" size={22} color="#000f3f" />
               <Text style={styles.modalTitle}>Add New User</Text>
             </View>
             <TouchableOpacity 
@@ -490,11 +490,11 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#0D533530',
+    borderColor: '#000f3f30',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   totalIcon: {
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
   },
   adminIcon: {
     backgroundColor: '#EF444415',
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B98115',
   },
   activeIcon: {
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
   },
   statValue: {
     fontSize: 18,
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     color: '#10B981',
   },
   activeStat: {
-    color: '#0D5335',
+    color: '#000f3f',
   },
   listHeader: {
     flexDirection: 'row',
@@ -572,12 +572,12 @@ const styles = StyleSheet.create({
   addUserBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     gap: 4,
-    shadowColor: '#0D5335',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -620,12 +620,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF444415',
   },
   cashierAvatar: {
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
   },
   avatarText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   userDetails: {
     flex: 1,
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   promoteBtn: {
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
   },
   demoteBtn: {
     backgroundColor: '#F59E0B',
@@ -811,8 +811,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   roleOptionActive: {
-    backgroundColor: '#0D5335',
-    borderColor: '#0D5335',
+    backgroundColor: '#000f3f',
+    borderColor: '#000f3f',
   },
   roleOptionText: {
     color: '#6B7280',
@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submitBtn: {
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 20,
     gap: 6,
-    shadowColor: '#0D5335',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

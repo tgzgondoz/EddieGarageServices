@@ -22,7 +22,7 @@ const RestrictedScreen = ({ navigation, screenName }) => {
       {/* Lock Icon with Animation Effect */}
       <View style={styles.iconContainer}>
         <View style={styles.iconBackground}>
-          <Icon name="lock-closed" size={56} color="#0D5335" />
+          <Icon name="lock-closed" size={56} color="#000f3f" />
         </View>
         <View style={styles.iconRing} />
         <View style={[styles.iconRing, styles.iconRing2]} />
@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#0D533530',
+    borderColor: '#000f3f30',
   },
   iconRing: {
     position: 'absolute',
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 2,
-    borderColor: '#0D533520',
+    borderColor: '#000f3f20',
     top: -10,
     left: -10,
   },
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 70,
     borderWidth: 1,
-    borderColor: '#0D533510',
+    borderColor: '#000f3f10',
     top: -20,
     left: -20,
   },
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   divider: {
     width: 50,
     height: 3,
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     borderRadius: 2,
     marginBottom: 14,
   },
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   buttonContainer: {
     width: '100%',
@@ -154,8 +154,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   primaryButton: {
-    backgroundColor: '#0D5335',
-    shadowColor: '#0D5335',
+    backgroundColor: '#000f3f',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

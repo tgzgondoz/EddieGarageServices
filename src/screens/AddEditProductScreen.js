@@ -146,7 +146,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
               </Text>
             </View>
             <View style={styles.headerBadge}>
-              <Icon name={isEditing ? "create-outline" : "add-circle-outline"} size={22} color="#0D5335" />
+              <Icon name={isEditing ? "create-outline" : "add-circle-outline"} size={22} color="#000f3f" />
             </View>
           </View>
 
@@ -228,13 +228,13 @@ const AddEditProductScreen = ({ route, navigation }) => {
             {formData.sellPrice && formData.buyPrice && (
               <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
-                  <Icon name="trending-up" size={16} color="#0D5335" />
+                  <Icon name="trending-up" size={16} color="#000f3f" />
                   <Text style={styles.statLabel}>Profit</Text>
                   <Text style={styles.statValue}>${calculateProfit()}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <Icon name="pie-chart" size={16} color="#0D5335" />
+                  <Icon name="pie-chart" size={16} color="#000f3f" />
                   <Text style={styles.statLabel}>Margin</Text>
                   <Text style={styles.statValue}>{calculateMargin()}</Text>
                 </View>
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -465,8 +465,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   categoryButtonActive: {
-    backgroundColor: '#0D5335',
-    borderColor: '#0D5335',
+    backgroundColor: '#000f3f',
+    borderColor: '#000f3f',
   },
   categoryButtonText: {
     fontSize: 12,
@@ -500,14 +500,14 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   statDivider: {
     width: 1,
     backgroundColor: '#D1D5DB',
   },
   saveButton: {
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
     gap: 6,
-    shadowColor: '#0D5335',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -212,7 +212,7 @@ const SalesHistoryScreen = () => {
             <View style={styles.detailSection}>
               <View style={styles.detailItemRow}>
                 <View style={styles.detailIconContainer}>
-                  <Icon name="pricetag-outline" size={14} color="#0D5335" />
+                  <Icon name="pricetag-outline" size={14} color="#000f3f" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Sale ID</Text>
@@ -222,7 +222,7 @@ const SalesHistoryScreen = () => {
               
               <View style={styles.detailItemRow}>
                 <View style={styles.detailIconContainer}>
-                  <Icon name="calendar-outline" size={14} color="#0D5335" />
+                  <Icon name="calendar-outline" size={14} color="#000f3f" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Date & Time</Text>
@@ -234,7 +234,7 @@ const SalesHistoryScreen = () => {
               
               <View style={styles.detailItemRow}>
                 <View style={styles.detailIconContainer}>
-                  <Icon name="person-outline" size={14} color="#0D5335" />
+                  <Icon name="person-outline" size={14} color="#000f3f" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Customer</Text>
@@ -246,7 +246,7 @@ const SalesHistoryScreen = () => {
               
               <View style={styles.detailItemRow}>
                 <View style={styles.detailIconContainer}>
-                  <Icon name="card-outline" size={14} color="#0D5335" />
+                  <Icon name="card-outline" size={14} color="#000f3f" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Payment Method</Text>
@@ -259,7 +259,7 @@ const SalesHistoryScreen = () => {
             
             <View style={styles.detailSection}>
               <View style={styles.sectionHeader}>
-                <Icon name="cube-outline" size={16} color="#0D5335" />
+                <Icon name="cube-outline" size={16} color="#000f3f" />
                 <Text style={styles.sectionTitle}>Items Purchased</Text>
                 <View style={styles.sectionBadge}>
                   <Text style={styles.sectionBadgeText}>
@@ -338,7 +338,7 @@ const SalesHistoryScreen = () => {
     return (
       <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-        <ActivityIndicator size="large" color="#0D5335" />
+        <ActivityIndicator size="large" color="#000f3f" />
         <Text style={styles.loadingText}>Loading sales history...</Text>
       </View>
     );
@@ -361,7 +361,7 @@ const SalesHistoryScreen = () => {
           </Text>
         </View>
         <TouchableOpacity style={styles.headerAction} onPress={loadSales}>
-          <Icon name="refresh-outline" size={20} color="#0D5335" />
+          <Icon name="refresh-outline" size={20} color="#000f3f" />
         </TouchableOpacity>
       </View>
 
@@ -373,7 +373,7 @@ const SalesHistoryScreen = () => {
       >
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.revenueIcon]}>
-            <Icon name="cash-outline" size={16} color="#0D5335" />
+            <Icon name="cash-outline" size={16} color="#000f3f" />
           </View>
           <Text style={styles.statValue}>{formatCurrency(totalRevenue)}</Text>
           <Text style={styles.statLabel}>Revenue</Text>
@@ -460,8 +460,8 @@ const SalesHistoryScreen = () => {
           <RefreshControl 
             refreshing={refreshing} 
             onRefresh={loadSales}
-            colors={['#0D5335']}
-            tintColor="#0D5335"
+            colors={['#000f3f']}
+            tintColor="#000f3f"
           />
         }
         ListEmptyComponent={
@@ -537,11 +537,11 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#0D533530',
+    borderColor: '#000f3f30',
   },
   statsScroll: {
     backgroundColor: '#FFFFFF',
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
   revenueIcon: {
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
   },
   profitIcon: {
     backgroundColor: '#10B98115',
@@ -635,8 +635,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   filterButtonActive: {
-    backgroundColor: '#0D5335',
-    borderColor: '#0D5335',
+    backgroundColor: '#000f3f',
+    borderColor: '#000f3f',
   },
   filterText: {
     color: '#6B7280',
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
   saleTotal: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   profitContainer: {
     flexDirection: 'row',
@@ -751,7 +751,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
   },
   cardBadge: {
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
   },
   mobileBadge: {
     backgroundColor: '#F59E0B',
@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 14,
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -847,14 +847,14 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   sectionBadge: {
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 10,
   },
   sectionBadgeText: {
     fontSize: 11,
-    color: '#0D5335',
+    color: '#000f3f',
     fontWeight: '600',
   },
   detailItem: {
@@ -900,7 +900,7 @@ const styles = StyleSheet.create({
   itemTotal: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   totalsSection: {
     borderBottomWidth: 0,
@@ -933,7 +933,7 @@ const styles = StyleSheet.create({
   grandTotalValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   changeText: {
     color: '#10B981',

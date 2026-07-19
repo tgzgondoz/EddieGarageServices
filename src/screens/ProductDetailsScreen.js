@@ -59,7 +59,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
   const getStockStatus = (quantity) => {
     if (quantity <= 0) return { label: 'Out of Stock', color: '#EF4444' };
     if (quantity < 10) return { label: 'Low Stock', color: '#F59E0B' };
-    if (quantity < 50) return { label: 'In Stock', color: '#0D5335' };
+    if (quantity < 50) return { label: 'In Stock', color: '#000f3f' };
     return { label: 'Well Stocked', color: '#059669' };
   };
 
@@ -74,7 +74,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#0D5335" />
+      <StatusBar barStyle="light-content" backgroundColor="#000f3f" />
       
       <View style={styles.header}>
         <TouchableOpacity 
@@ -100,7 +100,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         {/* Product Header Card */}
         <View style={styles.productHeaderCard}>
           <View style={styles.productIconContainer}>
-            <Icon name="cube-outline" size={32} color="#0D5335" />
+            <Icon name="cube-outline" size={32} color="#000f3f" />
           </View>
           <View style={styles.productHeaderInfo}>
             <Text style={styles.productName}>{currentProduct.name}</Text>
@@ -121,7 +121,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         {/* Product Description Section */}
         <View style={styles.infoCard}>
           <View style={styles.sectionHeader}>
-            <Icon name="document-text-outline" size={20} color="#0D5335" />
+            <Icon name="document-text-outline" size={20} color="#000f3f" />
             <Text style={styles.sectionTitle}>Product Description</Text>
           </View>
           <Text style={styles.descriptionText}>
@@ -132,7 +132,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         {/* Pricing Information */}
         <View style={styles.infoCard}>
           <View style={styles.sectionHeader}>
-            <Icon name="cash-outline" size={20} color="#0D5335" />
+            <Icon name="cash-outline" size={20} color="#000f3f" />
             <Text style={styles.sectionTitle}>Pricing Information</Text>
           </View>
           
@@ -166,7 +166,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         {/* Inventory Information */}
         <View style={styles.infoCard}>
           <View style={styles.sectionHeader}>
-            <Icon name="layers-outline" size={20} color="#0D5335" />
+            <Icon name="layers-outline" size={20} color="#000f3f" />
             <Text style={styles.sectionTitle}>Inventory Information</Text>
           </View>
           
@@ -212,7 +212,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         {transactions.length > 0 && (
           <View style={styles.infoCard}>
             <View style={styles.sectionHeader}>
-              <Icon name="time-outline" size={20} color="#0D5335" />
+              <Icon name="time-outline" size={20} color="#000f3f" />
               <Text style={styles.sectionTitle}>Recent Transactions</Text>
             </View>
             {transactions.slice(0, 5).map((transaction, index) => (
@@ -262,7 +262,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={styles.modalIconContainer}>
-                <Icon name="add-circle" size={28} color="#0D5335" />
+                <Icon name="add-circle" size={28} color="#000f3f" />
               </View>
               <Text style={styles.modalTitle}>Restock Product</Text>
               <Text style={styles.modalSubtitle}>{currentProduct.name}</Text>
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     paddingHorizontal: 12,
     paddingVertical: 12,
     paddingTop: 12,
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   sellPrice: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   costPrice: {
     fontSize: 22,
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   restockButton: {
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     gap: 8,
-    shadowColor: '#0D5335',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
@@ -678,8 +678,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   confirmButton: {
-    backgroundColor: '#0D5335',
-    shadowColor: '#0D5335',
+    backgroundColor: '#000f3f',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,

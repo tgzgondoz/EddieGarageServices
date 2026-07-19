@@ -121,7 +121,7 @@ const ProductListScreen = ({ navigation }) => {
   const getStockStatus = (quantity) => {
     if (quantity <= 0) return { label: 'Out of Stock', color: '#EF4444' };
     if (quantity < 10) return { label: 'Low Stock', color: '#F59E0B' };
-    if (quantity < 50) return { label: 'In Stock', color: '#0D5335' };
+    if (quantity < 50) return { label: 'In Stock', color: '#000f3f' };
     return { label: 'Well Stocked', color: '#059669' };
   };
 
@@ -143,7 +143,7 @@ const ProductListScreen = ({ navigation }) => {
         <View style={styles.productHeader}>
           <View style={styles.productTitleContainer}>
             <View style={styles.productIconContainer}>
-              <Icon name="cube-outline" size={18} color="#0D5335" />
+              <Icon name="cube-outline" size={18} color="#000f3f" />
             </View>
             <Text style={styles.productName}>{item.name}</Text>
           </View>
@@ -216,7 +216,7 @@ const ProductListScreen = ({ navigation }) => {
           </Text>
         </View>
         <TouchableOpacity style={styles.headerAction} onPress={loadProducts}>
-          <Icon name="refresh-outline" size={22} color="#0D5335" />
+          <Icon name="refresh-outline" size={22} color="#000f3f" />
         </TouchableOpacity>
       </View>
 
@@ -269,7 +269,7 @@ const ProductListScreen = ({ navigation }) => {
     return (
       <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-        <ActivityIndicator size="large" color="#0D5335" />
+        <ActivityIndicator size="large" color="#000f3f" />
         <Text style={styles.loadingText}>Loading products...</Text>
       </View>
     );
@@ -289,8 +289,8 @@ const ProductListScreen = ({ navigation }) => {
           <RefreshControl 
             refreshing={refreshing} 
             onRefresh={loadProducts}
-            colors={['#0D5335']}
-            tintColor="#0D5335"
+            colors={['#000f3f']}
+            tintColor="#000f3f"
           />
         }
         ListEmptyComponent={
@@ -375,11 +375,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#0D533530',
+    borderColor: '#000f3f30',
   },
   searchContainer: {
     backgroundColor: '#FFFFFF',
@@ -425,8 +425,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   categoryChipActive: {
-    backgroundColor: '#0D5335',
-    borderColor: '#0D5335',
+    backgroundColor: '#000f3f',
+    borderColor: '#000f3f',
   },
   categoryChipText: {
     fontSize: 12,
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   costContainer: {
     flexDirection: 'row',
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   quantity: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0D5335',
+    color: '#000f3f',
   },
   profitContainer: {
     flexDirection: 'row',
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   restockButton: {
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
   },
   restockButtonText: {
     color: '#FFFFFF',
@@ -599,11 +599,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#0D5335',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

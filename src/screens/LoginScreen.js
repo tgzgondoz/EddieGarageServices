@@ -105,7 +105,7 @@ const LoginScreen = ({ onLogin }) => {
                   />
                 ) : (
                   <View style={[styles.logo, styles.fallbackLogo]}>
-                    <Icon name="storefront" size={60} color="#0d5335" />
+                    <Icon name="storefront" size={60} color="#000f3f" />
                   </View>
                 )}
               </View>
@@ -117,7 +117,7 @@ const LoginScreen = ({ onLogin }) => {
           <View style={styles.formContainer}>
             <View style={styles.inputWrapper}>
               <View style={[styles.inputContainer, emailError && styles.inputError]}>
-                <Icon name="mail" size={20} color="#0b1e1c" style={styles.inputIcon} />
+                <Icon name="mail" size={20} color="#453d2a" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Email"
@@ -133,7 +133,7 @@ const LoginScreen = ({ onLogin }) => {
 
             <View style={styles.inputWrapper}>
               <View style={[styles.inputContainer, passwordError && styles.inputError]}>
-                <Icon name="lock-closed" size={20} color="#0b1e1c" style={styles.inputIcon} />
+                <Icon name="lock-closed" size={20} color="#453d2a" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Password"
@@ -143,7 +143,7 @@ const LoginScreen = ({ onLogin }) => {
                   secureTextEntry={!showPassword}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                  <Icon name={showPassword ? "eye" : "eye-off"} size={20} color="#0b1e1c" />
+                  <Icon name={showPassword ? "eye" : "eye-off"} size={20} color="#453d2a" />
                 </TouchableOpacity>
               </View>
               {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   logoCircleWrapper: {
     marginBottom: 16,
-    shadowColor: '#0d5335',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 70,
     borderWidth: 4,
-    borderColor: '#0d5335',
+    borderColor: '#000f3f',
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#0b1e1c',
+    color: '#453d2a',
     marginTop: 8,
   },
   formContainer: {
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#0b1e1c',
+    borderColor: '#453d2a',
     borderRadius: 8,
     paddingHorizontal: 12,
     backgroundColor: '#fff',
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   loginButton: {
-    backgroundColor: '#0d5335',
+    backgroundColor: '#000f3f',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   demoTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#0b1e1c',
+    color: '#453d2a',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   adminButton: {
     backgroundColor: '#f0f9f4',
-    borderColor: '#0d5335',
+    borderColor: '#000f3f',
   },
   staffButton: {
     backgroundColor: '#f0f7ff',

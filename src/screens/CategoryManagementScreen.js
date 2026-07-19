@@ -203,7 +203,7 @@ const CategoryManagementScreen = () => {
   };
 
   const getCategoryColor = (index) => {
-    const colors = ['#0D5335', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B'];
+    const colors = ['#000f3f', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B'];
     return colors[index % colors.length];
   };
 
@@ -271,14 +271,14 @@ const CategoryManagementScreen = () => {
           </Text>
         </View>
         <TouchableOpacity style={styles.headerAction} onPress={loadCategories}>
-          <Icon name="refresh-outline" size={20} color="#0D5335" />
+          <Icon name="refresh-outline" size={20} color="#000f3f" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.totalIcon]}>
-            <Icon name="albums-outline" size={18} color="#0D5335" />
+            <Icon name="albums-outline" size={18} color="#000f3f" />
           </View>
           <Text style={styles.statValue}>{categories.length}</Text>
           <Text style={styles.statLabel}>Total</Text>
@@ -307,7 +307,7 @@ const CategoryManagementScreen = () => {
     return (
       <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-        <ActivityIndicator size="large" color="#0D5335" />
+        <ActivityIndicator size="large" color="#000f3f" />
         <Text style={styles.loadingText}>Loading categories...</Text>
       </View>
     );
@@ -327,8 +327,8 @@ const CategoryManagementScreen = () => {
           <RefreshControl 
             refreshing={refreshing} 
             onRefresh={loadCategories}
-            colors={['#0D5335']}
-            tintColor="#0D5335"
+            colors={['#000f3f']}
+            tintColor="#000f3f"
           />
         }
         ListEmptyComponent={
@@ -487,11 +487,11 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#0D533530',
+    borderColor: '#000f3f30',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   totalIcon: {
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
   },
   activeIcon: {
     backgroundColor: '#10B98115',
@@ -599,14 +599,14 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   countBadge: {
-    backgroundColor: '#0D533515',
+    backgroundColor: '#000f3f15',
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 8,
   },
   countBadgeText: {
     fontSize: 9,
-    color: '#0D5335',
+    color: '#000f3f',
     fontWeight: '600',
   },
   categoryActions: {
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   editBtn: {
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
   },
   deleteBtn: {
     backgroundColor: '#EF4444',
@@ -632,11 +632,11 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#0D5335',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
@@ -722,7 +722,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   saveButton: {
-    backgroundColor: '#0D5335',
+    backgroundColor: '#000f3f',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -730,7 +730,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 6,
     gap: 6,
-    shadowColor: '#0D5335',
+    shadowColor: '#000f3f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
