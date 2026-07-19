@@ -15,11 +15,16 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDatabaseInstance, ref, onValue, update, push, set, remove } from '../config/firebase';
 
+const { width, height } = Dimensions.get('window');
+
 const ProductManagementScreen = () => {
+  const insets = useSafeAreaInsets();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +47,22 @@ const ProductManagementScreen = () => {
     quantity: '',
     sku: ''
   });
+
+  // Calculate header height based on device
+  const getHeaderHeight = () => {
+    // Top navigation bar height (from AppNavigator)
+    const topNavHeight = Platform.OS === 'web' ? 56 : 48;
+    // Header height
+    const headerHeight = Platform.OS === 'web' ? 60 : 56;
+    // Stats section height
+    const statsHeight = 90;
+    // Search section height
+    const searchHeight = 70;
+    // Filters section height (if expanded)
+    const filtersHeight = showFilters ? 140 : 0;
+    
+    return topNavHeight + headerHeight + statsHeight + searchHeight + filtersHeight + insets.top;
+  };
 
   useEffect(() => {
     loadProducts();
@@ -376,20 +397,9 @@ const ProductManagementScreen = () => {
   const stats = getTotalStats();
   const categoriesList = ['All', ...new Set(products.map(p => p.category).filter(Boolean))];
 
-  if (loading && products.length === 0) {
-    return (
-      <View style={styles.centerContainer}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-        <ActivityIndicator size="large" color="#0D5335" />
-        <Text style={styles.loadingText}>Loading products...</Text>
-      </View>
-    );
-  }
-
-  // Render the fixed header content
-  const renderFixedHeader = () => (
-    <View style={styles.fixedHeaderContainer}>
-      {/* Header */}
+  // Fixed Header Component
+  const FixedHeader = () => (
+    <View style={[styles.fixedHeaderContainer, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
           <Text style={styles.headerSubtitle}>
@@ -401,7 +411,6 @@ const ProductManagementScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Stats Cards */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll}>
         <View style={styles.statsScrollContent}>
           <View style={styles.statCard}>
@@ -442,7 +451,6 @@ const ProductManagementScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Search and Filters */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Icon name="search-outline" size={20} color="#6B7280" />
@@ -529,60 +537,72 @@ const ProductManagementScreen = () => {
     </View>
   );
 
+  if (loading && products.length === 0) {
+    return (
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
+        <ActivityIndicator size="large" color="#0D5335" />
+        <Text style={styles.loadingText}>Loading products...</Text>
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
       
-      <View style={styles.container}>
-        {/* Fixed Header Container */}
-        {renderFixedHeader()}
+      <FixedHeader />
 
-        {/* Product List */}
-        <FlatList
-          data={filteredProducts}
-          renderItem={renderProduct}
-          keyExtractor={(item) => item.id}
-          refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
-              onRefresh={loadProducts}
-              colors={['#0D5335']}
-              tintColor="#0D5335"
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconContainer}>
-                <Icon name="cube-outline" size={64} color="#D1D5DB" />
-              </View>
-              <Text style={styles.emptyText}>No products found</Text>
-              <Text style={styles.emptySubtext}>
-                {searchQuery ? 'Try a different search term' : 'Tap + to add your first product'}
-              </Text>
+      <FlatList
+        data={filteredProducts}
+        renderItem={renderProduct}
+        keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={loadProducts}
+            colors={['#0D5335']}
+            tintColor="#0D5335"
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Icon name="cube-outline" size={64} color="#D1D5DB" />
             </View>
-          }
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
+            <Text style={styles.emptyText}>No products found</Text>
+            <Text style={styles.emptySubtext}>
+              {searchQuery ? 'Try a different search term' : 'Tap + to add your first product'}
+            </Text>
+          </View>
+        }
+        contentContainerStyle={[
+          styles.listContainer,
+          // Add bottom padding for FAB
+          { paddingBottom: 100 }
+        ]}
+        showsVerticalScrollIndicator={false}
+        // This ensures the list doesn't overlap with the header
+        style={styles.flatList}
+      />
 
-        {/* Add Product FAB */}
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => {
-            resetForm();
-            setModalVisible(true);
-          }}
-          activeOpacity={0.8}
-        >
-          <Icon name="add" size={32} color="#FFFFFF" />
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.fab, { bottom: insets.bottom + 24 }]}
+        onPress={() => {
+          resetForm();
+          setModalVisible(true);
+        }}
+        activeOpacity={0.8}
+      >
+        <Icon name="add" size={32} color="#FFFFFF" />
+      </TouchableOpacity>
 
-        {/* Add/Edit Product Modal */}
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          onRequestClose={() => setModalVisible(false)}
-        >
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <SafeAreaView style={styles.modalSafeArea}>
           <KeyboardAvoidingView 
             style={styles.modalContainer}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -604,6 +624,7 @@ const ProductManagementScreen = () => {
               </View>
 
               <View style={styles.modalForm}>
+                {/* Form fields remain the same */}
                 <View style={styles.inputGroup}>
                   <View style={styles.labelContainer}>
                     <Text style={styles.label}>Product Name</Text>
@@ -786,23 +807,28 @@ const ProductManagementScreen = () => {
               </View>
             </ScrollView>
           </KeyboardAvoidingView>
-        </Modal>
-      </View>
-    </SafeAreaView>
+        </SafeAreaView>
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
   },
   fixedHeaderContainer: {
     backgroundColor: '#F3F4F6',
+    zIndex: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  flatList: {
+    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -821,24 +847,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
   },
   headerSubtitle: {
     fontSize: 14,
     color: '#6B7280',
-    marginTop: 2,
   },
   headerAction: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
@@ -847,7 +867,7 @@ const styles = StyleSheet.create({
   },
   statsScroll: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -857,15 +877,15 @@ const styles = StyleSheet.create({
   },
   statCard: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
     marginHorizontal: 4,
-    minWidth: 70,
+    minWidth: 65,
     alignItems: 'center',
   },
   statIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 2,
@@ -883,14 +903,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF444415',
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#111827',
-    marginTop: 2,
-    marginBottom: 2,
+    marginTop: 1,
+    marginBottom: 1,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#6B7280',
     fontWeight: '500',
   },
@@ -905,11 +925,10 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
     right: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#0D5335',
     justifyContent: 'center',
     alignItems: 'center',
@@ -922,7 +941,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -932,54 +951,54 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     borderRadius: 10,
     paddingHorizontal: 12,
-    marginBottom: 10,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 8,
-    fontSize: 15,
+    fontSize: 14,
     color: '#111827',
   },
   filterToggle: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
     gap: 8,
   },
   filterToggleText: {
     color: '#0D5335',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   filtersPanel: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
   filterSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: 6,
+    marginTop: 2,
     gap: 8,
   },
   filterTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
   },
   categoryScroll: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: '#F3F4F6',
     marginRight: 8,
@@ -992,7 +1011,7 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     color: '#374151',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
   },
   categoryChipTextActive: {
@@ -1003,18 +1022,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   sortButton: {
     flex: 1,
     minWidth: '30%',
-    paddingVertical: 8,
+    paddingVertical: 6,
     alignItems: 'center',
     borderRadius: 8,
     backgroundColor: '#F3F4F6',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6,
+    gap: 4,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -1024,7 +1043,7 @@ const styles = StyleSheet.create({
   },
   sortButtonText: {
     color: '#6B7280',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   sortButtonTextActive: {
@@ -1034,12 +1053,11 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 80,
   },
   productCard: {
     backgroundColor: '#FFFFFF',
     marginBottom: 12,
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
@@ -1053,24 +1071,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   productTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     flex: 1,
   },
   productIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
   },
   productName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
     flex: 1,
@@ -1078,46 +1096,46 @@ const styles = StyleSheet.create({
   stockBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 12,
     gap: 4,
   },
   stockDot: {
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
     borderRadius: 3,
   },
   stockStatus: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
   productDescriptionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
+    gap: 4,
+    marginBottom: 8,
   },
   productDescription: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
     flex: 1,
   },
   productDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   priceSection: {
     flex: 1,
   },
   priceLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   productPrice: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#0D5335',
   },
@@ -1125,22 +1143,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 4,
+    marginTop: 2,
   },
   costText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
   },
   rightDetails: {
     alignItems: 'flex-end',
   },
   quantityLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   productQuantity: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#0D5335',
   },
@@ -1148,10 +1166,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 4,
+    marginTop: 2,
   },
   profitText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#10B981',
     fontWeight: '600',
   },
@@ -1162,12 +1180,12 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6,
+    gap: 4,
   },
   editButton: {
     backgroundColor: '#0D5335',
@@ -1178,10 +1196,14 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontWeight: '600',
-    fontSize: 13,
+    fontSize: 12,
   },
   deleteButtonText: {
     color: '#FFFFFF',
+  },
+  modalSafeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   modalContainer: {
     flex: 1,
@@ -1194,7 +1216,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 18,
+    padding: 16,
     backgroundColor: '#0D5335',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
@@ -1202,10 +1224,10 @@ const styles = StyleSheet.create({
   modalHeaderContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -1213,24 +1235,24 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalForm: {
-    padding: 20,
+    padding: 16,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   labelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
   },
   required: {
     color: '#EF4444',
-    fontSize: 16,
+    fontSize: 14,
     marginLeft: 4,
   },
   inputWrapper: {
@@ -1243,37 +1265,37 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   inputIcon: {
-    paddingLeft: 12,
+    paddingLeft: 10,
   },
   input: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    fontSize: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    fontSize: 14,
     color: '#111827',
   },
   currencySymbol: {
-    paddingLeft: 12,
-    fontSize: 16,
+    paddingLeft: 10,
+    fontSize: 14,
     fontWeight: '600',
     color: '#6B7280',
   },
   priceInput: {
-    paddingLeft: 4,
+    paddingLeft: 2,
   },
   textAreaWrapper: {
     alignItems: 'flex-start',
-    height: 100,
+    height: 90,
   },
   textArea: {
-    height: 100,
+    height: 90,
     textAlignVertical: 'top',
-    paddingTop: 12,
+    paddingTop: 10,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
   },
   halfWidth: {
     flex: 1,
@@ -1281,15 +1303,15 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 4,
+    marginTop: 2,
   },
   categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: '#F3F4F6',
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: 6,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -1298,7 +1320,7 @@ const styles = StyleSheet.create({
     borderColor: '#0D5335',
   },
   categoryButtonText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#374151',
     fontWeight: '500',
   },
@@ -1309,16 +1331,16 @@ const styles = StyleSheet.create({
   customCategoryContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-    gap: 8,
+    marginBottom: 8,
+    gap: 6,
   },
   customCategoryInput: {
     flex: 1,
   },
   customCategorySubmit: {
     backgroundColor: '#0D5335',
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -1328,29 +1350,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   customCategoryBadgeContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   customCategoryBadgeText: {
     color: '#374151',
     fontWeight: '500',
-    fontSize: 13,
+    fontSize: 12,
   },
   statsContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    padding: 14,
-    marginVertical: 8,
+    padding: 12,
+    marginVertical: 6,
     borderWidth: 1,
     borderColor: '#D1D5DB',
     justifyContent: 'space-around',
@@ -1358,7 +1380,7 @@ const styles = StyleSheet.create({
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   statDivider: {
     width: 1,
@@ -1369,11 +1391,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
-    marginTop: 24,
-    marginBottom: 40,
-    gap: 8,
+    marginTop: 20,
+    marginBottom: 30,
+    gap: 6,
     shadowColor: '#0D5335',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -1385,33 +1407,33 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 60,
   },
   emptyIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#374151',
-    marginTop: 16,
+    marginTop: 12,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#9CA3AF',
-    marginTop: 8,
+    marginTop: 6,
   },
 });
 

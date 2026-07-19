@@ -1,204 +1,255 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { TouchableOpacity, View, Text, Image, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { TouchableOpacity, View, Text, Image, StyleSheet, Platform, ScrollView, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Import screens
 import POSScreen from '../screens/POSScreen';
 import ProductManagementScreen from '../screens/ProductManagementScreen';
 import SalesHistoryScreen from '../screens/SalesHistoryScreen';
 import InventoryScreen from '../screens/InventoryScreen';
-import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import CategoryManagementScreen from '../screens/CategoryManagementScreen';
 import RestrictedScreen from '../screens/RestrictedScreen';
 
-const Tab = createBottomTabNavigator();
+const { width } = Dimensions.get('window');
 
 const AppNavigator = ({ onLogout }) => {
-  const { user, isAdmin, isCashier } = useAuth();
+  const { user, isAdmin } = useAuth();
+  const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState('POS');
+  const scrollViewRef = useRef(null);
   
   if (!user) {
     return null;
   }
 
+  // Define all tabs
+  const tabs = [
+    {
+      name: 'POS',
+      component: POSScreen,
+      label: 'POS',
+      icon: 'cart',
+      accessible: true,
+      params: {}
+    },
+    {
+      name: 'Products',
+      component: isAdmin() ? ProductManagementScreen : RestrictedScreen,
+      label: 'Products',
+      icon: 'cube',
+      accessible: isAdmin(),
+      params: { screenName: 'Product Management' }
+    },
+    {
+      name: 'Categories',
+      component: isAdmin() ? CategoryManagementScreen : RestrictedScreen,
+      label: 'Categories',
+      icon: 'folder',
+      accessible: isAdmin(),
+      params: { screenName: 'Category Management' }
+    },
+    {
+      name: 'Sales',
+      component: SalesHistoryScreen,
+      label: 'Sales',
+      icon: 'stats-chart',
+      accessible: true,
+      params: {}
+    },
+    {
+      name: 'Inventory',
+      component: isAdmin() ? InventoryScreen : RestrictedScreen,
+      label: 'Inventory',
+      icon: 'list',
+      accessible: isAdmin(),
+      params: { screenName: 'Inventory Dashboard' }
+    }
+  ];
+
+  // Filter tabs based on access
+  const accessibleTabs = tabs.filter(tab => tab.accessible);
+  const ActiveComponent = accessibleTabs.find(tab => tab.name === activeTab)?.component || POSScreen;
+  const activeParams = accessibleTabs.find(tab => tab.name === activeTab)?.params || {};
+
+  // Scroll to center the active tab
+  const scrollToTab = (tabIndex) => {
+    const tabWidth = width / Math.min(accessibleTabs.length, 5);
+    const scrollPosition = (tabIndex * tabWidth) - (width / 2) + (tabWidth / 2);
+    scrollViewRef.current?.scrollTo({ x: Math.max(0, scrollPosition), animated: true });
+  };
+
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          if (route.name === 'POS') {
-            iconName = focused ? 'cart' : 'cart-outline';
-          } else if (route.name === 'Products') {
-            iconName = focused ? 'cube' : 'cube-outline';
-          } else if (route.name === 'Sales') {
-            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
-          } else if (route.name === 'Inventory') {
-            iconName = focused ? 'list' : 'list-outline';
-          } else if (route.name === 'Admin') {
-            iconName = focused ? 'shield' : 'shield-outline';
-          } else if (route.name === 'Categories') {
-            iconName = focused ? 'folder' : 'folder-outline';
-          }
-          return <Icon name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#0D5335',
-        tabBarInactiveTintColor: '#6B7280',
-        tabBarStyle: {
-          height: 65,
-          paddingBottom: 8,
-          paddingTop: 8,
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          elevation: 8,
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
-          marginTop: 2,
-        },
-        tabBarItemStyle: {
-          paddingVertical: 4,
-        },
-        headerStyle: {
-          backgroundColor: '#FFFFFF',
-          elevation: 0,
-          shadowOpacity: 0,
-          borderBottomWidth: 1,
-          borderBottomColor: '#E5E7EB',
-        },
-        headerTintColor: '#111827',
-        headerTitleStyle: {
-          fontWeight: '700',
-          fontSize: 18,
-        },
-        headerTitleAlign: 'center',
-        headerLeft: () => (
-          <View style={styles.headerLeft}>
-            <View style={styles.logoContainer}>
-              <Image 
-                source={require('../../assets/logo.png')} 
-                style={styles.logo}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.logoText}>POS</Text>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <View style={styles.logoContainer}>
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
-        ),
-        headerRight: () => (
-          <TouchableOpacity 
-            onPress={onLogout} 
-            style={styles.logoutButton}
-            activeOpacity={0.7}
-          >
-            <Icon name="log-out-outline" size={22} color="#6B7280" />
-          </TouchableOpacity>
-        ),
-      })}
-    >
-      {/* POS - Both roles can access */}
-      <Tab.Screen 
-        name="POS" 
-        component={POSScreen}
-        options={{ 
-          title: 'Point of Sale',
-          headerShown: true,
-          tabBarLabel: 'POS',
-        }}
-      />
-      
-      {/* Products - Only Admin, Cashier sees restricted message */}
-      <Tab.Screen 
-        name="Products" 
-        component={isAdmin() ? ProductManagementScreen : RestrictedScreen}
-        options={{ 
-          title: 'Product Management',
-          headerShown: true,
-          tabBarLabel: 'Products',
-        }}
-        initialParams={{ screenName: 'Product Management' }}
-      />
-      
-      {/* Categories - Only Admin */}
-      <Tab.Screen 
-        name="Categories" 
-        component={isAdmin() ? CategoryManagementScreen : RestrictedScreen}
-        options={{ 
-          title: 'Category Management',
-          headerShown: true,
-          tabBarLabel: 'Categories',
-        }}
-        initialParams={{ screenName: 'Category Management' }}
-      />
-      
-      {/* Sales - Both roles can access */}
-      <Tab.Screen 
-        name="Sales" 
-        component={SalesHistoryScreen}
-        options={{ 
-          title: 'Sales History',
-          headerShown: true,
-          tabBarLabel: 'Sales',
-        }}
-      />
-      
-      {/* Inventory - Only Admin, Cashier sees restricted message */}
-      <Tab.Screen 
-        name="Inventory" 
-        component={isAdmin() ? InventoryScreen : RestrictedScreen}
-        options={{ 
-          title: 'Inventory Dashboard',
-          headerShown: true,
-          tabBarLabel: 'Inventory',
-        }}
-        initialParams={{ screenName: 'Inventory Dashboard' }}
-      />
-      
-      
-    </Tab.Navigator>
+          <Text style={styles.logoText}>POS</Text>
+        </View>
+        <TouchableOpacity 
+          onPress={onLogout} 
+          style={styles.logoutButton}
+          activeOpacity={0.7}
+        >
+          <Icon name="log-out-outline" size={22} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Top Tab Navigation - Custom */}
+      <View style={styles.tabBarContainer}>
+        <ScrollView 
+          ref={scrollViewRef}
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabScrollContent}
+        >
+          {accessibleTabs.map((tab, index) => {
+            const isActive = activeTab === tab.name;
+            return (
+              <TouchableOpacity
+                key={tab.name}
+                style={[
+                  styles.tabItem,
+                  isActive && styles.tabItemActive
+                ]}
+                onPress={() => {
+                  setActiveTab(tab.name);
+                  scrollToTab(index);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.tabContent}>
+                  <Icon 
+                    name={isActive ? tab.icon : `${tab.icon}-outline`} 
+                    size={20} 
+                    color={isActive ? '#0D5335' : '#6B7280'} 
+                  />
+                  <Text style={[
+                    styles.tabLabel,
+                    isActive && styles.tabLabelActive
+                  ]}>
+                    {tab.label}
+                  </Text>
+                </View>
+                {isActive && <View style={styles.tabIndicator} />}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Active Screen */}
+      <View style={styles.screenContainer}>
+        <ActiveComponent {...activeParams} />
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === 'web' ? 12 : 8,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    minHeight: Platform.OS === 'web' ? 60 : 56,
+  },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 16,
   },
   logoContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: Platform.OS === 'web' ? 40 : 36,
+    height: Platform.OS === 'web' ? 40 : 36,
+    borderRadius: Platform.OS === 'web' ? 20 : 18,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
   },
   logo: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: Platform.OS === 'web' ? 32 : 28,
+    height: Platform.OS === 'web' ? 32 : 28,
+    borderRadius: Platform.OS === 'web' ? 16 : 14,
   },
   logoText: {
     marginLeft: 10,
-    fontSize: 16,
+    fontSize: Platform.OS === 'web' ? 20 : 18,
     fontWeight: '700',
     color: '#0D5335',
   },
   logoutButton: {
-    marginRight: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: Platform.OS === 'web' ? 44 : 40,
+    height: Platform.OS === 'web' ? 44 : 40,
+    borderRadius: Platform.OS === 'web' ? 22 : 20,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E5E7EB',
+  },
+  tabBarContainer: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    height: 56,
+  },
+  tabScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-around',
+  },
+  tabItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    minWidth: 70,
+  },
+  tabItemActive: {
+    // Active state styling
+  },
+  tabContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  tabLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  tabLabelActive: {
+    color: '#0D5335',
+    fontWeight: '600',
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: '20%',
+    right: '20%',
+    height: 3,
+    backgroundColor: '#0D5335',
+    borderRadius: 3,
+  },
+  screenContainer: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
   },
 });
 

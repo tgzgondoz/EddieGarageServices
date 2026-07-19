@@ -9,12 +9,16 @@ import {
   TextInput,
   Modal,
   StatusBar,
-  SafeAreaView,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ProductService from '../services/ProductService';
 
+const { width, height } = Dimensions.get('window');
+
 const ProductDetailsScreen = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
   const { product } = route.params;
   const [transactions, setTransactions] = useState([]);
   const [restockModal, setRestockModal] = useState(false);
@@ -69,7 +73,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
   const statusColor = status.color;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0D5335" />
       
       <View style={styles.header}>
@@ -86,9 +90,12 @@ const ProductDetailsScreen = ({ route, navigation }) => {
       </View>
 
       <ScrollView 
-        style={styles.container}
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 40 + insets.bottom }
+        ]}
       >
         {/* Product Header Card */}
         <View style={styles.productHeaderCard}>
@@ -298,35 +305,36 @@ const ProductDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
   },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   scrollContent: {
-    paddingBottom: 40,
+    paddingTop: 0,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#0D5335',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingTop: 12,
+    minHeight: 56,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -335,12 +343,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
   },
   headerRight: {
-    width: 44,
+    width: 40,
   },
   productHeaderCard: {
     flexDirection: 'row',
@@ -348,7 +356,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginTop: 16,
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
@@ -359,54 +367,55 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   productIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 14,
   },
   productHeaderInfo: {
     flex: 1,
   },
   productName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   productMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flexWrap: 'wrap',
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 12,
     gap: 4,
   },
   statusDot: {
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
     borderRadius: 3,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
   productCategory: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7280',
   },
   infoCard: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginTop: 12,
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
@@ -419,26 +428,26 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
     marginLeft: 8,
   },
   descriptionText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#374151',
-    lineHeight: 22,
-    paddingVertical: 4,
+    lineHeight: 20,
+    paddingVertical: 2,
   },
   priceGrid: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   priceItem: {
     flex: 1,
@@ -447,20 +456,20 @@ const styles = StyleSheet.create({
   priceDivider: {
     width: 1,
     backgroundColor: '#E5E7EB',
-    marginHorizontal: 12,
+    marginHorizontal: 10,
   },
   priceLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   sellPrice: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: '#0D5335',
   },
   costPrice: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: '#6B7280',
   },
@@ -468,46 +477,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#F9FAFB',
     borderRadius: 8,
-    padding: 12,
-    marginTop: 4,
+    padding: 10,
+    marginTop: 2,
   },
   metricItem: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 4,
+    flexWrap: 'wrap',
   },
   metricDivider: {
     width: 1,
     backgroundColor: '#E5E7EB',
-    marginHorizontal: 8,
+    marginHorizontal: 6,
   },
   metricLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
   },
   metricValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
   },
   inventoryGrid: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   inventoryItem: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   inventoryLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   inventoryValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111827',
   },
@@ -524,7 +534,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   supplierText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7280',
   },
   restockButton: {
@@ -534,7 +544,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: 16,
     marginTop: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     gap: 8,
     shadowColor: '#0D5335',
@@ -545,26 +555,26 @@ const styles = StyleSheet.create({
   },
   restockButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   transactionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   transactionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   transactionIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -575,7 +585,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF444415',
   },
   transactionType: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   restockText: {
@@ -585,7 +595,7 @@ const styles = StyleSheet.create({
     color: '#EF4444',
   },
   transactionDate: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
   },
   modalOverlay: {
@@ -597,7 +607,7 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 24,
+    padding: 20,
     width: '85%',
     maxWidth: 400,
     shadowColor: '#000000',
@@ -608,56 +618,56 @@ const styles = StyleSheet.create({
   },
   modalHeader: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   modalIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   modalTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   modalSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
   },
   modalLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
     color: '#374151',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   modalInput: {
     backgroundColor: '#F9FAFB',
     borderRadius: 10,
-    padding: 14,
-    fontSize: 18,
+    padding: 12,
+    fontSize: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
     color: '#111827',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
   },
   modalButton: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 6,
+    gap: 4,
   },
   cancelButton: {
     backgroundColor: '#F3F4F6',
@@ -665,7 +675,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#6B7280',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15,
   },
   confirmButton: {
     backgroundColor: '#0D5335',
@@ -678,7 +688,7 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 16,
+    fontSize: 15,
   },
 });
 

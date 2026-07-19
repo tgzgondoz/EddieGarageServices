@@ -11,13 +11,17 @@ import {
   Modal,
   ActivityIndicator,
   StatusBar,
-  SafeAreaView,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDatabaseInstance, ref, onValue, update, push, set } from '../config/firebase';
 import moment from 'moment';
 
+const { width, height } = Dimensions.get('window');
+
 const POSScreen = () => {
+  const insets = useSafeAreaInsets();
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,7 +75,6 @@ const POSScreen = () => {
       setCart([...cart, { ...product, cartQuantity: 1 }]);
     }
     
-    // Show cart automatically when items are added
     if (!cartVisible && cart.length === 0) {
       setCartVisible(true);
     }
@@ -292,7 +295,7 @@ const POSScreen = () => {
 
   if (loading && products.length === 0) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
         <ActivityIndicator size="large" color="#0D5335" />
         <Text style={styles.loadingText}>Loading products...</Text>
@@ -301,276 +304,294 @@ const POSScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
       
-      <View style={styles.container}>
-       
-
-        {/* Search and Categories */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Icon name="search-outline" size={20} color="#6B7280" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search products..."
-              placeholderTextColor="#6B7280"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery !== '' && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Icon name="close-circle" size={20} color="#6B7280" />
-              </TouchableOpacity>
-            )}
-          </View>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            style={styles.categoryScroll}
-            contentContainerStyle={styles.categoryScrollContent}
-          >
-            {categories.map(category => (
-              <TouchableOpacity
-                key={category}
-                style={[
-                  styles.categoryChip,
-                  selectedCategory === category && styles.categoryChipActive
-                ]}
-                onPress={() => setSelectedCategory(category)}
-              >
-                <Text style={[
-                  styles.categoryChipText,
-                  selectedCategory === category && styles.categoryChipTextActive
-                ]}>
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>POS</Text>
+          <Text style={styles.headerSubtitle}>
+            {filteredProducts.length} products available
+          </Text>
         </View>
+        <View style={styles.headerBadge}>
+          <Icon name="cart-outline" size={22} color="#0D5335" />
+          {cart.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cart.length}</Text>
+            </View>
+          )}
+        </View>
+      </View>
 
-        {/* Products Grid */}
-        <FlatList
-          data={filteredProducts}
-          renderItem={renderProduct}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.productRow}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconContainer}>
-                <Icon name="cube-outline" size={64} color="#D1D5DB" />
-              </View>
-              <Text style={styles.emptyText}>No products found</Text>
-              <Text style={styles.emptySubtext}>
-                {searchQuery ? 'Try adjusting your search' : 'Add products to get started'}
+      {/* Search and Categories */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Icon name="search-outline" size={20} color="#6B7280" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search products..."
+            placeholderTextColor="#6B7280"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery !== '' && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Icon name="close-circle" size={20} color="#6B7280" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.categoryScroll}
+          contentContainerStyle={styles.categoryScrollContent}
+        >
+          {categories.map(category => (
+            <TouchableOpacity
+              key={category}
+              style={[
+                styles.categoryChip,
+                selectedCategory === category && styles.categoryChipActive
+              ]}
+              onPress={() => setSelectedCategory(category)}
+            >
+              <Text style={[
+                styles.categoryChipText,
+                selectedCategory === category && styles.categoryChipTextActive
+              ]}>
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Products Grid */}
+      <FlatList
+        data={filteredProducts}
+        renderItem={renderProduct}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.productRow}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Icon name="cube-outline" size={64} color="#D1D5DB" />
+            </View>
+            <Text style={styles.emptyText}>No products found</Text>
+            <Text style={styles.emptySubtext}>
+              {searchQuery ? 'Try adjusting your search' : 'Add products to get started'}
+            </Text>
+          </View>
+        }
+        contentContainerStyle={[
+          styles.productsList,
+          // Add bottom padding for cart
+          { paddingBottom: cart.length > 0 ? 250 + insets.bottom : 80 + insets.bottom }
+        ]}
+        style={styles.flatList}
+      />
+
+      {/* Cart Summary */}
+      {cart.length > 0 && (
+        <View style={[styles.cartSummary, { bottom: insets.bottom }]}>
+          <TouchableOpacity 
+            style={styles.cartToggle}
+            onPress={() => setCartVisible(!cartVisible)}
+          >
+            <View style={styles.cartToggleLeft}>
+              <Icon name="cart-outline" size={20} color="#0D5335" />
+              <Text style={styles.cartToggleText}>
+                {getItemCount()} item{getItemCount() !== 1 ? 's' : ''}
               </Text>
             </View>
-          }
-          contentContainerStyle={styles.productsList}
-        />
+            <View style={styles.cartToggleRight}>
+              <Text style={styles.cartToggleTotal}>${getTotal().toFixed(2)}</Text>
+              <Icon name={cartVisible ? "chevron-down" : "chevron-up"} size={20} color="#6B7280" />
+            </View>
+          </TouchableOpacity>
 
-        {/* Cart Summary */}
-        {cart.length > 0 && (
-          <View style={styles.cartSummary}>
-            <TouchableOpacity 
-              style={styles.cartToggle}
-              onPress={() => setCartVisible(!cartVisible)}
-            >
-              <View style={styles.cartToggleLeft}>
-                <Icon name="cart-outline" size={20} color="#0D5335" />
-                <Text style={styles.cartToggleText}>
-                  {getItemCount()} item{getItemCount() !== 1 ? 's' : ''}
-                </Text>
+          {cartVisible && (
+            <>
+              <View style={styles.cartHeader}>
+                <View>
+                  <Text style={styles.cartTitle}>Current Order</Text>
+                  <Text style={styles.cartSubtitle}>{cart.length} product{cart.length !== 1 ? 's' : ''}</Text>
+                </View>
+                <TouchableOpacity onPress={clearCart} style={styles.clearCartBtn}>
+                  <Icon name="trash-outline" size={16} color="#EF4444" />
+                  <Text style={styles.clearCartText}>Clear</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.cartToggleRight}>
-                <Text style={styles.cartToggleTotal}>${getTotal().toFixed(2)}</Text>
-                <Icon name={cartVisible ? "chevron-down" : "chevron-up"} size={20} color="#6B7280" />
-              </View>
-            </TouchableOpacity>
-
-            {cartVisible && (
-              <>
-                <View style={styles.cartHeader}>
-                  <View>
-                    <Text style={styles.cartTitle}>Current Order</Text>
-                    <Text style={styles.cartSubtitle}>{cart.length} product{cart.length !== 1 ? 's' : ''}</Text>
-                  </View>
-                  <TouchableOpacity onPress={clearCart} style={styles.clearCartBtn}>
-                    <Icon name="trash-outline" size={16} color="#EF4444" />
-                    <Text style={styles.clearCartText}>Clear</Text>
-                  </TouchableOpacity>
+              
+              <FlatList
+                data={cart}
+                renderItem={renderCartItem}
+                keyExtractor={(item) => item.id}
+                style={styles.cartList}
+                showsVerticalScrollIndicator={false}
+              />
+              
+              <View style={styles.totalContainer}>
+                <View style={styles.totalRow}>
+                  <Text style={styles.totalLabel}>Total</Text>
+                  <Text style={styles.totalAmount}>${getTotal().toFixed(2)}</Text>
                 </View>
                 
-                <FlatList
-                  data={cart}
-                  renderItem={renderCartItem}
-                  keyExtractor={(item) => item.id}
-                  style={styles.cartList}
-                  showsVerticalScrollIndicator={false}
+                <TouchableOpacity
+                  style={styles.checkoutButton}
+                  onPress={() => setCheckoutModal(true)}
+                  activeOpacity={0.8}
+                >
+                  <Icon name="card-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.checkoutButtonText}>Checkout</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </View>
+      )}
+
+      {/* Checkout Modal */}
+      <Modal
+        visible={checkoutModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setCheckoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalHeaderLeft}>
+                <Icon name="checkmark-circle-outline" size={24} color="#0D5335" />
+                <Text style={styles.modalTitle}>Checkout</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.modalCloseButton}
+                onPress={() => setCheckoutModal(false)}
+              >
+                <Icon name="close" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <View style={styles.orderSummary}>
+                <Text style={styles.sectionTitle}>Order Summary</Text>
+                {cart.slice(0, 3).map((item, index) => (
+                  <View key={index} style={styles.orderItem}>
+                    <Text style={styles.orderItemName}>
+                      {item.name} × {item.cartQuantity}
+                    </Text>
+                    <Text style={styles.orderItemPrice}>
+                      ${(item.sellPrice * item.cartQuantity).toFixed(2)}
+                    </Text>
+                  </View>
+                ))}
+                {cart.length > 3 && (
+                  <Text style={styles.moreItems}>+{cart.length - 3} more item(s)</Text>
+                )}
+                <View style={styles.orderTotal}>
+                  <Text style={styles.orderTotalLabel}>Total Amount</Text>
+                  <Text style={styles.orderTotalAmount}>${getTotal().toFixed(2)}</Text>
+                </View>
+              </View>
+
+              <View style={styles.modalSection}>
+                <Text style={styles.modalLabel}>Customer Name</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter customer name"
+                  placeholderTextColor="#6B7280"
+                  value={customerName}
+                  onChangeText={setCustomerName}
                 />
-                
-                <View style={styles.totalContainer}>
-                  <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>Total</Text>
-                    <Text style={styles.totalAmount}>${getTotal().toFixed(2)}</Text>
-                  </View>
-                  
-                  <TouchableOpacity
-                    style={styles.checkoutButton}
-                    onPress={() => setCheckoutModal(true)}
-                    activeOpacity={0.8}
-                  >
-                    <Icon name="card-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.checkoutButtonText}>Checkout</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </View>
-        )}
-
-        {/* Checkout Modal */}
-        <Modal
-          visible={checkoutModal}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setCheckoutModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <View style={styles.modalHeaderLeft}>
-                  <Icon name="checkmark-circle-outline" size={24} color="#0D5335" />
-                  <Text style={styles.modalTitle}>Checkout</Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.modalCloseButton}
-                  onPress={() => setCheckoutModal(false)}
-                >
-                  <Icon name="close" size={24} color="#6B7280" />
-                </TouchableOpacity>
               </View>
               
-              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-                <View style={styles.orderSummary}>
-                  <Text style={styles.sectionTitle}>Order Summary</Text>
-                  {cart.slice(0, 3).map((item, index) => (
-                    <View key={index} style={styles.orderItem}>
-                      <Text style={styles.orderItemName}>
-                        {item.name} × {item.cartQuantity}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalLabel}>Payment Method</Text>
+                <View style={styles.paymentMethods}>
+                  {['cash', 'card', 'mobile'].map((method) => (
+                    <TouchableOpacity
+                      key={method}
+                      style={[
+                        styles.paymentMethod,
+                        paymentMethod === method && styles.paymentMethodActive
+                      ]}
+                      onPress={() => setPaymentMethod(method)}
+                    >
+                      <Icon 
+                        name={
+                          method === 'cash' ? 'cash-outline' :
+                          method === 'card' ? 'card-outline' :
+                          'phone-portrait-outline'
+                        } 
+                        size={20} 
+                        color={paymentMethod === method ? '#FFFFFF' : '#6B7280'} 
+                      />
+                      <Text style={[
+                        styles.paymentMethodText,
+                        paymentMethod === method && styles.paymentMethodTextActive
+                      ]}>
+                        {method.charAt(0).toUpperCase() + method.slice(1)}
                       </Text>
-                      <Text style={styles.orderItemPrice}>
-                        ${(item.sellPrice * item.cartQuantity).toFixed(2)}
-                      </Text>
-                    </View>
+                    </TouchableOpacity>
                   ))}
-                  {cart.length > 3 && (
-                    <Text style={styles.moreItems}>+{cart.length - 3} more item(s)</Text>
-                  )}
-                  <View style={styles.orderTotal}>
-                    <Text style={styles.orderTotalLabel}>Total Amount</Text>
-                    <Text style={styles.orderTotalAmount}>${getTotal().toFixed(2)}</Text>
-                  </View>
                 </View>
-
-                <View style={styles.modalSection}>
-                  <Text style={styles.modalLabel}>Customer Name</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="Enter customer name"
-                    placeholderTextColor="#6B7280"
-                    value={customerName}
-                    onChangeText={setCustomerName}
-                  />
-                </View>
-                
-                <View style={styles.modalSection}>
-                  <Text style={styles.modalLabel}>Payment Method</Text>
-                  <View style={styles.paymentMethods}>
-                    {['cash', 'card', 'mobile'].map((method) => (
-                      <TouchableOpacity
-                        key={method}
-                        style={[
-                          styles.paymentMethod,
-                          paymentMethod === method && styles.paymentMethodActive
-                        ]}
-                        onPress={() => setPaymentMethod(method)}
-                      >
-                        <Icon 
-                          name={
-                            method === 'cash' ? 'cash-outline' :
-                            method === 'card' ? 'card-outline' :
-                            'phone-portrait-outline'
-                          } 
-                          size={20} 
-                          color={paymentMethod === method ? '#FFFFFF' : '#6B7280'} 
-                        />
-                        <Text style={[
-                          styles.paymentMethodText,
-                          paymentMethod === method && styles.paymentMethodTextActive
-                        ]}>
-                          {method.charAt(0).toUpperCase() + method.slice(1)}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-                
-                <View style={styles.paymentInfo}>
-                  <View style={styles.paymentInfoRow}>
-                    <Text style={styles.paymentInfoLabel}>Amount to Pay</Text>
-                    <Text style={styles.paymentInfoValue}>${getTotal().toFixed(2)}</Text>
-                  </View>
-                  {paymentMethod === 'cash' && (
-                    <View style={styles.paymentInfoRow}>
-                      <Text style={styles.paymentInfoLabel}>Change</Text>
-                      <Text style={[styles.paymentInfoValue, styles.changeText]}>$0.00</Text>
-                    </View>
-                  )}
-                </View>
-              </ScrollView>
-              
-              <View style={styles.modalFooter}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelModalButton]}
-                  onPress={() => setCheckoutModal(false)}
-                >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.confirmModalButton]}
-                  onPress={processCheckout}
-                  disabled={processing}
-                >
-                  {processing ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                  ) : (
-                    <>
-                      <Icon name="checkmark" size={18} color="#FFFFFF" />
-                      <Text style={styles.confirmButtonText}>Pay ${getTotal().toFixed(2)}</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
               </View>
+              
+              <View style={styles.paymentInfo}>
+                <View style={styles.paymentInfoRow}>
+                  <Text style={styles.paymentInfoLabel}>Amount to Pay</Text>
+                  <Text style={styles.paymentInfoValue}>${getTotal().toFixed(2)}</Text>
+                </View>
+                {paymentMethod === 'cash' && (
+                  <View style={styles.paymentInfoRow}>
+                    <Text style={styles.paymentInfoLabel}>Change</Text>
+                    <Text style={[styles.paymentInfoValue, styles.changeText]}>$0.00</Text>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+            
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={() => setCheckoutModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmModalButton]}
+                onPress={processCheckout}
+                disabled={processing}
+              >
+                {processing ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <>
+                    <Icon name="checkmark" size={18} color="#FFFFFF" />
+                    <Text style={styles.confirmButtonText}>Pay ${getTotal().toFixed(2)}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
-        </Modal>
-      </View>
-    </SafeAreaView>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  flatList: {
+    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -588,15 +609,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#111827',
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 1,
   },
   headerBadge: {
     width: 40,
@@ -605,11 +631,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  cartBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
   },
   searchContainer: {
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -618,16 +662,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F3F4F6',
     borderRadius: 10,
-    paddingHorizontal: 12,
-    marginBottom: 10,
+    paddingHorizontal: 10,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    fontSize: 15,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    fontSize: 14,
     color: '#111827',
   },
   categoryScroll: {
@@ -637,11 +681,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: '#F3F4F6',
-    marginRight: 8,
+    marginRight: 6,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -651,7 +695,7 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     color: '#374151',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
   },
   categoryChipTextActive: {
@@ -659,8 +703,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   productsList: {
-    paddingHorizontal: 8,
-    paddingBottom: 200,
+    paddingHorizontal: 6,
   },
   productRow: {
     justifyContent: 'space-between',
@@ -668,10 +711,10 @@ const styles = StyleSheet.create({
   productCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 12,
-    marginHorizontal: 6,
-    marginVertical: 6,
-    width: '47%',
+    padding: 10,
+    marginHorizontal: 4,
+    marginVertical: 4,
+    width: '48%',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -681,6 +724,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    minHeight: 100,
   },
   outOfStockCard: {
     opacity: 0.6,
@@ -688,60 +732,61 @@ const styles = StyleSheet.create({
   },
   productInfo: {
     flex: 1,
+    marginRight: 4,
   },
   productHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   productName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
     flex: 1,
   },
   lowStockBadge: {
     backgroundColor: '#F59E0B20',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
     borderRadius: 4,
-    marginLeft: 4,
+    marginLeft: 2,
   },
   lowStockBadgeText: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#F59E0B',
     fontWeight: '600',
   },
   productDescriptionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginBottom: 6,
+    gap: 2,
+    marginBottom: 4,
   },
   productDescription: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#6B7280',
     flex: 1,
   },
   productPrice: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#0D5335',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   stockContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
   },
   stockDot: {
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
     borderRadius: 3,
   },
   stockStatus: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#6B7280',
   },
   addButton: {
@@ -753,7 +798,6 @@ const styles = StyleSheet.create({
   },
   cartSummary: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: '#FFFFFF',
@@ -770,27 +814,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   cartToggleLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   cartToggleText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
   },
   cartToggleRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   cartToggleTotal: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: '#0D5335',
   },
@@ -798,89 +842,89 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   cartTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
   },
   cartSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginTop: 2,
+    marginTop: 1,
   },
   clearCartBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EF444410',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
     gap: 4,
   },
   clearCartText: {
     color: '#EF4444',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   cartList: {
-    maxHeight: 200,
+    maxHeight: 160,
   },
   cartItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#F9FAFB',
   },
   cartItemInfo: {
-    marginBottom: 6,
+    marginBottom: 4,
   },
   cartItemName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
   },
   cartItemPrice: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginTop: 2,
+    marginTop: 1,
   },
   cartItemControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   quantityButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#0D5335',
     justifyContent: 'center',
     alignItems: 'center',
   },
   cartItemQuantity: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
-    minWidth: 25,
+    minWidth: 20,
     textAlign: 'center',
   },
   cartItemTotal: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#0D5335',
     textAlign: 'right',
   },
   removeButton: {
-    padding: 4,
+    padding: 2,
   },
   totalContainer: {
-    padding: 16,
+    padding: 14,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
   },
@@ -888,26 +932,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   totalLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
   },
   totalAmount: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: '#0D5335',
   },
   checkoutButton: {
     backgroundColor: '#0D5335',
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: 6,
     shadowColor: '#0D5335',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -916,7 +960,7 @@ const styles = StyleSheet.create({
   },
   checkoutButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   modalOverlay: {
@@ -940,17 +984,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 18,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   modalHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
   },
@@ -958,90 +1002,90 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalBody: {
-    padding: 18,
+    padding: 16,
   },
   orderSummary: {
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 18,
+    padding: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   orderItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   orderItemName: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#374151',
   },
   orderItemPrice: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     color: '#111827',
   },
   moreItems: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
-    marginTop: 4,
+    marginTop: 2,
     fontStyle: 'italic',
   },
   orderTotal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
-    paddingTop: 10,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
   orderTotalLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#111827',
   },
   orderTotalAmount: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#0D5335',
   },
   modalSection: {
-    marginBottom: 18,
+    marginBottom: 16,
   },
   modalLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   modalInput: {
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
+    padding: 10,
+    fontSize: 13,
     backgroundColor: '#F9FAFB',
     color: '#111827',
   },
   paymentMethods: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 6,
   },
   paymentMethod: {
     flex: 1,
-    padding: 12,
+    padding: 10,
     borderRadius: 10,
     backgroundColor: '#F9FAFB',
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6,
+    gap: 4,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -1052,7 +1096,7 @@ const styles = StyleSheet.create({
   paymentMethodText: {
     color: '#6B7280',
     fontWeight: '500',
-    fontSize: 13,
+    fontSize: 12,
   },
   paymentMethodTextActive: {
     color: '#FFFFFF',
@@ -1061,21 +1105,21 @@ const styles = StyleSheet.create({
   paymentInfo: {
     backgroundColor: '#0D533510',
     borderRadius: 12,
-    padding: 14,
-    marginTop: 8,
-    marginBottom: 8,
+    padding: 12,
+    marginTop: 6,
+    marginBottom: 6,
   },
   paymentInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 4,
+    marginVertical: 2,
   },
   paymentInfoLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#374151',
   },
   paymentInfoValue: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#0D5335',
   },
@@ -1084,19 +1128,19 @@ const styles = StyleSheet.create({
   },
   modalFooter: {
     flexDirection: 'row',
-    padding: 18,
+    padding: 16,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
-    gap: 8,
+    gap: 6,
   },
   modalButton: {
     flex: 1,
-    padding: 14,
+    padding: 12,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 6,
+    gap: 4,
   },
   cancelModalButton: {
     backgroundColor: '#F3F4F6',
@@ -1111,38 +1155,38 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#6B7280',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   confirmButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 60,
   },
   emptyIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#374151',
-    marginTop: 16,
+    marginTop: 12,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#9CA3AF',
-    marginTop: 8,
+    marginTop: 6,
   },
 });
 

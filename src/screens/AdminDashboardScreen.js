@@ -10,14 +10,18 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
-  SafeAreaView,
   StatusBar,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AuthService from '../services/AuthService';
 import { getDatabaseInstance, ref, onValue } from '../config/firebase';
 
+const { width, height } = Dimensions.get('window');
+
 const AdminDashboardScreen = ({ user, onLogout }) => {
+  const insets = useSafeAreaInsets();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -195,7 +199,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
             onPress={() => handleChangeRole(item.id, 'admin')}
             activeOpacity={0.7}
           >
-            <Icon name="arrow-up" size={14} color="#FFFFFF" />
+            <Icon name="arrow-up" size={12} color="#FFFFFF" />
             <Text style={styles.actionBtnText}>Promote</Text>
           </TouchableOpacity>
         )}
@@ -205,7 +209,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
             onPress={() => handleChangeRole(item.id, 'cashier')}
             activeOpacity={0.7}
           >
-            <Icon name="arrow-down" size={14} color="#FFFFFF" />
+            <Icon name="arrow-down" size={12} color="#FFFFFF" />
             <Text style={styles.actionBtnText}>Demote</Text>
           </TouchableOpacity>
         )}
@@ -214,7 +218,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
           onPress={() => handleToggleStatus(item.id, item.isActive)}
           activeOpacity={0.7}
         >
-          <Icon name={item.isActive ? "close" : "checkmark"} size={14} color="#FFFFFF" />
+          <Icon name={item.isActive ? "close" : "checkmark"} size={12} color="#FFFFFF" />
           <Text style={styles.actionBtnText}>{item.isActive ? 'Deactivate' : 'Activate'}</Text>
         </TouchableOpacity>
         {item.id !== user.id && (
@@ -223,7 +227,7 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
             onPress={() => handleDeleteUser(item.id, item.fullName)}
             activeOpacity={0.7}
           >
-            <Icon name="trash" size={14} color="#FFFFFF" />
+            <Icon name="trash" size={12} color="#FFFFFF" />
             <Text style={styles.actionBtnText}>Delete</Text>
           </TouchableOpacity>
         )}
@@ -231,9 +235,60 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
     </View>
   );
 
+  // Fixed Header Component
+  const FixedHeader = () => (
+    <View style={[styles.fixedHeaderContainer, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>Admin Dashboard</Text>
+          <Text style={styles.headerSubtitle}>
+            {stats.totalUsers} users • {stats.activeUsers} active
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.headerAction} onPress={loadUsers}>
+          <Icon name="refresh-outline" size={20} color="#0D5335" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.totalIcon]}>
+            <Icon name="people-outline" size={18} color="#0D5335" />
+          </View>
+          <Text style={styles.statValue}>{stats.totalUsers}</Text>
+          <Text style={styles.statLabel}>Total Users</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.adminIcon]}>
+            <Icon name="shield-checkmark-outline" size={18} color="#EF4444" />
+          </View>
+          <Text style={[styles.statValue, styles.adminStat]}>{stats.admins}</Text>
+          <Text style={styles.statLabel}>Admins</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.cashierIcon]}>
+            <Icon name="person-outline" size={18} color="#10B981" />
+          </View>
+          <Text style={[styles.statValue, styles.cashierStat]}>{stats.cashiers}</Text>
+          <Text style={styles.statLabel}>Cashiers</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.activeIcon]}>
+            <Icon name="checkmark-circle-outline" size={18} color="#0D5335" />
+          </View>
+          <Text style={[styles.statValue, styles.activeStat]}>{stats.activeUsers}</Text>
+          <Text style={styles.statLabel}>Active</Text>
+        </View>
+      </View>
+    </View>
+  );
+
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
         <ActivityIndicator size="large" color="#0D5335" />
         <Text style={styles.loadingText}>Loading users...</Text>
@@ -242,200 +297,163 @@ const AdminDashboardScreen = ({ user, onLogout }) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
       
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>Admin Dashboard</Text>
-            <Text style={styles.headerSubtitle}>
-              {stats.totalUsers} users • {stats.activeUsers} active
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.headerAction} onPress={loadUsers}>
-            <Icon name="refresh-outline" size={22} color="#0D5335" />
-          </TouchableOpacity>
+      <FixedHeader />
+
+      <View style={styles.listHeader}>
+        <View style={styles.listHeaderLeft}>
+          <Icon name="people-outline" size={18} color="#0D5335" />
+          <Text style={styles.listTitle}>User Management</Text>
         </View>
-
-        {/* Stats Cards */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.totalIcon]}>
-              <Icon name="people-outline" size={20} color="#0D5335" />
-            </View>
-            <Text style={styles.statValue}>{stats.totalUsers}</Text>
-            <Text style={styles.statLabel}>Total Users</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.adminIcon]}>
-              <Icon name="shield-checkmark-outline" size={20} color="#EF4444" />
-            </View>
-            <Text style={[styles.statValue, styles.adminStat]}>{stats.admins}</Text>
-            <Text style={styles.statLabel}>Admins</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.cashierIcon]}>
-              <Icon name="person-outline" size={20} color="#10B981" />
-            </View>
-            <Text style={[styles.statValue, styles.cashierStat]}>{stats.cashiers}</Text>
-            <Text style={styles.statLabel}>Cashiers</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.activeIcon]}>
-              <Icon name="checkmark-circle-outline" size={20} color="#0D5335" />
-            </View>
-            <Text style={[styles.statValue, styles.activeStat]}>{stats.activeUsers}</Text>
-            <Text style={styles.statLabel}>Active</Text>
-          </View>
-        </View>
-
-        {/* User List Header */}
-        <View style={styles.listHeader}>
-          <View style={styles.listHeaderLeft}>
-            <Icon name="people-outline" size={20} color="#0D5335" />
-            <Text style={styles.listTitle}>User Management</Text>
-          </View>
-          <TouchableOpacity style={styles.addUserBtn} onPress={() => setModalVisible(true)}>
-            <Icon name="add" size={20} color="#FFFFFF" />
-            <Text style={styles.addUserText}>Add User</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* User List */}
-        <FlatList
-          data={users}
-          renderItem={renderUserItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconContainer}>
-                <Icon name="people-outline" size={64} color="#D1D5DB" />
-              </View>
-              <Text style={styles.emptyText}>No users found</Text>
-              <Text style={styles.emptySubtext}>Add users to get started</Text>
-            </View>
-          }
-          showsVerticalScrollIndicator={false}
-        />
-
-        {/* Add User Modal */}
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <SafeAreaView style={styles.modalSafeArea}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <View style={styles.modalHeaderLeft}>
-                  <Icon name="person-add-outline" size={24} color="#0D5335" />
-                  <Text style={styles.modalTitle}>Add New User</Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.modalCloseButton}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <Icon name="close" size={24} color="#6B7280" />
-                </TouchableOpacity>
-              </View>
-              
-              <ScrollView style={styles.modalForm} showsVerticalScrollIndicator={false}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Full Name</Text>
-                  <View style={styles.inputWrapper}>
-                    <Icon name="person-outline" size={20} color="#6B7280" style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      value={newUser.fullName}
-                      onChangeText={(text) => setNewUser({ ...newUser, fullName: text })}
-                      placeholder="Enter full name"
-                      placeholderTextColor="#9CA3AF"
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Email</Text>
-                  <View style={styles.inputWrapper}>
-                    <Icon name="mail-outline" size={20} color="#6B7280" style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      value={newUser.email}
-                      onChangeText={(text) => setNewUser({ ...newUser, email: text })}
-                      placeholder="Enter email"
-                      placeholderTextColor="#9CA3AF"
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Password</Text>
-                  <View style={styles.inputWrapper}>
-                    <Icon name="lock-closed-outline" size={20} color="#6B7280" style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      value={newUser.password}
-                      onChangeText={(text) => setNewUser({ ...newUser, password: text })}
-                      placeholder="Enter password"
-                      placeholderTextColor="#9CA3AF"
-                      secureTextEntry
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Role</Text>
-                  <View style={styles.roleSelector}>
-                    <TouchableOpacity
-                      style={[styles.roleOption, newUser.role === 'admin' && styles.roleOptionActive]}
-                      onPress={() => setNewUser({ ...newUser, role: 'admin' })}
-                    >
-                      <Icon name="shield-checkmark-outline" size={18} color={newUser.role === 'admin' ? '#FFFFFF' : '#6B7280'} />
-                      <Text style={[styles.roleOptionText, newUser.role === 'admin' && styles.roleOptionTextActive]}>
-                        Admin
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.roleOption, newUser.role === 'cashier' && styles.roleOptionActive]}
-                      onPress={() => setNewUser({ ...newUser, role: 'cashier' })}
-                    >
-                      <Icon name="person-outline" size={18} color={newUser.role === 'cashier' ? '#FFFFFF' : '#6B7280'} />
-                      <Text style={[styles.roleOptionText, newUser.role === 'cashier' && styles.roleOptionTextActive]}>
-                        Cashier
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <TouchableOpacity style={styles.submitBtn} onPress={handleAddUser} activeOpacity={0.8}>
-                  <Icon name="checkmark-circle" size={20} color="#FFFFFF" />
-                  <Text style={styles.submitBtnText}>Add User</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </SafeAreaView>
-        </Modal>
+        <TouchableOpacity style={styles.addUserBtn} onPress={() => setModalVisible(true)}>
+          <Icon name="add" size={18} color="#FFFFFF" />
+          <Text style={styles.addUserText}>Add User</Text>
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+
+      <FlatList
+        data={users}
+        renderItem={renderUserItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={[
+          styles.listContainer,
+          { paddingBottom: 20 + insets.bottom }
+        ]}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Icon name="people-outline" size={64} color="#D1D5DB" />
+            </View>
+            <Text style={styles.emptyText}>No users found</Text>
+            <Text style={styles.emptySubtext}>Add users to get started</Text>
+          </View>
+        }
+        showsVerticalScrollIndicator={false}
+        style={styles.flatList}
+      />
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={[styles.modalContainer, { paddingTop: insets.top }]}>
+          <View style={styles.modalHeader}>
+            <View style={styles.modalHeaderLeft}>
+              <Icon name="person-add-outline" size={22} color="#0D5335" />
+              <Text style={styles.modalTitle}>Add New User</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Icon name="close" size={22} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView 
+            style={styles.modalForm} 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}
+          >
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Full Name</Text>
+              <View style={styles.inputWrapper}>
+                <Icon name="person-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={newUser.fullName}
+                  onChangeText={(text) => setNewUser({ ...newUser, fullName: text })}
+                  placeholder="Enter full name"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <View style={styles.inputWrapper}>
+                <Icon name="mail-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={newUser.email}
+                  onChangeText={(text) => setNewUser({ ...newUser, email: text })}
+                  placeholder="Enter email"
+                  placeholderTextColor="#9CA3AF"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.inputWrapper}>
+                <Icon name="lock-closed-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={newUser.password}
+                  onChangeText={(text) => setNewUser({ ...newUser, password: text })}
+                  placeholder="Enter password"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Role</Text>
+              <View style={styles.roleSelector}>
+                <TouchableOpacity
+                  style={[styles.roleOption, newUser.role === 'admin' && styles.roleOptionActive]}
+                  onPress={() => setNewUser({ ...newUser, role: 'admin' })}
+                >
+                  <Icon name="shield-checkmark-outline" size={16} color={newUser.role === 'admin' ? '#FFFFFF' : '#6B7280'} />
+                  <Text style={[styles.roleOptionText, newUser.role === 'admin' && styles.roleOptionTextActive]}>
+                    Admin
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleOption, newUser.role === 'cashier' && styles.roleOptionActive]}
+                  onPress={() => setNewUser({ ...newUser, role: 'cashier' })}
+                >
+                  <Icon name="person-outline" size={16} color={newUser.role === 'cashier' ? '#FFFFFF' : '#6B7280'} />
+                  <Text style={[styles.roleOptionText, newUser.role === 'cashier' && styles.roleOptionTextActive]}>
+                    Cashier
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.submitBtn} onPress={handleAddUser} activeOpacity={0.8}>
+              <Icon name="checkmark-circle" size={18} color="#FFFFFF" />
+              <Text style={styles.submitBtnText}>Add User</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  flatList: {
+    flex: 1,
+  },
+  fixedHeaderContainer: {
+    backgroundColor: '#F3F4F6',
+    zIndex: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   centerContainer: {
     flex: 1,
@@ -453,25 +471,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#111827',
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
-    marginTop: 2,
+    marginTop: 1,
   },
   headerAction: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
@@ -481,9 +499,10 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    margin: 16,
+    marginHorizontal: 12,
+    marginTop: 12,
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -492,12 +511,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   totalIcon: {
     backgroundColor: '#0D533515',
@@ -512,14 +531,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D533515',
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
-    marginTop: 2,
-    marginBottom: 2,
+    marginTop: 1,
+    marginBottom: 1,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
     fontWeight: '500',
   },
@@ -536,16 +555,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 6,
   },
   listHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   listTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#111827',
   },
@@ -553,10 +573,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#0D5335',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
     shadowColor: '#0D5335',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -565,18 +585,17 @@ const styles = StyleSheet.create({
   },
   addUserText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
   listContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 12,
   },
   userCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000000',
@@ -587,15 +606,15 @@ const styles = StyleSheet.create({
   },
   userInfo: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   userAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   adminAvatar: {
     backgroundColor: '#EF444415',
@@ -604,7 +623,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D533515',
   },
   avatarText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#0D5335',
   },
@@ -612,27 +631,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
   },
   userEmail: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7280',
-    marginTop: 2,
+    marginTop: 1,
   },
   userMeta: {
     flexDirection: 'row',
-    marginTop: 6,
-    gap: 6,
+    marginTop: 4,
+    gap: 4,
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    gap: 3,
   },
   adminBadge: {
     backgroundColor: '#EF444415',
@@ -641,7 +660,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B98115',
   },
   roleText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
   },
   adminRoleText: {
@@ -653,10 +672,10 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    gap: 3,
   },
   activeBadge: {
     backgroundColor: '#10B98115',
@@ -665,8 +684,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   statusDot: {
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
     borderRadius: 3,
   },
   activeDot: {
@@ -676,7 +695,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#9CA3AF',
   },
   statusText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
   },
   activeStatusText: {
@@ -695,9 +714,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 7,
+    paddingVertical: 5,
     borderRadius: 6,
-    gap: 4,
+    gap: 3,
   },
   promoteBtn: {
     backgroundColor: '#0D5335',
@@ -716,12 +735,8 @@ const styles = StyleSheet.create({
   },
   actionBtnText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
-  },
-  modalSafeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   modalContainer: {
     flex: 1,
@@ -731,17 +746,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 18,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   modalHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
   },
@@ -749,16 +764,16 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalForm: {
-    padding: 20,
+    padding: 16,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -770,30 +785,30 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   inputIcon: {
-    paddingLeft: 12,
+    paddingLeft: 10,
   },
   input: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    fontSize: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    fontSize: 14,
     color: '#111827',
   },
   roleSelector: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
   },
   roleOption: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     backgroundColor: '#F9FAFB',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    gap: 6,
+    gap: 4,
   },
   roleOptionActive: {
     backgroundColor: '#0D5335',
@@ -802,7 +817,7 @@ const styles = StyleSheet.create({
   roleOptionText: {
     color: '#6B7280',
     fontWeight: '500',
-    fontSize: 14,
+    fontSize: 13,
   },
   roleOptionTextActive: {
     color: '#FFFFFF',
@@ -813,11 +828,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
-    marginTop: 16,
-    marginBottom: 40,
-    gap: 8,
+    marginTop: 12,
+    marginBottom: 20,
+    gap: 6,
     shadowColor: '#0D5335',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -826,31 +841,31 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   emptyContainer: {
-    paddingTop: 80,
+    paddingTop: 60,
     alignItems: 'center',
   },
   emptyIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#374151',
-    marginTop: 16,
+    marginTop: 12,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#9CA3AF',
-    marginTop: 8,
+    marginTop: 6,
   },
 });
 

@@ -10,13 +10,17 @@ import {
   ScrollView,
   RefreshControl,
   StatusBar,
-  SafeAreaView,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDatabaseInstance, ref, onValue } from '../config/firebase';
 import moment from 'moment';
 
+const { width, height } = Dimensions.get('window');
+
 const SalesHistoryScreen = () => {
+  const insets = useSafeAreaInsets();
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -190,14 +194,14 @@ const SalesHistoryScreen = () => {
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <View style={styles.modalHeaderContent}>
-              <Icon name="receipt-outline" size={24} color="#FFFFFF" />
+              <Icon name="receipt-outline" size={22} color="#FFFFFF" />
               <Text style={styles.modalTitle}>Sale Details</Text>
             </View>
             <TouchableOpacity 
               style={styles.modalCloseButton}
               onPress={() => setSelectedSale(null)}
             >
-              <Icon name="close" size={24} color="#FFFFFF" />
+              <Icon name="close" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
           
@@ -205,11 +209,10 @@ const SalesHistoryScreen = () => {
             style={styles.modalBody}
             showsVerticalScrollIndicator={false}
           >
-            {/* Sale Info */}
             <View style={styles.detailSection}>
               <View style={styles.detailItemRow}>
                 <View style={styles.detailIconContainer}>
-                  <Icon name="pricetag-outline" size={16} color="#0D5335" />
+                  <Icon name="pricetag-outline" size={14} color="#0D5335" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Sale ID</Text>
@@ -219,7 +222,7 @@ const SalesHistoryScreen = () => {
               
               <View style={styles.detailItemRow}>
                 <View style={styles.detailIconContainer}>
-                  <Icon name="calendar-outline" size={16} color="#0D5335" />
+                  <Icon name="calendar-outline" size={14} color="#0D5335" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Date & Time</Text>
@@ -231,7 +234,7 @@ const SalesHistoryScreen = () => {
               
               <View style={styles.detailItemRow}>
                 <View style={styles.detailIconContainer}>
-                  <Icon name="person-outline" size={16} color="#0D5335" />
+                  <Icon name="person-outline" size={14} color="#0D5335" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Customer</Text>
@@ -243,7 +246,7 @@ const SalesHistoryScreen = () => {
               
               <View style={styles.detailItemRow}>
                 <View style={styles.detailIconContainer}>
-                  <Icon name="card-outline" size={16} color="#0D5335" />
+                  <Icon name="card-outline" size={14} color="#0D5335" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Payment Method</Text>
@@ -254,10 +257,9 @@ const SalesHistoryScreen = () => {
               </View>
             </View>
             
-            {/* Items Section */}
             <View style={styles.detailSection}>
               <View style={styles.sectionHeader}>
-                <Icon name="cube-outline" size={18} color="#0D5335" />
+                <Icon name="cube-outline" size={16} color="#0D5335" />
                 <Text style={styles.sectionTitle}>Items Purchased</Text>
                 <View style={styles.sectionBadge}>
                   <Text style={styles.sectionBadgeText}>
@@ -290,7 +292,6 @@ const SalesHistoryScreen = () => {
               })}
             </View>
             
-            {/* Totals Section */}
             <View style={[styles.detailSection, styles.totalsSection]}>
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>Subtotal</Text>
@@ -319,7 +320,7 @@ const SalesHistoryScreen = () => {
               
               <View style={styles.totalProfitRow}>
                 <View style={styles.totalProfitLabelContainer}>
-                  <Icon name="trending-up" size={18} color="#10B981" />
+                  <Icon name="trending-up" size={16} color="#10B981" />
                   <Text style={styles.totalProfitLabel}>Total Profit</Text>
                 </View>
                 <Text style={styles.totalProfitValue}>
@@ -335,7 +336,7 @@ const SalesHistoryScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
         <ActivityIndicator size="large" color="#0D5335" />
         <Text style={styles.loadingText}>Loading sales history...</Text>
@@ -350,23 +351,20 @@ const SalesHistoryScreen = () => {
   const averageOrder = getAverageOrderValue();
   const topProduct = getTopProduct();
 
-  // Render the fixed header content
-  const renderFixedHeader = () => (
-    <View style={styles.fixedHeaderContainer}>
-      {/* Header */}
+  // Fixed Header Component
+  const FixedHeader = () => (
+    <View style={[styles.fixedHeaderContainer, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
-
           <Text style={styles.headerSubtitle}>
             {filteredSales.length} transactions • {formatCurrency(totalRevenue)} revenue
           </Text>
         </View>
         <TouchableOpacity style={styles.headerAction} onPress={loadSales}>
-          <Icon name="refresh-outline" size={22} color="#0D5335" />
+          <Icon name="refresh-outline" size={20} color="#0D5335" />
         </TouchableOpacity>
       </View>
 
-      {/* Stats Cards */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
@@ -375,7 +373,7 @@ const SalesHistoryScreen = () => {
       >
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.revenueIcon]}>
-            <Icon name="cash-outline" size={18} color="#0D5335" />
+            <Icon name="cash-outline" size={16} color="#0D5335" />
           </View>
           <Text style={styles.statValue}>{formatCurrency(totalRevenue)}</Text>
           <Text style={styles.statLabel}>Revenue</Text>
@@ -383,7 +381,7 @@ const SalesHistoryScreen = () => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.profitIcon]}>
-            <Icon name="trending-up" size={18} color="#10B981" />
+            <Icon name="trending-up" size={16} color="#10B981" />
           </View>
           <Text style={[styles.statValue, styles.profitColor]}>{formatCurrency(totalProfit)}</Text>
           <Text style={styles.statLabel}>Profit</Text>
@@ -391,7 +389,7 @@ const SalesHistoryScreen = () => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.salesIcon]}>
-            <Icon name="cart-outline" size={18} color="#3B82F6" />
+            <Icon name="cart-outline" size={16} color="#3B82F6" />
           </View>
           <Text style={styles.statValue}>{totalTransactions}</Text>
           <Text style={styles.statLabel}>Transactions</Text>
@@ -399,17 +397,16 @@ const SalesHistoryScreen = () => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.averageIcon]}>
-            <Icon name="stats-chart-outline" size={18} color="#8B5CF6" />
+            <Icon name="stats-chart-outline" size={16} color="#8B5CF6" />
           </View>
           <Text style={styles.statValue}>{formatCurrency(averageOrder)}</Text>
           <Text style={styles.statLabel}>Average Order</Text>
         </View>
       </ScrollView>
 
-      {/* Top Product Banner */}
       {topProduct && (
         <View style={styles.topProductBanner}>
-          <Icon name="star" size={16} color="#F59E0B" />
+          <Icon name="star" size={14} color="#F59E0B" />
           <Text style={styles.topProductText}>
             Best Seller: <Text style={styles.topProductName}>{topProduct.name}</Text>
             {' '}({topProduct.quantity} units)
@@ -417,7 +414,6 @@ const SalesHistoryScreen = () => {
         </View>
       )}
 
-      {/* Filter Buttons */}
       <View style={styles.filterContainer}>
         {['today', 'week', 'month', 'all'].map((filterOption) => (
           <TouchableOpacity
@@ -435,7 +431,7 @@ const SalesHistoryScreen = () => {
                 filterOption === 'month' ? 'calendar-number-outline' :
                 'list-outline'
               } 
-              size={14} 
+              size={12} 
               color={filter === filterOption ? '#FFFFFF' : '#6B7280'} 
             />
             <Text style={[
@@ -451,61 +447,66 @@ const SalesHistoryScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
       
-      <View style={styles.container}>
-        {/* Fixed Header Container */}
-        {renderFixedHeader()}
+      <FixedHeader />
 
-        {/* Sales List */}
-        <FlatList
-          data={filteredSales}
-          renderItem={renderSaleItem}
-          keyExtractor={(item) => item.id}
-          refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
-              onRefresh={loadSales}
-              colors={['#0D5335']}
-              tintColor="#0D5335"
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconContainer}>
-                <Icon name="receipt-outline" size={64} color="#D1D5DB" />
-              </View>
-              <Text style={styles.emptyText}>No sales found</Text>
-              <Text style={styles.emptySubtext}>
-                {filter === 'today' ? 'No sales recorded for today' : 
-                 filter === 'week' ? 'No sales recorded this week' :
-                 filter === 'month' ? 'No sales recorded this month' : 
-                 'Start selling to see transaction history'}
-              </Text>
+      <FlatList
+        data={filteredSales}
+        renderItem={renderSaleItem}
+        keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={loadSales}
+            colors={['#0D5335']}
+            tintColor="#0D5335"
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Icon name="receipt-outline" size={64} color="#D1D5DB" />
             </View>
-          }
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
+            <Text style={styles.emptyText}>No sales found</Text>
+            <Text style={styles.emptySubtext}>
+              {filter === 'today' ? 'No sales recorded for today' : 
+               filter === 'week' ? 'No sales recorded this week' :
+               filter === 'month' ? 'No sales recorded this month' : 
+               'Start selling to see transaction history'}
+            </Text>
+          </View>
+        }
+        contentContainerStyle={[
+          styles.listContainer,
+          { paddingBottom: 20 + insets.bottom }
+        ]}
+        showsVerticalScrollIndicator={false}
+        style={styles.flatList}
+      />
 
-        {renderSaleDetails()}
-      </View>
-    </SafeAreaView>
+      {renderSaleDetails()}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
   },
+  flatList: {
+    flex: 1,
+  },
   fixedHeaderContainer: {
     backgroundColor: '#F3F4F6',
+    zIndex: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   centerContainer: {
     flex: 1,
@@ -523,25 +524,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-  },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
-    marginTop: 2,
   },
   headerAction: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
@@ -550,27 +545,27 @@ const styles = StyleSheet.create({
   },
   statsScroll: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
   statsScrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
   },
   statCard: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginHorizontal: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginHorizontal: 2,
     alignItems: 'center',
-    minWidth: 70,
+    minWidth: 60,
   },
   statIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   revenueIcon: {
     backgroundColor: '#0D533515',
@@ -585,14 +580,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B5CF615',
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#111827',
-    marginTop: 2,
-    marginBottom: 2,
+    marginTop: 1,
+    marginBottom: 1,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#6B7280',
     fontWeight: '500',
   },
@@ -603,16 +598,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FEF3C7',
-    marginHorizontal: 16,
-    marginTop: 12,
-    padding: 12,
+    marginHorizontal: 12,
+    marginTop: 8,
+    padding: 10,
     borderRadius: 10,
-    gap: 8,
+    gap: 6,
     borderWidth: 1,
     borderColor: '#F59E0B30',
   },
   topProductText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#92400E',
     fontWeight: '500',
   },
@@ -622,20 +617,20 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 12,
-    gap: 8,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    marginBottom: 8,
+    gap: 6,
   },
   filterButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 8,
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: 16,
     backgroundColor: '#F3F4F6',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6,
+    gap: 4,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -645,7 +640,7 @@ const styles = StyleSheet.create({
   },
   filterText: {
     color: '#6B7280',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
   },
   filterTextActive: {
@@ -653,14 +648,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 20,
+    paddingHorizontal: 12,
+    paddingTop: 6,
   },
   saleCard: {
     backgroundColor: '#FFFFFF',
-    marginBottom: 10,
-    padding: 16,
+    marginBottom: 8,
+    padding: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
@@ -674,50 +668,50 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   saleIdContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   saleId: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#111827',
   },
   saleDateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   saleDate: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
   },
   saleMiddle: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   customerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   saleCustomer: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
     color: '#111827',
   },
   itemCountContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   itemCount: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
   },
   saleFooter: {
@@ -728,30 +722,30 @@ const styles = StyleSheet.create({
   saleTotalContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   saleTotal: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#0D5335',
   },
   profitContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   saleProfit: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#10B981',
     fontWeight: '600',
   },
   paymentBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   cashBadge: {
     backgroundColor: '#10B981',
@@ -763,7 +757,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F59E0B',
   },
   paymentText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#FFFFFF',
     fontWeight: '700',
   },
@@ -775,7 +769,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 16,
     width: '92%',
     maxHeight: '88%',
     shadowColor: '#000000',
@@ -788,18 +782,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 18,
+    padding: 14,
     backgroundColor: '#0D5335',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   modalHeaderContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -807,59 +801,59 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalBody: {
-    padding: 16,
+    padding: 14,
   },
   detailSection: {
-    marginBottom: 16,
-    paddingBottom: 16,
+    marginBottom: 14,
+    paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   detailItemRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   detailIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   detailContent: {
     flex: 1,
   },
   detailLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   detailValue: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#111827',
     fontWeight: '500',
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    gap: 6,
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#111827',
   },
   sectionBadge: {
     backgroundColor: '#0D533515',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 10,
   },
   sectionBadgeText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#0D5335',
     fontWeight: '600',
   },
@@ -867,7 +861,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#F9FAFB',
   },
@@ -875,36 +869,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   itemDetails: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   itemPrice: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
   },
   itemProfitBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     backgroundColor: '#10B98110',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 6,
   },
   itemProfitText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#10B981',
     fontWeight: '600',
   },
   itemTotal: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#0D5335',
   },
@@ -914,30 +908,30 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: 3,
   },
   totalLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7280',
   },
   totalValue: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#111827',
     fontWeight: '500',
   },
   grandTotalRow: {
-    marginTop: 8,
-    paddingTop: 8,
+    marginTop: 6,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
   grandTotalLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#111827',
   },
   grandTotalValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#0D5335',
   },
@@ -947,48 +941,48 @@ const styles = StyleSheet.create({
   totalProfitRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
-    paddingTop: 12,
+    marginTop: 10,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
   totalProfitLabelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   totalProfitLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111827',
   },
   totalProfitValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#10B981',
   },
   emptyContainer: {
-    paddingTop: 80,
+    paddingTop: 60,
     alignItems: 'center',
   },
   emptyIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#374151',
-    marginTop: 16,
+    marginTop: 12,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#9CA3AF',
-    marginTop: 8,
+    marginTop: 6,
     textAlign: 'center',
   },
 });

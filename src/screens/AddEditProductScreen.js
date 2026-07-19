@@ -10,10 +10,13 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDatabaseInstance, ref, push, set, update } from '../config/firebase';
+
+const { width, height } = Dimensions.get('window');
 
 const categories = [
   'Electronics', 'Clothing', 'Food & Beverage', 
@@ -21,6 +24,7 @@ const categories = [
 ];
 
 const AddEditProductScreen = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
   const { product, isEditing } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -114,16 +118,19 @@ const AddEditProductScreen = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <KeyboardAvoidingView 
-        style={styles.container}
+        style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <ScrollView 
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: 40 + insets.bottom }
+          ]}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -132,14 +139,14 @@ const AddEditProductScreen = ({ route, navigation }) => {
                 style={styles.backButton}
                 onPress={() => navigation.goBack()}
               >
-                <Icon name="arrow-back" size={24} color="#111827" />
+                <Icon name="arrow-back" size={22} color="#111827" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>
                 {isEditing ? 'Edit Product' : 'New Product'}
               </Text>
             </View>
             <View style={styles.headerBadge}>
-              <Icon name={isEditing ? "create-outline" : "add-circle-outline"} size={24} color="#0D5335" />
+              <Icon name={isEditing ? "create-outline" : "add-circle-outline"} size={22} color="#0D5335" />
             </View>
           </View>
 
@@ -151,7 +158,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
                 <Text style={styles.required}>*</Text>
               </View>
               <View style={styles.inputWrapper}>
-                <Icon name="cube-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+                <Icon name="cube-outline" size={18} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={formData.name}
@@ -221,13 +228,13 @@ const AddEditProductScreen = ({ route, navigation }) => {
             {formData.sellPrice && formData.buyPrice && (
               <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
-                  <Icon name="trending-up" size={18} color="#0D5335" />
+                  <Icon name="trending-up" size={16} color="#0D5335" />
                   <Text style={styles.statLabel}>Profit</Text>
                   <Text style={styles.statValue}>${calculateProfit()}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <Icon name="pie-chart" size={18} color="#0D5335" />
+                  <Icon name="pie-chart" size={16} color="#0D5335" />
                   <Text style={styles.statLabel}>Margin</Text>
                   <Text style={styles.statValue}>{calculateMargin()}</Text>
                 </View>
@@ -263,7 +270,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Initial Quantity</Text>
               <View style={styles.inputWrapper}>
-                <Icon name="layers-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+                <Icon name="layers-outline" size={18} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={formData.quantity}
@@ -279,7 +286,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Supplier</Text>
               <View style={styles.inputWrapper}>
-                <Icon name="business-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+                <Icon name="business-outline" size={18} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={formData.supplier}
@@ -317,7 +324,7 @@ const AddEditProductScreen = ({ route, navigation }) => {
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <>
-                  <Icon name={isEditing ? "checkmark-circle" : "add-circle"} size={22} color="#FFFFFF" />
+                  <Icon name={isEditing ? "checkmark-circle" : "add-circle"} size={20} color="#FFFFFF" />
                   <Text style={styles.saveButtonText}>
                     {isEditing ? 'Update Product' : 'Add Product'}
                   </Text>
@@ -327,18 +334,17 @@ const AddEditProductScreen = ({ route, navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
@@ -351,8 +357,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -362,40 +368,40 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 4,
-    marginRight: 12,
+    marginRight: 8,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
   },
   headerBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
   },
   form: {
-    padding: 20,
+    padding: 16,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   labelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
   },
   required: {
     color: '#EF4444',
-    fontSize: 16,
+    fontSize: 14,
     marginLeft: 4,
   },
   inputWrapper: {
@@ -408,18 +414,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   inputIcon: {
-    paddingLeft: 12,
+    paddingLeft: 10,
   },
   input: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    fontSize: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    fontSize: 14,
     color: '#111827',
   },
   currencySymbol: {
-    paddingLeft: 12,
-    fontSize: 16,
+    paddingLeft: 10,
+    fontSize: 14,
     fontWeight: '600',
     color: '#6B7280',
   },
@@ -428,17 +434,17 @@ const styles = StyleSheet.create({
   },
   textAreaWrapper: {
     alignItems: 'flex-start',
-    height: 100,
+    height: 90,
   },
   textArea: {
-    height: 100,
+    height: 90,
     textAlignVertical: 'top',
-    paddingTop: 12,
+    paddingTop: 10,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
   },
   halfWidth: {
     flex: 1,
@@ -446,15 +452,15 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 4,
+    marginTop: 2,
   },
   categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: '#F3F4F6',
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: 6,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -463,7 +469,7 @@ const styles = StyleSheet.create({
     borderColor: '#0D5335',
   },
   categoryButtonText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#374151',
     fontWeight: '500',
   },
@@ -475,8 +481,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    padding: 14,
-    marginVertical: 8,
+    padding: 12,
+    marginVertical: 6,
     borderWidth: 1,
     borderColor: '#D1D5DB',
     justifyContent: 'space-around',
@@ -484,15 +490,15 @@ const styles = StyleSheet.create({
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
     fontWeight: '500',
   },
   statValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#0D5335',
   },
@@ -505,11 +511,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
-    marginTop: 24,
-    marginBottom: 20,
-    gap: 8,
+    marginTop: 20,
+    marginBottom: 10,
+    gap: 6,
     shadowColor: '#0D5335',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -521,7 +527,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
   },
 });

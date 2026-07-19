@@ -11,12 +11,16 @@ import {
   ActivityIndicator,
   RefreshControl,
   StatusBar,
-  SafeAreaView,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDatabaseInstance, ref, onValue, push, set, remove, update } from '../config/firebase';
 
+const { width, height } = Dimensions.get('window');
+
 const CategoryManagementScreen = () => {
+  const insets = useSafeAreaInsets();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -211,20 +215,20 @@ const CategoryManagementScreen = () => {
       <View style={styles.categoryCard}>
         <View style={styles.categoryInfo}>
           <View style={[styles.categoryIconContainer, { backgroundColor: color + '15' }]}>
-            <Icon name="folder-open-outline" size={24} color={color} />
+            <Icon name="folder-open-outline" size={22} color={color} />
           </View>
           <View style={styles.categoryDetails}>
             <Text style={styles.categoryName}>{item.name}</Text>
             {item.description ? (
               <View style={styles.descriptionContainer}>
-                <Icon name="document-text-outline" size={12} color="#6B7280" />
+                <Icon name="document-text-outline" size={11} color="#6B7280" />
                 <Text style={styles.categoryDescription} numberOfLines={1}>
                   {item.description}
                 </Text>
               </View>
             ) : null}
             <View style={styles.productCountContainer}>
-              <Icon name="cube-outline" size={12} color="#6B7280" />
+              <Icon name="cube-outline" size={11} color="#6B7280" />
               <Text style={styles.productCount}>
                 {count} product{count !== 1 ? 's' : ''}
               </Text>
@@ -243,23 +247,65 @@ const CategoryManagementScreen = () => {
             onPress={() => handleEditCategory(item)}
             activeOpacity={0.7}
           >
-            <Icon name="create-outline" size={16} color="#FFFFFF" />
+            <Icon name="create-outline" size={15} color="#FFFFFF" />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionBtn, styles.deleteBtn]}
             onPress={() => handleDeleteCategory(item)}
             activeOpacity={0.7}
           >
-            <Icon name="trash-outline" size={16} color="#FFFFFF" />
+            <Icon name="trash-outline" size={15} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
     );
   };
 
+  // Fixed Header Component
+  const FixedHeader = () => (
+    <View style={[styles.fixedHeaderContainer, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerSubtitle}>
+            {categories.length} categories • {Object.values(productCount).reduce((a, b) => a + b, 0)} products
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.headerAction} onPress={loadCategories}>
+          <Icon name="refresh-outline" size={20} color="#0D5335" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.totalIcon]}>
+            <Icon name="albums-outline" size={18} color="#0D5335" />
+          </View>
+          <Text style={styles.statValue}>{categories.length}</Text>
+          <Text style={styles.statLabel}>Total</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.activeIcon]}>
+            <Icon name="checkmark-circle-outline" size={18} color="#10B981" />
+          </View>
+          <Text style={styles.statValue}>{Object.keys(productCount).length}</Text>
+          <Text style={styles.statLabel}>Active</Text>
+        </View>
+        
+        <View style={styles.statCard}>
+          <View style={[styles.statIconContainer, styles.productIcon]}>
+            <Icon name="cube-outline" size={18} color="#3B82F6" />
+          </View>
+          <Text style={styles.statValue}>{Object.values(productCount).reduce((a, b) => a + b, 0)}</Text>
+          <Text style={styles.statLabel}>Products</Text>
+        </View>
+      </View>
+    </View>
+  );
+
   if (loading && categories.length === 0) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
         <ActivityIndicator size="large" color="#0D5335" />
         <Text style={styles.loadingText}>Loading categories...</Text>
@@ -267,184 +313,150 @@ const CategoryManagementScreen = () => {
     );
   }
 
-  const totalProducts = Object.values(productCount).reduce((a, b) => a + b, 0);
-  const activeCategories = Object.keys(productCount).length;
-
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
       
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-  
-            <Text style={styles.headerSubtitle}>
-              {categories.length} categories • {totalProducts} products
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.headerAction} onPress={loadCategories}>
-            <Icon name="refresh-outline" size={22} color="#0D5335" />
-          </TouchableOpacity>
-        </View>
+      <FixedHeader />
 
-        {/* Stats Cards */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.totalIcon]}>
-              <Icon name="albums-outline" size={20} color="#0D5335" />
+      <FlatList
+        data={categories}
+        renderItem={renderCategoryItem}
+        keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={loadCategories}
+            colors={['#0D5335']}
+            tintColor="#0D5335"
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Icon name="folder-open-outline" size={64} color="#D1D5DB" />
             </View>
-            <Text style={styles.statValue}>{categories.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+            <Text style={styles.emptyText}>No categories found</Text>
+            <Text style={styles.emptySubtext}>Tap + to add your first category</Text>
           </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.activeIcon]}>
-              <Icon name="checkmark-circle-outline" size={20} color="#10B981" />
-            </View>
-            <Text style={styles.statValue}>{activeCategories}</Text>
-            <Text style={styles.statLabel}>Active</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, styles.productIcon]}>
-              <Icon name="cube-outline" size={20} color="#3B82F6" />
-            </View>
-            <Text style={styles.statValue}>{totalProducts}</Text>
-            <Text style={styles.statLabel}>Products</Text>
-          </View>
-        </View>
+        }
+        contentContainerStyle={[
+          styles.listContainer,
+          { paddingBottom: 80 + insets.bottom }
+        ]}
+        showsVerticalScrollIndicator={false}
+        style={styles.flatList}
+      />
 
-        {/* Categories List */}
-        <FlatList
-          data={categories}
-          renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.id}
-          refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
-              onRefresh={loadCategories}
-              colors={['#0D5335']}
-              tintColor="#0D5335"
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconContainer}>
-                <Icon name="folder-open-outline" size={64} color="#D1D5DB" />
+      <TouchableOpacity
+        style={[styles.fab, { bottom: 24 + insets.bottom }]}
+        onPress={() => {
+          resetForm();
+          setModalVisible(true);
+        }}
+        activeOpacity={0.8}
+      >
+        <Icon name="add" size={30} color="#FFFFFF" />
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={resetForm}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalHeaderContent}>
+                <Icon 
+                  name={editingCategory ? "create-outline" : "add-circle-outline"} 
+                  size={22} 
+                  color="#FFFFFF" 
+                />
+                <Text style={styles.modalTitle}>
+                  {editingCategory ? 'Edit Category' : 'New Category'}
+                </Text>
               </View>
-              <Text style={styles.emptyText}>No categories found</Text>
-              <Text style={styles.emptySubtext}>Tap + to add your first category</Text>
+              <TouchableOpacity 
+                style={styles.modalCloseButton}
+                onPress={resetForm}
+              >
+                <Icon name="close" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
-          }
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
 
-        {/* FAB Button */}
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => {
-            resetForm();
-            setModalVisible(true);
-          }}
-          activeOpacity={0.8}
-        >
-          <Icon name="add" size={32} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        {/* Add/Edit Category Modal */}
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={resetForm}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <View style={styles.modalHeaderContent}>
-                  <Icon 
-                    name={editingCategory ? "create-outline" : "add-circle-outline"} 
-                    size={24} 
-                    color="#FFFFFF" 
+            <View style={styles.modalForm}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Category Name</Text>
+                <View style={styles.inputWrapper}>
+                  <Icon name="pricetag-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={categoryName}
+                    onChangeText={setCategoryName}
+                    placeholder="Enter category name"
+                    placeholderTextColor="#9CA3AF"
                   />
-                  <Text style={styles.modalTitle}>
-                    {editingCategory ? 'Edit Category' : 'New Category'}
-                  </Text>
                 </View>
-                <TouchableOpacity 
-                  style={styles.modalCloseButton}
-                  onPress={resetForm}
-                >
-                  <Icon name="close" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
               </View>
 
-              <View style={styles.modalForm}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Category Name</Text>
-                  <View style={styles.inputWrapper}>
-                    <Icon name="pricetag-outline" size={20} color="#6B7280" style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      value={categoryName}
-                      onChangeText={setCategoryName}
-                      placeholder="Enter category name"
-                      placeholderTextColor="#9CA3AF"
-                    />
-                  </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Description (Optional)</Text>
+                <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={categoryDescription}
+                    onChangeText={setCategoryDescription}
+                    placeholder="Enter category description"
+                    placeholderTextColor="#9CA3AF"
+                    multiline
+                    numberOfLines={3}
+                  />
                 </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Description (Optional)</Text>
-                  <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
-                    <TextInput
-                      style={[styles.input, styles.textArea]}
-                      value={categoryDescription}
-                      onChangeText={setCategoryDescription}
-                      placeholder="Enter category description"
-                      placeholderTextColor="#9CA3AF"
-                      multiline
-                      numberOfLines={3}
-                    />
-                  </View>
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-                  onPress={editingCategory ? handleUpdateCategory : handleAddCategory}
-                  disabled={loading}
-                  activeOpacity={0.8}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                  ) : (
-                    <>
-                      <Icon name="checkmark-circle" size={20} color="#FFFFFF" />
-                      <Text style={styles.saveButtonText}>
-                        {editingCategory ? 'Update Category' : 'Add Category'}
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
               </View>
+
+              <TouchableOpacity
+                style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+                onPress={editingCategory ? handleUpdateCategory : handleAddCategory}
+                disabled={loading}
+                activeOpacity={0.8}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <>
+                    <Icon name="checkmark-circle" size={18} color="#FFFFFF" />
+                    <Text style={styles.saveButtonText}>
+                      {editingCategory ? 'Update Category' : 'Add Category'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
-        </Modal>
-      </View>
-    </SafeAreaView>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  flatList: {
+    flex: 1,
+  },
+  fixedHeaderContainer: {
+    backgroundColor: '#F3F4F6',
+    zIndex: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   centerContainer: {
     flex: 1,
@@ -462,25 +474,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-  },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
-    marginTop: 2,
   },
   headerAction: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
@@ -490,10 +496,10 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginTop: 16,
+    marginHorizontal: 12,
+    marginTop: 12,
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -502,12 +508,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   totalIcon: {
     backgroundColor: '#0D533515',
@@ -519,26 +525,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#3B82F615',
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
-    marginTop: 2,
-    marginBottom: 2,
+    marginTop: 1,
+    marginBottom: 1,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
     fontWeight: '500',
   },
   listContainer: {
-    padding: 16,
-    paddingBottom: 80,
+    paddingHorizontal: 12,
+    paddingTop: 8,
   },
   categoryCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 12,
+    marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -556,61 +562,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoryIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
   categoryDetails: {
     flex: 1,
   },
   categoryName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 3,
+    marginBottom: 2,
   },
   descriptionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 3,
-    gap: 4,
+    marginBottom: 2,
+    gap: 3,
   },
   categoryDescription: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
     flex: 1,
   },
   productCountContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   productCount: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
   },
   countBadge: {
     backgroundColor: '#0D533515',
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 8,
   },
   countBadgeText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#0D5335',
     fontWeight: '600',
   },
   categoryActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
   },
   actionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -622,11 +628,10 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    right: 20,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     backgroundColor: '#0D5335',
     justifyContent: 'center',
     alignItems: 'center',
@@ -658,7 +663,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 18,
+    padding: 16,
     backgroundColor: '#0D5335',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
@@ -666,10 +671,10 @@ const styles = StyleSheet.create({
   modalHeaderContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -677,16 +682,16 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalForm: {
-    padding: 20,
+    padding: 16,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -698,33 +703,33 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   inputIcon: {
-    paddingLeft: 12,
+    paddingLeft: 10,
   },
   input: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    fontSize: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    fontSize: 14,
     color: '#111827',
   },
   textAreaWrapper: {
     alignItems: 'flex-start',
-    height: 100,
+    height: 90,
   },
   textArea: {
-    height: 100,
+    height: 90,
     textAlignVertical: 'top',
-    paddingTop: 12,
+    paddingTop: 10,
   },
   saveButton: {
     backgroundColor: '#0D5335',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
-    marginTop: 8,
-    gap: 8,
+    marginTop: 6,
+    gap: 6,
     shadowColor: '#0D5335',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -736,31 +741,31 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   emptyContainer: {
-    paddingTop: 80,
+    paddingTop: 60,
     alignItems: 'center',
   },
   emptyIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#374151',
-    marginTop: 16,
+    marginTop: 12,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#9CA3AF',
-    marginTop: 8,
+    marginTop: 6,
   },
 });
 

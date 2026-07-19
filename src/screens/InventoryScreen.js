@@ -9,12 +9,16 @@ import {
   Alert,
   ScrollView,
   StatusBar,
-  SafeAreaView,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ProductService from '../services/ProductService';
 
+const { width, height } = Dimensions.get('window');
+
 const InventoryScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -145,17 +149,17 @@ const InventoryScreen = ({ navigation }) => {
           <View style={styles.itemInfo}>
             <Text style={styles.itemName}>{item.name}</Text>
             <View style={styles.itemMetaRow}>
-              <Icon name="document-text-outline" size={12} color="#6B7280" />
+              <Icon name="document-text-outline" size={11} color="#6B7280" />
               <Text style={styles.itemDescription} numberOfLines={1}>
                 {description}
               </Text>
             </View>
             <View style={styles.itemMetaRow}>
-              <Icon name="folder-outline" size={12} color="#6B7280" />
+              <Icon name="folder-outline" size={11} color="#6B7280" />
               <Text style={styles.itemCategory}>{item.category || 'Uncategorized'}</Text>
             </View>
             <View style={styles.itemPriceRow}>
-              <Icon name="cart-outline" size={12} color="#6B7280" />
+              <Icon name="cart-outline" size={11} color="#6B7280" />
               <Text style={styles.itemPriceInfo}>
                 Cost: {formatCurrency(costPrice)} | Sell: {formatCurrency(sellPrice)}
               </Text>
@@ -176,13 +180,13 @@ const InventoryScreen = ({ navigation }) => {
             </Text>
           </View>
           <View style={styles.valueContainer}>
-            <Icon name="cash-outline" size={12} color="#6B7280" />
+            <Icon name="cash-outline" size={11} color="#6B7280" />
             <Text style={styles.itemValue}>
               {formatCurrency(itemValue)}
             </Text>
           </View>
           <View style={styles.profitContainer}>
-            <Icon name="trending-up" size={12} color="#10B981" />
+            <Icon name="trending-up" size={11} color="#10B981" />
             <Text style={styles.itemProfit}>
               +{formatCurrency(itemProfit)}
             </Text>
@@ -192,22 +196,9 @@ const InventoryScreen = ({ navigation }) => {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-        <ActivityIndicator size="large" color="#0D5335" />
-        <Text style={styles.loadingText}>Loading inventory...</Text>
-      </View>
-    );
-  }
-
-  const needsAttention = products.filter(p => p.quantity < 20).length;
-
-  // Render the fixed header content
-  const renderFixedHeader = () => (
-    <View style={styles.fixedHeaderContainer}>
-      {/* Header */}
+  // Fixed Header Component
+  const FixedHeader = () => (
+    <View style={[styles.fixedHeaderContainer, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
           <Text style={styles.headerSubtitle}>
@@ -219,7 +210,6 @@ const InventoryScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
       
-      {/* Stats Cards */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
@@ -228,7 +218,7 @@ const InventoryScreen = ({ navigation }) => {
       >
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.primaryIcon]}>
-            <Icon name="cube-outline" size={18} color="#0D5335" />
+            <Icon name="cube-outline" size={16} color="#0D5335" />
           </View>
           <Text style={styles.statValue}>{stats.totalProducts}</Text>
           <Text style={styles.statLabel}>Products</Text>
@@ -236,7 +226,7 @@ const InventoryScreen = ({ navigation }) => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.primaryIcon]}>
-            <Icon name="cash-outline" size={18} color="#0D5335" />
+            <Icon name="cash-outline" size={16} color="#0D5335" />
           </View>
           <Text style={styles.statValue}>{formatCurrency(stats.totalValue)}</Text>
           <Text style={styles.statLabel}>Inventory Value</Text>
@@ -244,7 +234,7 @@ const InventoryScreen = ({ navigation }) => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.successIcon]}>
-            <Icon name="trending-up" size={18} color="#10B981" />
+            <Icon name="trending-up" size={16} color="#10B981" />
           </View>
           <Text style={[styles.statValue, styles.successText]}>
             {formatCurrency(stats.totalProfit)}
@@ -254,7 +244,7 @@ const InventoryScreen = ({ navigation }) => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.warningIcon]}>
-            <Icon name="alert-circle-outline" size={18} color="#F59E0B" />
+            <Icon name="alert-circle-outline" size={16} color="#F59E0B" />
           </View>
           <Text style={[styles.statValue, styles.warningText]}>{stats.lowStockItems}</Text>
           <Text style={styles.statLabel}>Low Stock</Text>
@@ -262,7 +252,7 @@ const InventoryScreen = ({ navigation }) => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.dangerIcon]}>
-            <Icon name="close-circle-outline" size={18} color="#EF4444" />
+            <Icon name="close-circle-outline" size={16} color="#EF4444" />
           </View>
           <Text style={[styles.statValue, styles.dangerText]}>{stats.outOfStock}</Text>
           <Text style={styles.statLabel}>Out of Stock</Text>
@@ -270,7 +260,7 @@ const InventoryScreen = ({ navigation }) => {
         
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, styles.successIcon]}>
-            <Icon name="checkmark-done-circle-outline" size={18} color="#10B981" />
+            <Icon name="checkmark-done-circle-outline" size={16} color="#10B981" />
           </View>
           <Text style={[styles.statValue, styles.successText]}>{stats.highStockItems}</Text>
           <Text style={styles.statLabel}>Well Stocked</Text>
@@ -279,63 +269,80 @@ const InventoryScreen = ({ navigation }) => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
+        <ActivityIndicator size="large" color="#0D5335" />
+        <Text style={styles.loadingText}>Loading inventory...</Text>
+      </View>
+    );
+  }
+
+  const needsAttention = products.filter(p => p.quantity < 20).length;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
       
-      <View style={styles.container}>
-        {/* Fixed Header Container */}
-        {renderFixedHeader()}
+      <FixedHeader />
 
-        {/* Inventory List */}
-        <FlatList
-          data={products.sort((a, b) => (a.quantity || 0) - (b.quantity || 0))}
-          keyExtractor={(item) => item.id}
-          renderItem={renderInventoryItem}
-          ListHeaderComponent={
-            <View style={styles.listHeader}>
-              <View style={styles.listHeaderLeft}>
-                <Icon name="list-outline" size={20} color="#0D5335" />
-                <View>
-                  <Text style={styles.listHeaderTitle}>Inventory List</Text>
-                  <Text style={styles.listHeaderSubtitle}>
-                    {needsAttention > 0 ? `${needsAttention} items need attention` : 'All items are well stocked'}
-                  </Text>
-                </View>
+      <FlatList
+        data={products.sort((a, b) => (a.quantity || 0) - (b.quantity || 0))}
+        keyExtractor={(item) => item.id}
+        renderItem={renderInventoryItem}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            <View style={styles.listHeaderLeft}>
+              <Icon name="list-outline" size={18} color="#0D5335" />
+              <View>
+                <Text style={styles.listHeaderTitle}>Inventory List</Text>
+                <Text style={styles.listHeaderSubtitle}>
+                  {needsAttention > 0 ? `${needsAttention} items need attention` : 'All items are well stocked'}
+                </Text>
               </View>
-              <TouchableOpacity style={styles.refreshButton} onPress={loadProducts}>
-                <Icon name="refresh-outline" size={18} color="#6B7280" />
-              </TouchableOpacity>
             </View>
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconContainer}>
-                <Icon name="cube-outline" size={64} color="#D1D5DB" />
-              </View>
-              <Text style={styles.emptyText}>No products in inventory</Text>
-              <Text style={styles.emptySubtext}>Add products to see them here</Text>
+            <TouchableOpacity style={styles.refreshButton} onPress={loadProducts}>
+              <Icon name="refresh-outline" size={16} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Icon name="cube-outline" size={64} color="#D1D5DB" />
             </View>
-          }
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-    </SafeAreaView>
+            <Text style={styles.emptyText}>No products in inventory</Text>
+            <Text style={styles.emptySubtext}>Add products to see them here</Text>
+          </View>
+        }
+        contentContainerStyle={[
+          styles.listContainer,
+          { paddingBottom: 20 + insets.bottom }
+        ]}
+        showsVerticalScrollIndicator={false}
+        style={styles.flatList}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
   },
+  flatList: {
+    flex: 1,
+  },
   fixedHeaderContainer: {
     backgroundColor: '#F3F4F6',
+    zIndex: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   centerContainer: {
     flex: 1,
@@ -353,25 +360,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-  },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
-    marginTop: 2,
   },
   headerAction: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#0D533515',
     justifyContent: 'center',
     alignItems: 'center',
@@ -380,27 +381,27 @@ const styles = StyleSheet.create({
   },
   statsScroll: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
   statsScrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
   },
   statCard: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginHorizontal: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginHorizontal: 2,
     alignItems: 'center',
-    minWidth: 70,
+    minWidth: 60,
   },
   statIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   primaryIcon: {
     backgroundColor: '#0D533515',
@@ -415,14 +416,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF444415',
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#111827',
-    marginTop: 2,
-    marginBottom: 2,
+    marginTop: 1,
+    marginBottom: 1,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#6B7280',
     fontWeight: '500',
   },
@@ -436,50 +437,49 @@ const styles = StyleSheet.create({
     color: '#EF4444',
   },
   listContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 20,
+    paddingHorizontal: 12,
+    paddingTop: 6,
   },
   listHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    marginTop: 12,
+    marginTop: 8,
     borderRadius: 12,
-    marginBottom: 8,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   listHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   listHeaderTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#111827',
   },
   listHeaderSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
     marginTop: 1,
   },
   refreshButton: {
-    padding: 8,
+    padding: 6,
     backgroundColor: '#F3F4F6',
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   inventoryItem: {
     backgroundColor: '#FFFFFF',
-    marginVertical: 6,
-    padding: 16,
+    marginVertical: 4,
+    padding: 12,
     borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -498,91 +498,91 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusIndicator: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   itemInfo: {
     flex: 1,
   },
   itemName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   itemMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     marginBottom: 1,
   },
   itemDescription: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
     flex: 1,
   },
   itemCategory: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#0D5335',
     fontWeight: '500',
   },
   itemPriceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
+    gap: 3,
+    marginTop: 1,
   },
   itemPriceInfo: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
   },
   itemStatus: {
     alignItems: 'flex-end',
-    gap: 3,
-    marginLeft: 8,
+    gap: 2,
+    marginLeft: 6,
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   itemQuantity: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
     borderRadius: 12,
   },
   itemStatusText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
   },
   valueContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   itemValue: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
     fontWeight: '500',
   },
   profitContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   itemProfit: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#10B981',
     fontWeight: '600',
   },
@@ -590,26 +590,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 60,
   },
   emptyIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#374151',
-    marginTop: 16,
+    marginTop: 12,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#9CA3AF',
-    marginTop: 8,
+    marginTop: 6,
   },
 });
 
